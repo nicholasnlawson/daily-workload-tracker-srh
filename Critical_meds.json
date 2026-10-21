@@ -258,16 +258,6 @@
       ]
     },
     {
-      "name": "Aspirin",
-      "aliases": [
-        "acetylsalicylic acid",
-        "caprin",
-        "micropirin",
-        "nu-seals",
-        "disprin"
-      ]
-    },
-    {
       "name": "Atazanavir",
       "aliases": [
         "reyataz"
@@ -835,12 +825,6 @@
       ]
     },
     {
-      "name": "Clopidogrel",
-      "aliases": [
-        "plavix"
-      ]
-    },
-    {
       "name": "Clozapine",
       "aliases": [
         "clozaril",
@@ -1087,13 +1071,6 @@
       "aliases": [
         "tecfidera",
         "skilarence"
-      ]
-    },
-    {
-      "name": "Dipyridamole",
-      "aliases": [
-        "persantin",
-        "attia"
       ]
     },
     {
@@ -2772,12 +2749,6 @@
       ]
     },
     {
-      "name": "Prasugrel",
-      "aliases": [
-        "efient"
-      ]
-    },
-    {
       "name": "Praziquantel",
       "aliases": [
         "biltricide"
@@ -3164,12 +3135,6 @@
       "name": "Tiagabine",
       "aliases": [
         "gabitril"
-      ]
-    },
-    {
-      "name": "Ticagrelor",
-      "aliases": [
-        "brilique"
       ]
     },
     {

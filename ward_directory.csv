@@ -7,6 +7,7 @@ DGB26,B26,Gastroenterology, Medicine
 DGB28,B28,Haematology/Renal, Medicine
 DGC30,C30,General Surgery,Surgery
 DGC31,C31 (ESAU),General Surgery (Emerg),Surgery
+DGC32,C32,Contingency, Medicine
 DGC33,C33,H&N/ENT,Surgery
 DGC36,C36,Vascular,Surgery
 DGD40,D40,Endocrinology,Medicine
@@ -25,7 +26,23 @@ DGE55,E55,Respiratory,Medicine
 DGE56,E56,Stroke, Care of the Elderly
 DGE58,E58,COTE,Care of the Elderly
 DGF61,F61,COTE,Care of the Elderly
+DGF62,F62,Contingency, Medicine
+DGF63,F63,Paeds, Paediatrics
+DGF64,F64,Paeds, Paediatrics
+DGF65,F65,Paeds, Paediatrics
+DGNICU,NICU,Neonatal ICU, Paediatrics
 EAU-SR,EAU-SR,EAU Side Rooms, Emergency Care
 EAU:1-3,EAU:1-3,EAU Rooms 1-3, Emergency Care
 EAU:4-6,EAU:4-6,EAU Rooms 4-6, Emergency Care
-
+SDEC-INP,SDEC-INP,SDEC Inpatient, Medicine
+STEAU, STEAU, EAU, STDH
+STWARD1, WARD 1, Surgery, STDH
+STWARD2, WARD 2, COTE, STDH
+STWARD3, WARD 3, Gastroenterology, STDH
+STWARD5, WARD 5, Haematology/Renal, STDH
+STWARD6, WARD 6, Cardiology, STDH
+STWARD7, WARD 7, Endocrinology, STDH
+STWARD8, WARD 8, COTE, STDH
+STSURGIP, SCIP, Surgery, STDH
+STWARD10, WARD 10, Respiratory, STDH
+STWARD12, WARD 12, Contingency, STDH

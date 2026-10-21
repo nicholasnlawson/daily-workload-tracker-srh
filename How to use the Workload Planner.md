@@ -27,7 +27,24 @@ Save each day's reports into this folder, or into a subfolder inside it (e.g. `W
    - Optionally tick **Include staffing & pharmacist allocation**. This adds the Co-ordinator and Meds Rec section and the AM/PM pharmacist and Comment columns. Each pharmacist name is coloured automatically.
 7. **Copy and paste.** Click **Copy table for email**, then paste into Outlook with Ctrl+V.
 
+### Closed wards
+
+A closed ward's Ward List report prints a page that says only **No records found.** Any ward in `ward_directory.csv` that has no ward list data appears in the table as **Closed** (in red, across the count columns). Its pharmacist and comment boxes can still be filled in, e.g. "Open – 15 patients" or "Email to follow". Closed wards are not included in the totals or the Patient details.
+
+The status box shows how many "No records found" pages each report contains. If the number of wards shown as Closed doesn't match the number of "No records found" pages, a **Check:** warning lists the closed wards. This usually means a ward's report was not run or not saved.
+
 > Anything typed into the page is **not saved**. Copy the table into your email before closing or refreshing the page.
+
+## Ward list for EMR reports
+
+Click **Ward list for EMR reports** at the top of the page to see every ward in `ward_directory.csv`, in file order. Use it to enter ward codes into the EMR report generator quickly:
+
+- **Click a ward code** to copy it, then paste into the EMR with Ctrl+V. Only the code itself copies; the other columns don't.
+- **Copy next** copies the wards one at a time in order. The button shows which ward is next.
+- The next ward to copy is highlighted **blue**. Copied wards turn **green**.
+- **Undo** un-marks the last ward copied. **Reset** clears all the marks.
+
+The list updates whenever the ward directory is loaded (on either page, or with **Load ward directory (CSV)…** on this page). Copied marks are not saved; refreshing the page clears them.
 
 ## What the columns mean
 

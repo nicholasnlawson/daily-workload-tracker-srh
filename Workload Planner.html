@@ -83,6 +83,88 @@
       .btn.primary:hover {
         background: #004a93;
       }
+      .btn:disabled {
+        opacity: 0.45;
+        pointer-events: none;
+      }
+      header nav {
+        display: flex;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      header nav button {
+        background: transparent;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 4px;
+        padding: 5px 12px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      header nav button:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+      header nav button[aria-current="page"] {
+        background: #fff;
+        color: var(--accent);
+      }
+      body[data-page="wards"] main > section:not(#wardPage),
+      body:not([data-page="wards"]) #wardPage {
+        display: none !important;
+      }
+      #wardPage h2 {
+        margin: 0 0 6px;
+        font-size: 17px;
+      }
+      #wcMsg {
+        align-self: center;
+        font-size: 13px;
+      }
+      #wcSource {
+        margin: 10px 0 6px;
+      }
+      table.wc {
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      table.wc th,
+      table.wc td {
+        border: 1px solid #ccc;
+        padding: 3px 10px;
+        text-align: left;
+      }
+      table.wc th {
+        background: var(--hdr);
+      }
+      table.wc td.n {
+        color: #4c6272;
+        text-align: right;
+      }
+      .wcode {
+        font: inherit;
+        font-weight: bold;
+        min-width: 90px;
+        padding: 3px 8px;
+        border: 2px solid transparent;
+        border-radius: 4px;
+        background: #f2f4f7;
+        color: #212b32;
+        cursor: pointer;
+        text-align: left;
+      }
+      .wcode:hover {
+        border-color: var(--border);
+      }
+      .wcode.next {
+        background: #cfe0f5;
+        border-color: var(--accent);
+        color: #003d78;
+      }
+      .wcode.done {
+        background: #cdebd8;
+        border-color: #007f3b;
+        color: #00552a;
+      }
       #status {
         margin-top: 12px;
         font-size: 13px;
@@ -248,6 +330,10 @@
       table.wl td.grey {
         background: #808080;
       }
+      table.wl td.closed {
+        text-align: center;
+        color: #d5281b;
+      }
       table.wl input {
         width: 100%;
         border: none;
@@ -377,8 +463,41 @@
         Builds the daily directorate workload table from Pharmacy Ward List
         reports and <b>ward_directory.csv</b>.
       </p>
+      <nav>
+        <button type="button" data-page="planner">Workload table</button>
+        <button type="button" data-page="wards">
+          Ward list for EMR reports
+        </button>
+      </nav>
     </header>
     <main>
+      <section id="wardPage" class="card">
+        <h2>Ward list for EMR reports</h2>
+        <p class="legend">
+          Click a ward code to copy it, or click <b>Copy next</b> to copy the
+          wards one at a time in order, then paste into the EMR report generator
+          (Ctrl+V). The next ward to copy is highlighted blue; copied wards turn
+          green. The list comes from <b>ward_directory.csv</b>.
+        </p>
+        <div class="btns">
+          <button type="button" id="wcNext" class="btn primary">
+            Copy next
+          </button>
+          <button type="button" id="wcUndo" class="btn">Undo</button>
+          <button type="button" id="wcReset" class="btn">Reset</button>
+          <label class="btn"
+            >Load ward directory (CSV)&hellip;<input
+              type="file"
+              id="wcPickDir"
+              accept=".csv"
+              hidden
+          /></label>
+          <span id="wcMsg"></span>
+        </div>
+        <div id="wcSource" class="legend"></div>
+        <table id="wcTable" class="wc"></table>
+      </section>
+
       <section class="card">
         <div id="drop" class="drop">
           Drag the ward list and review list reports (PDF or text),
@@ -540,6 +659,7 @@
           files: [],
           warnings: [],
           edits: {},
+          noRecords: 0,
           staff: Object.fromEntries(
             Object.values(STAFF_LAYOUTS)
               .flatMap((l) => l.fields)
@@ -1057,10 +1177,14 @@
 
         function addWardList(text, name) {
           const wards = parseReport(text, name);
+          // Closed wards print a page with only "No records found." and no ward code
+          const noRecords = (text.match(/No records found/gi) || []).length;
+          state.noRecords += noRecords;
           state.files.push({
             name,
             wards: wards.map((w) => w.code),
             kind: "ward list",
+            noRecords,
           });
           for (const w of wards)
             mergeLatest(state.wards, w.code, w, "ward list");
@@ -1329,9 +1453,13 @@
 
         const dirEntry = (code) => state.directory.find((d) => d.ward === code);
 
+        // Directory wards with no ward list data (closed wards print "No records found.")
+        const closedCodes = () =>
+          state.directory.map((d) => d.ward).filter((c) => !state.wards.has(c));
+
         function visibleWards() {
           const sel = $("dirSel").value;
-          const codes = [...state.wards.keys()];
+          const codes = [...state.wards.keys(), ...closedCodes()];
           const order = (c) => {
             const i = state.directory.findIndex((d) => d.ward === c);
             return i < 0 ? 1e6 : i;
@@ -1348,7 +1476,7 @@
                 order(a) - order(b) ||
                 a.localeCompare(b, undefined, { numeric: true }),
             )
-            .map((c) => state.wards.get(c));
+            .map((c) => state.wards.get(c) || { code: c, closed: true });
         }
 
         const editOf = (code) =>
@@ -1479,12 +1607,14 @@
           const totals = { pts: 0, revMissing: true };
           cols.forEach((c) => (totals[c.key] = 0));
           for (const w of wards) {
-            const s = wardStats(w),
+            const s = w.closed ? null : wardStats(w),
               d = dirEntry(w.code),
               e = editOf(w.code);
-            totals.pts += s.pts;
-            if (!s.revMissing) totals.revMissing = false;
-            cols.forEach((c) => (totals[c.key] += s[c.key]));
+            if (s) {
+              totals.pts += s.pts;
+              if (!s.revMissing) totals.revMissing = false;
+              cols.forEach((c) => (totals[c.key] += s[c.key]));
+            }
             const bg = (k) => {
               const c = colours.get(e[k].trim().toLowerCase());
               return c ? `background:${c};` : "";
@@ -1496,16 +1626,22 @@
             html += `<td class="txt"${td()}>${brk(d ? d.display : w.code)}</td>`;
             if (show.spec)
               html += `<td class="txt"${td("text-align:center;")}>${brk(d ? d.specialty : "")}</td>`;
-            if (show.pts)
-              html += `<td class="num"${td("text-align:center;")}>${s.pts}</td>`;
-            html += cols
-              .map(
-                (c) =>
-                  `<td class="num"${email ? td("text-align:center;" + colColor(c)) : colColor(c) ? ` style="${colColor(c)}"` : ""}>${cellValue(c, s, "&ndash;")}</td>`,
-              )
-              .join("");
-            if (show.mb)
-              html += `<td class="edit num"${td("text-align:center;")}>${inp(w.code, "medBords", e.medBords)}</td>`;
+            const span = (show.pts ? 1 : 0) + cols.length + (show.mb ? 1 : 0);
+            if (!s) {
+              if (span)
+                html += `<td class="closed" colspan="${span}"${td("text-align:center;color:#d5281b;")}>Closed</td>`;
+            } else {
+              if (show.pts)
+                html += `<td class="num"${td("text-align:center;")}>${s.pts}</td>`;
+              html += cols
+                .map(
+                  (c) =>
+                    `<td class="num"${email ? td("text-align:center;" + colColor(c)) : colColor(c) ? ` style="${colColor(c)}"` : ""}>${cellValue(c, s, "&ndash;")}</td>`,
+                )
+                .join("");
+              if (show.mb)
+                html += `<td class="edit num"${td("text-align:center;")}>${inp(w.code, "medBords", e.medBords)}</td>`;
+            }
             if (show.pharm) {
               const cs = (k) => (email ? td(bg(k)) : ` style="${bg(k)}"`);
               html += `<td class="edit wide pharm"${cs("am")}>${grow(w.code, "am", e.am)}</td>`;
@@ -1576,16 +1712,26 @@
             ...(comment ? ["Comments"] : []),
           ]);
           for (const w of wards) {
-            const s = wardStats(w),
+            const s = w.closed ? null : wardStats(w),
               d = dirEntry(w.code),
               e = editOf(w.code);
+            const counts = s
+              ? [
+                  ...(pts ? [s.pts] : []),
+                  ...cols.map((c) => cellValue(c, s, "-")),
+                  ...(mb ? [e.medBords] : []),
+                ]
+              : [
+                  ...(pts ? [""] : []),
+                  ...cols.map(() => ""),
+                  ...(mb ? [""] : []),
+                ];
+            if (!s && counts.length) counts[0] = "Closed";
             rows.push(
               [
                 d ? d.display : w.code,
                 ...(spec ? [d ? d.specialty : ""] : []),
-                ...(pts ? [s.pts] : []),
-                ...cols.map((c) => cellValue(c, s, "-")),
-                ...(mb ? [e.medBords] : []),
+                ...counts,
                 ...(pharm ? [e.am, e.pm] : []),
                 ...(comment ? [e.comment] : []),
               ].map((v) => String(v).replace(/\s*\n\s*/g, " / ")),
@@ -1625,6 +1771,7 @@
 
         function buildDetails() {
           return visibleWards()
+            .filter((w) => !w.closed)
             .map((w) => {
               const rv = state.reviews.get(w.code);
               const match = matchReviews(w);
@@ -1726,7 +1873,17 @@
                 state.files
                   .map(
                     (f) =>
-                      `<li>${esc(f.name)} (${f.kind}): ${f.wards.map(esc).join(", ") || '<span class="err">no wards found</span>'}</li>`,
+                      `<li>${esc(f.name)} (${f.kind}): ${
+                        [
+                          ...f.wards.map(esc),
+                          ...(f.noRecords
+                            ? [
+                                `${f.noRecords} &ldquo;No records found&rdquo; page${f.noRecords > 1 ? "s" : ""} (closed ward${f.noRecords > 1 ? "s" : ""})`,
+                              ]
+                            : []),
+                        ].join(", ") ||
+                        '<span class="err">no wards found</span>'
+                      }</li>`,
                   )
                   .join("") +
                 "</ul>",
@@ -1736,6 +1893,14 @@
           if (state.wards.size && !state.reviews.size)
             warns.push(
               "No review list loaded: the Unreviewed items columns will show \u2013.",
+            );
+          const closed = closedCodes();
+          if (
+            (state.wards.size || state.noRecords) &&
+            closed.length !== state.noRecords
+          )
+            warns.push(
+              `${closed.length} directory ward(s) have no ward list data and are shown as Closed${closed.length ? ` (${closed.join(", ")})` : ""}, but ${state.noRecords} \u201cNo records found\u201d page(s) were loaded. Check that a ward list was run for every ward.`,
             );
           for (const w of state.wards.values()) {
             const s = wardStats(w);
@@ -1800,9 +1965,100 @@
           $("detailWrap").innerHTML = buildDetails();
         }
 
+        // ---------- Ward list for EMR reports ----------
+        // Ward codes copied so far, in the order they were copied (for Undo)
+        let wcDone = [];
+        // Next ward for "Copy next": the first uncopied ward after the last one
+        // copied, otherwise the first uncopied ward in the list
+        function wcNextCode() {
+          const codes = state.directory.map((d) => d.ward);
+          const from = codes.indexOf(wcDone[wcDone.length - 1]) + 1;
+          const free = (c) => !wcDone.includes(c);
+          return codes.slice(from).find(free) ?? codes.find(free) ?? null;
+        }
+
+        function renderWardPage() {
+          wcDone = wcDone.filter((c) => dirEntry(c));
+          const next = wcNextCode();
+          const n = state.directory.length;
+          $("wcSource").innerHTML = state.dirFile
+            ? `${n} wards from "${esc(state.dirFile)}"; ${wcDone.length} copied.`
+            : `<span class="warn">No ward directory loaded. Click <b>Load ward directory (CSV)&hellip;</b> and choose <b>ward_directory.csv</b>.</span>`;
+          $("wcTable").innerHTML = n
+            ? `<thead><tr><th></th><th>Ward</th><th>Display Name</th><th>Specialty</th><th>Directorate</th></tr></thead><tbody>${state.directory
+                .map((d, i) => {
+                  const cls = wcDone.includes(d.ward)
+                    ? "done"
+                    : d.ward === next
+                      ? "next"
+                      : "";
+                  return `<tr><td class="n">${i + 1}</td><td><button type="button" class="wcode ${cls}" data-code="${esc(d.ward)}" title="Click to copy">${esc(d.ward)}</button></td><td>${esc(d.display)}</td><td>${esc(d.specialty)}</td><td>${esc(d.directorate)}</td></tr>`;
+                })
+                .join("")}</tbody>`
+            : "";
+          $("wcNext").textContent = next
+            ? `Copy next (${next})`
+            : n
+              ? "All wards copied"
+              : "Copy next";
+          $("wcNext").disabled = !next;
+          $("wcUndo").disabled = $("wcReset").disabled = !wcDone.length;
+        }
+
+        async function copyText(text) {
+          try {
+            await navigator.clipboard.writeText(text);
+            return true;
+          } catch (_) {
+            const ta = document.createElement("textarea");
+            ta.value = text;
+            ta.style.cssText = "position:fixed;left:-9999px;top:0;";
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand("copy");
+            ta.remove();
+            return ok;
+          }
+        }
+
+        async function wcCopy(code) {
+          const ok = await copyText(code);
+          if (ok && !wcDone.includes(code)) wcDone.push(code);
+          renderWardPage();
+          const msg = $("wcMsg");
+          msg.className = ok ? "ok" : "err";
+          msg.textContent = ok
+            ? `Copied ${code}. Paste into the EMR (Ctrl+V).`
+            : `Copy failed for ${code}. Select the ward code and press Ctrl+C.`;
+          const nextBtn = $("wcTable").querySelector(".wcode.next");
+          if (nextBtn) nextBtn.scrollIntoView({ block: "nearest" });
+        }
+
+        function wcSetMsg(text) {
+          $("wcMsg").className = "";
+          $("wcMsg").textContent = text;
+        }
+
+        function showPage(page) {
+          document.body.dataset.page = page;
+          document
+            .querySelectorAll("header nav button")
+            .forEach((b) =>
+              b.dataset.page === page
+                ? b.setAttribute("aria-current", "page")
+                : b.removeAttribute("aria-current"),
+            );
+          history.replaceState(
+            null,
+            "",
+            page === "wards" ? "#wards" : location.pathname + location.search,
+          );
+        }
+
         function render() {
           renderStatus();
-          const has = state.wards.size > 0;
+          renderWardPage();
+          const has = state.wards.size > 0 || state.noRecords > 0;
           $("controls").hidden =
             $("output").hidden =
             $("details").hidden =
@@ -1849,8 +2105,37 @@
             files: [],
             warnings: [],
             edits: {},
+            noRecords: 0,
           });
           render();
+        });
+        document
+          .querySelectorAll("header nav button")
+          .forEach((b) =>
+            b.addEventListener("click", () => showPage(b.dataset.page)),
+          );
+        showPage(location.hash === "#wards" ? "wards" : "planner");
+        $("wcPickDir").addEventListener("change", (e) => {
+          handleFiles([...e.target.files]);
+          e.target.value = "";
+        });
+        $("wcTable").addEventListener("click", (e) => {
+          const b = e.target.closest("button[data-code]");
+          if (b) wcCopy(b.dataset.code);
+        });
+        $("wcNext").addEventListener("click", () => {
+          const next = wcNextCode();
+          if (next) wcCopy(next);
+        });
+        $("wcUndo").addEventListener("click", () => {
+          const code = wcDone.pop();
+          renderWardPage();
+          if (code) wcSetMsg(`Undone: ${code} is no longer marked as copied.`);
+        });
+        $("wcReset").addEventListener("click", () => {
+          wcDone = [];
+          renderWardPage();
+          wcSetMsg("Reset: no wards marked as copied.");
         });
         $("dirSel").addEventListener("change", renderTable);
         $("optStaff").addEventListener("change", renderTable);
