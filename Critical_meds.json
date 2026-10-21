@@ -1,0 +1,3344 @@
+{
+  "medications": [
+    {
+      "name": "Abacavir",
+      "aliases": [
+        "ziagen"
+      ]
+    },
+    {
+      "name": "Abacavir/Lamivudine",
+      "aliases": [
+        "kivexa",
+        "epzicom"
+      ]
+    },
+    {
+      "name": "Abatacept",
+      "aliases": [
+        "orencia"
+      ]
+    },
+    {
+      "name": "Abemaciclib",
+      "aliases": [
+        "Abemaciclib-Specialist-Drug",
+        "verzenios",
+        "verzenio"
+      ]
+    },
+    {
+      "name": "Abiraterone",
+      "aliases": [
+        "abiraterone acetate",
+        "zytiga"
+      ]
+    },
+    {
+      "name": "Acalabrutinib",
+      "aliases": [
+        "calquence"
+      ]
+    },
+    {
+      "name": "Acenocoumarol",
+      "aliases": [
+        "sinthrome",
+        "nicoumalone"
+      ]
+    },
+    {
+      "name": "Aciclovir",
+      "aliases": [
+        "acyclovir",
+        "zovirax",
+        "acyvir"
+      ]
+    },
+    {
+      "name": "Adalimumab",
+      "aliases": [
+        "humira",
+        "amgevita",
+        "hulio",
+        "hyrimoz",
+        "idacio",
+        "imraldi"
+      ]
+    },
+    {
+      "name": "Afatinib",
+      "aliases": [
+        "Afatinib-Specialist-Drug",
+        "giotrif"
+      ]
+    },
+    {
+      "name": "Aflibercept",
+      "aliases": [
+        "eylea",
+        "zaltrap"
+      ]
+    },
+    {
+      "name": "Alectinib",
+      "aliases": [
+        "Alectinib-Specialist-Drug",
+        "alecensa"
+      ]
+    },
+    {
+      "name": "Alemtuzumab",
+      "aliases": [
+        "lemtrada",
+        "campath"
+      ]
+    },
+    {
+      "name": "Alfentanil",
+      "aliases": [
+        "rapifen"
+      ]
+    },
+    {
+      "name": "Alpelisib",
+      "aliases": [
+        "Alpelisib-Specialist-Drug",
+        "piqray"
+      ]
+    },
+    {
+      "name": "Alteplase",
+      "aliases": [
+        "actilyse",
+        "metalyse"
+      ]
+    },
+    {
+      "name": "Amantadine",
+      "aliases": [
+        "symmetrel"
+      ]
+    },
+    {
+      "name": "Amifampridine",
+      "aliases": [
+        "firdapse"
+      ]
+    },
+    {
+      "name": "Amikacin",
+      "aliases": [
+        "amikin"
+      ]
+    },
+    {
+      "name": "Amisulpride",
+      "aliases": [
+        "solian",
+        "amipride"
+      ]
+    },
+    {
+      "name": "Amoxicillin",
+      "aliases": [
+        "amoxil",
+        "amoxycillin"
+      ]
+    },
+    {
+      "name": "Amphotericin",
+      "aliases": [
+        "fungizone",
+        "ambisome",
+        "abelcet"
+      ]
+    },
+    {
+      "name": "Ampicillin",
+      "aliases": [
+        "penbritin"
+      ]
+    },
+    {
+      "name": "Amsacrine",
+      "aliases": []
+    },
+    {
+      "name": "Anakinra",
+      "aliases": [
+        "kineret"
+      ]
+    },
+    {
+      "name": "Anastrozole",
+      "aliases": [
+        "arimidex"
+      ]
+    },
+    {
+      "name": "Andexanet",
+      "aliases": [
+        "ondexxya"
+      ]
+    },
+    {
+      "name": "Antithymocyte Globulin",
+      "aliases": [
+        "a.t.g horse",
+        "thymoglobuline",
+        "grafalon"
+      ]
+    },
+    {
+      "name": "Apalutamide",
+      "aliases": [
+        "erleada"
+      ]
+    },
+    {
+      "name": "Apixaban",
+      "aliases": [
+        "eliquis"
+      ]
+    },
+    {
+      "name": "Apomorphine",
+      "aliases": [
+        "Apomorphine-Hydrochloride",
+        "apomorphine hydrochloride",
+        "apo-go",
+        "dacepton",
+        "kinzide"
+      ]
+    },
+    {
+      "name": "Apremilast",
+      "aliases": [
+        "otezla"
+      ]
+    },
+    {
+      "name": "Argatroban",
+      "aliases": [
+        "exembol"
+      ]
+    },
+    {
+      "name": "Aripiprazole",
+      "aliases": [
+        "abilify",
+        "abilify maintena"
+      ]
+    },
+    {
+      "name": "Arsenic Trioxide",
+      "aliases": [
+        "trisenox"
+      ]
+    },
+    {
+      "name": "Asciminib",
+      "aliases": [
+        "Asciminib-Specialist-Drug",
+        "scemblix"
+      ]
+    },
+    {
+      "name": "Asenapine",
+      "aliases": [
+        "sycrest"
+      ]
+    },
+    {
+      "name": "Asparaginase",
+      "aliases": [
+        "spectrila",
+        "erwinase"
+      ]
+    },
+    {
+      "name": "Aspirin",
+      "aliases": [
+        "acetylsalicylic acid",
+        "caprin",
+        "micropirin",
+        "nu-seals",
+        "disprin"
+      ]
+    },
+    {
+      "name": "Atazanavir",
+      "aliases": [
+        "reyataz"
+      ]
+    },
+    {
+      "name": "Atezolizumab",
+      "aliases": [
+        "tecentriq"
+      ]
+    },
+    {
+      "name": "Avacopan",
+      "aliases": [
+        "tavneos"
+      ]
+    },
+    {
+      "name": "Avapritinib",
+      "aliases": [
+        "Avapritinib-Specialist-Drug",
+        "ayvakyt"
+      ]
+    },
+    {
+      "name": "Avelumab",
+      "aliases": [
+        "bavencio"
+      ]
+    },
+    {
+      "name": "Axitinib",
+      "aliases": [
+        "Axitinib-Specialist-Drug",
+        "inlyta"
+      ]
+    },
+    {
+      "name": "Azacitidine",
+      "aliases": [
+        "Azacitidine-Specialist-Drug",
+        "vidaza"
+      ]
+    },
+    {
+      "name": "Azathioprine",
+      "aliases": [
+        "imuran"
+      ]
+    },
+    {
+      "name": "Azithromycin",
+      "aliases": [
+        "zithromax"
+      ]
+    },
+    {
+      "name": "Aztreonam",
+      "aliases": [
+        "azactam",
+        "cayston"
+      ]
+    },
+    {
+      "name": "Aztreonam/Avibactam",
+      "aliases": [
+        "emblaveo"
+      ]
+    },
+    {
+      "name": "Baricitinib",
+      "aliases": [
+        "olumiant"
+      ]
+    },
+    {
+      "name": "BCG",
+      "aliases": [
+        "bcg tice",
+        "bcg-medac",
+        "connaught bcg",
+        "onco-tice"
+      ]
+    },
+    {
+      "name": "Bedaquiline",
+      "aliases": [
+        "sirturo"
+      ]
+    },
+    {
+      "name": "Belantamab",
+      "aliases": [
+        "belantamab mafodotin",
+        "blenrep"
+      ]
+    },
+    {
+      "name": "Belimumab",
+      "aliases": [
+        "benlysta"
+      ]
+    },
+    {
+      "name": "Belumosudil",
+      "aliases": [
+        "rezurock"
+      ]
+    },
+    {
+      "name": "Bendamustine",
+      "aliases": [
+        "levact"
+      ]
+    },
+    {
+      "name": "Benperidol",
+      "aliases": [
+        "anquil"
+      ]
+    },
+    {
+      "name": "Benralizumab",
+      "aliases": [
+        "fasenra"
+      ]
+    },
+    {
+      "name": "Benzylpenicillin",
+      "aliases": [
+        "penicillin g",
+        "crystapen"
+      ]
+    },
+    {
+      "name": "Berotralstat",
+      "aliases": [
+        "orladeyo"
+      ]
+    },
+    {
+      "name": "Betamethasone",
+      "aliases": [
+        "betnesol",
+        "betnovate",
+        "beta-gel",
+        "betacap",
+        "betesil",
+        "betnovate-rd",
+        "vistamethasone"
+      ]
+    },
+    {
+      "name": "Bevacizumab",
+      "aliases": [
+        "avastin",
+        "mvasi",
+        "zirabev"
+      ]
+    },
+    {
+      "name": "Bexarotene",
+      "aliases": [
+        "targretin"
+      ]
+    },
+    {
+      "name": "Bicalutamide",
+      "aliases": [
+        "casodex"
+      ]
+    },
+    {
+      "name": "Bictegravir/Emtricitabine/Tenofovir",
+      "aliases": [
+        "biktarvy"
+      ]
+    },
+    {
+      "name": "Bictegravir/Emtricitabine/Tenofovir Alafenamide",
+      "aliases": [
+        "bictegravir-with-emtricitabine-and-tenofovir-alafenamide"
+      ]
+    },
+    {
+      "name": "Binimetinib",
+      "aliases": [
+        "Binimetinib-Specialist-Drug",
+        "mektovi"
+      ]
+    },
+    {
+      "name": "Bivalirudin",
+      "aliases": [
+        "angiox"
+      ]
+    },
+    {
+      "name": "Bleomycin",
+      "aliases": [
+        "bleo-kyowa"
+      ]
+    },
+    {
+      "name": "Blinatumomab",
+      "aliases": [
+        "blincyto"
+      ]
+    },
+    {
+      "name": "Boceprevir",
+      "aliases": [
+        "victrelis"
+      ]
+    },
+    {
+      "name": "Bortezomib",
+      "aliases": [
+        "velcade"
+      ]
+    },
+    {
+      "name": "Bosutinib",
+      "aliases": [
+        "Bosutinib-Specialist-Drug",
+        "bosulif"
+      ]
+    },
+    {
+      "name": "Brentuximab",
+      "aliases": [
+        "brentuximab vedotin",
+        "adcetris"
+      ]
+    },
+    {
+      "name": "Brigatinib",
+      "aliases": [
+        "Brigatinib-Specialist-Drug",
+        "alunbrig"
+      ]
+    },
+    {
+      "name": "Brivaracetam",
+      "aliases": [
+        "briviact"
+      ]
+    },
+    {
+      "name": "Brodalumab",
+      "aliases": [
+        "kyntheum"
+      ]
+    },
+    {
+      "name": "Brolucizumab",
+      "aliases": [
+        "beovu"
+      ]
+    },
+    {
+      "name": "Budesonide",
+      "aliases": [
+        "pulmicort",
+        "budelin",
+        "rhinocort",
+        "entocort",
+        "budenofalk"
+      ]
+    },
+    {
+      "name": "Bupivacaine/Fentanyl",
+      "aliases": []
+    },
+    {
+      "name": "Buprenorphine",
+      "aliases": [
+        "subutex",
+        "temgesic",
+        "butrans",
+        "bupeaze",
+        "buvidal",
+        "prefibin",
+        "transtec"
+      ]
+    },
+    {
+      "name": "Busulfan",
+      "aliases": [
+        "myleran",
+        "busilvex"
+      ]
+    },
+    {
+      "name": "C1-Esterase Inhibitor",
+      "aliases": [
+        "cinryze",
+        "berinert",
+        "ruconest"
+      ]
+    },
+    {
+      "name": "Cabazitaxel",
+      "aliases": [
+        "jevtana"
+      ]
+    },
+    {
+      "name": "Cabotegravir",
+      "aliases": [
+        "vocabria"
+      ]
+    },
+    {
+      "name": "Cabozantinib",
+      "aliases": [
+        "Cabozantinib-Specialist-Drug",
+        "cabometyx",
+        "cometriq"
+      ]
+    },
+    {
+      "name": "Capecitabine",
+      "aliases": [
+        "Capecitabine-Specialist-Drug",
+        "xeloda"
+      ]
+    },
+    {
+      "name": "Capivasertib",
+      "aliases": [
+        "Capivasertib-Specialist-Drug",
+        "truqap"
+      ]
+    },
+    {
+      "name": "Caplacizumab",
+      "aliases": [
+        "cablivi"
+      ]
+    },
+    {
+      "name": "Carbamazepine",
+      "aliases": [
+        "tegretol",
+        "carbagen"
+      ]
+    },
+    {
+      "name": "Carboplatin",
+      "aliases": [
+        "paraplatin"
+      ]
+    },
+    {
+      "name": "Carfilzomib",
+      "aliases": [
+        "kyprolis"
+      ]
+    },
+    {
+      "name": "Casirivimab/Imdevimab",
+      "aliases": [
+        "REGEN?COV",
+        "ronapreve"
+      ]
+    },
+    {
+      "name": "Caspofungin",
+      "aliases": [
+        "cancidas"
+      ]
+    },
+    {
+      "name": "Cefaclor",
+      "aliases": [
+        "distaclor"
+      ]
+    },
+    {
+      "name": "Cefadroxil",
+      "aliases": [
+        "baxan"
+      ]
+    },
+    {
+      "name": "Cefalexin",
+      "aliases": [
+        "cephalexin",
+        "ceporex",
+        "keflex"
+      ]
+    },
+    {
+      "name": "Cefixime",
+      "aliases": [
+        "suprax"
+      ]
+    },
+    {
+      "name": "Cefotaxime",
+      "aliases": [
+        "claforan"
+      ]
+    },
+    {
+      "name": "Cefradine",
+      "aliases": [
+        "velosef"
+      ]
+    },
+    {
+      "name": "Ceftazidime",
+      "aliases": [
+        "fortum",
+        "kefadim"
+      ]
+    },
+    {
+      "name": "Ceftazidime/Avibactam",
+      "aliases": [
+        "zavicefta"
+      ]
+    },
+    {
+      "name": "Ceftolozane/Tazobactam",
+      "aliases": [
+        "zerbaxa"
+      ]
+    },
+    {
+      "name": "Ceftriaxone",
+      "aliases": [
+        "rocephin"
+      ]
+    },
+    {
+      "name": "Cefuroxime",
+      "aliases": [
+        "zinacef",
+        "zinnat",
+        "cefuroxim"
+      ]
+    },
+    {
+      "name": "Cemiplimab",
+      "aliases": [
+        "libtayo"
+      ]
+    },
+    {
+      "name": "Cenobamate",
+      "aliases": [
+        "ontozry"
+      ]
+    },
+    {
+      "name": "Ceritinib",
+      "aliases": [
+        "Ceritinib-Specialist-Drug",
+        "zykadia"
+      ]
+    },
+    {
+      "name": "Certolizumab",
+      "aliases": [
+        "certolizumab pegol",
+        "cimzia"
+      ]
+    },
+    {
+      "name": "Chlorambucil",
+      "aliases": [
+        "leukeran"
+      ]
+    },
+    {
+      "name": "Chloramphenicol",
+      "aliases": [
+        "chloromycetin",
+        "minims chloramphenicol"
+      ]
+    },
+    {
+      "name": "Chloroquine",
+      "aliases": [
+        "chloroquine phosphate",
+        "avloclor",
+        "malarivon"
+      ]
+    },
+    {
+      "name": "Chlorpromazine",
+      "aliases": [
+        "largactil",
+        "chlorpromazine hydrochloride"
+      ]
+    },
+    {
+      "name": "Ciclosporin",
+      "aliases": [
+        "deximune",
+        "neoral",
+        "vanquoral",
+        "sandimmun",
+        "cyclosporin",
+        "cyclosporine"
+      ]
+    },
+    {
+      "name": "Ciprofloxacin",
+      "aliases": [
+        "ciproxin"
+      ]
+    },
+    {
+      "name": "Ciprofloxacin/Dexamethasone",
+      "aliases": [
+        "cilodex"
+      ]
+    },
+    {
+      "name": "Cisplatin",
+      "aliases": []
+    },
+    {
+      "name": "Cladribine",
+      "aliases": [
+        "mavenclad",
+        "leustat",
+        "litak"
+      ]
+    },
+    {
+      "name": "Clarithromycin",
+      "aliases": [
+        "klaricid",
+        "xetinin"
+      ]
+    },
+    {
+      "name": "Clindamycin",
+      "aliases": [
+        "dalacin",
+        "zindaclin"
+      ]
+    },
+    {
+      "name": "Clindamycin/Benzoyl Peroxide",
+      "aliases": [
+        "duac"
+      ]
+    },
+    {
+      "name": "Clobazam",
+      "aliases": [
+        "frisium",
+        "tapclob"
+      ]
+    },
+    {
+      "name": "Clonazepam",
+      "aliases": [
+        "rivotril"
+      ]
+    },
+    {
+      "name": "Clopidogrel",
+      "aliases": [
+        "plavix"
+      ]
+    },
+    {
+      "name": "Clozapine",
+      "aliases": [
+        "clozaril",
+        "denzapine",
+        "zaponex"
+      ]
+    },
+    {
+      "name": "Co-Amoxiclav",
+      "aliases": [
+        "augmentin"
+      ]
+    },
+    {
+      "name": "Co-Trimoxazole",
+      "aliases": [
+        "septrin"
+      ]
+    },
+    {
+      "name": "Colistin",
+      "aliases": [
+        "colistimethate",
+        "colomycin",
+        "promixin"
+      ]
+    },
+    {
+      "name": "Conestat Alfa",
+      "aliases": []
+    },
+    {
+      "name": "Crisantaspase",
+      "aliases": []
+    },
+    {
+      "name": "Crizotinib",
+      "aliases": [
+        "Crizotinib-Specialist-Drug",
+        "xalkori"
+      ]
+    },
+    {
+      "name": "Cyclophosphamide",
+      "aliases": [
+        "endoxana"
+      ]
+    },
+    {
+      "name": "Cycloserine",
+      "aliases": []
+    },
+    {
+      "name": "Cytarabine",
+      "aliases": [
+        "ara-c",
+        "cytosine arabinoside"
+      ]
+    },
+    {
+      "name": "Dabigatran",
+      "aliases": [
+        "dabigatran etexilate",
+        "pradaxa"
+      ]
+    },
+    {
+      "name": "Dabrafenib",
+      "aliases": [
+        "Dabrafenib-Specialist-Drug",
+        "tafinlar"
+      ]
+    },
+    {
+      "name": "Dacarbazine",
+      "aliases": [
+        "dtic"
+      ]
+    },
+    {
+      "name": "Daclatasvir",
+      "aliases": [
+        "daklinza"
+      ]
+    },
+    {
+      "name": "Dactinomycin",
+      "aliases": [
+        "actinomycin d",
+        "cosmegen"
+      ]
+    },
+    {
+      "name": "Dalbavancin",
+      "aliases": [
+        "xydalba"
+      ]
+    },
+    {
+      "name": "Dalteparin",
+      "aliases": [
+        "fragmin"
+      ]
+    },
+    {
+      "name": "Danaparoid",
+      "aliases": [
+        "orgaran"
+      ]
+    },
+    {
+      "name": "Danicopan",
+      "aliases": [
+        "lampalizumab"
+      ]
+    },
+    {
+      "name": "Daptomycin",
+      "aliases": [
+        "cubicin"
+      ]
+    },
+    {
+      "name": "Daratumumab",
+      "aliases": [
+        "darzalex"
+      ]
+    },
+    {
+      "name": "Darunavir",
+      "aliases": [
+        "prezista",
+        "rezolsta",
+        "Darunavir-With-Cobicistat"
+      ]
+    },
+    {
+      "name": "Darunavir/Cobicistat Emtricitabine/Tenofovir Alafenamide",
+      "aliases": [
+        "darunavir-with-cobicistat-emtricitabine-and-tenofovir-alafenamide"
+      ]
+    },
+    {
+      "name": "Darunavir/Cobicistat/Emtricitabine/Tenofovir Alafenamide",
+      "aliases": [
+        "symtuza"
+      ]
+    },
+    {
+      "name": "Dasabuvir",
+      "aliases": [
+        "exviera"
+      ]
+    },
+    {
+      "name": "Dasatinib",
+      "aliases": [
+        "Dasatinib-Specialist-Drug",
+        "sprycel"
+      ]
+    },
+    {
+      "name": "Daunorubicin",
+      "aliases": [
+        "cerubidine"
+      ]
+    },
+    {
+      "name": "Decitabine With Cedazuridine",
+      "aliases": [
+        "Decitabine-With-Cedazuridine-Specialist-Drug"
+      ]
+    },
+    {
+      "name": "Decitabine/Cedazuridine",
+      "aliases": [
+        "inqovi"
+      ]
+    },
+    {
+      "name": "Delamanid",
+      "aliases": [
+        "deltyba"
+      ]
+    },
+    {
+      "name": "Demeclocycline",
+      "aliases": [
+        "ledermycin",
+        "demeclocycline hydrochloride"
+      ]
+    },
+    {
+      "name": "Desmopressin",
+      "aliases": [
+        "ddavp",
+        "desmomelt",
+        "noqdirna",
+        "octim"
+      ]
+    },
+    {
+      "name": "Dexamethasone",
+      "aliases": [
+        "maxidex",
+        "ozurdex",
+        "dexsol",
+        "neofordex"
+      ]
+    },
+    {
+      "name": "Dexamethasone/Neomycin/Polymyxin",
+      "aliases": [
+        "maxitrol"
+      ]
+    },
+    {
+      "name": "Diaminopyridine",
+      "aliases": []
+    },
+    {
+      "name": "Diamorphine",
+      "aliases": [
+        "heroin",
+        "diagesil"
+      ]
+    },
+    {
+      "name": "Diazepam",
+      "aliases": [
+        "valium",
+        "diazepam rectubes",
+        "stesolid"
+      ]
+    },
+    {
+      "name": "Didanosine",
+      "aliases": [
+        "videx"
+      ]
+    },
+    {
+      "name": "Dimethyl Fumarate",
+      "aliases": [
+        "tecfidera",
+        "skilarence"
+      ]
+    },
+    {
+      "name": "Dipyridamole",
+      "aliases": [
+        "persantin",
+        "attia"
+      ]
+    },
+    {
+      "name": "Docetaxel",
+      "aliases": [
+        "taxotere"
+      ]
+    },
+    {
+      "name": "Dolutegravir",
+      "aliases": [
+        "tivicay"
+      ]
+    },
+    {
+      "name": "Dolutegravir/Lamivudine",
+      "aliases": [
+        "dovato"
+      ]
+    },
+    {
+      "name": "Dolutegravir/Rilpivirine",
+      "aliases": [
+        "juluca",
+        "dolutegravir-with-rilpivirine"
+      ]
+    },
+    {
+      "name": "Doravirine",
+      "aliases": [
+        "pifeltro"
+      ]
+    },
+    {
+      "name": "Doxorubicin",
+      "aliases": [
+        "doxorubicin pegylated liposomal",
+        "caelyx",
+        "myocet"
+      ]
+    },
+    {
+      "name": "Doxycycline",
+      "aliases": [
+        "vibramycin",
+        "efracea",
+        "periostat",
+        "acticlate"
+      ]
+    },
+    {
+      "name": "Durvalumab",
+      "aliases": [
+        "imfinzi"
+      ]
+    },
+    {
+      "name": "Eculizumab",
+      "aliases": [
+        "soliris"
+      ]
+    },
+    {
+      "name": "Edoxaban",
+      "aliases": [
+        "lixiana"
+      ]
+    },
+    {
+      "name": "Efavirenz",
+      "aliases": [
+        "sustiva"
+      ]
+    },
+    {
+      "name": "Efavirenz/Emtricitabine/Tenofovir Disoproxil",
+      "aliases": [
+        "efavirenz/emtricitabine/tenofovir",
+        "atripla",
+        "efavirenz-with-emtricitabine-and-tenofovir-disoproxil"
+      ]
+    },
+    {
+      "name": "Elbasvir With Grazoprevir",
+      "aliases": []
+    },
+    {
+      "name": "Elbasvir/Grazoprevir",
+      "aliases": [
+        "zepatier"
+      ]
+    },
+    {
+      "name": "Elranatamab",
+      "aliases": [
+        "elrexfio"
+      ]
+    },
+    {
+      "name": "Elvitegravir/Cobicistat/Emtricitabine/Tenofovir Alafenamide",
+      "aliases": [
+        "elvitegravir/cobicistat emtricitabine/tenofovir alafenamide",
+        "elvitegravir-with-cobicistat-emtricitabine-and-tenofovir-alafenamide",
+        "elvitegravir/cobicistat, emtricitabine and tenofovir alafenamide",
+        "genvoya"
+      ]
+    },
+    {
+      "name": "Elvitegravir/Cobicistat/Emtricitabine/Tenofovir Disoproxil",
+      "aliases": [
+        "elvitegravir/cobicistat emtricitabine/tenofovir disoproxil",
+        "elvitegravir-with-cobicistat-emtricitabine-and-tenofovir-disoproxil",
+        "elvitegravir/cobicistat, emtricitabine and tenofovir disoproxil",
+        "stribild"
+      ]
+    },
+    {
+      "name": "Emtricitabine",
+      "aliases": [
+        "emtriva"
+      ]
+    },
+    {
+      "name": "Emtricitabine/Rilpivirine And Tenofovir Alafenamide",
+      "aliases": [
+        "emtricitabine/rilpivirine/tenofovir alafenamide",
+        "odefsey"
+      ]
+    },
+    {
+      "name": "Emtricitabine/Rilpivirine And Tenofovir Disoproxil",
+      "aliases": [
+        "emtricitabine/rilpivirine/tenofovir disoproxil",
+        "eviplera"
+      ]
+    },
+    {
+      "name": "Emtricitabine/Rilpivirine/Tenofovir Alafenamide",
+      "aliases": [
+        "emtricitabine-with-rilpivirine-and-tenofovir-alafenamide"
+      ]
+    },
+    {
+      "name": "Emtricitabine/Rilpivirine/Tenofovir Disoproxil",
+      "aliases": [
+        "emtricitabine-with-rilpivirine-and-tenofovir-disoproxil"
+      ]
+    },
+    {
+      "name": "Emtricitabine/Tenofovir Alafenamide",
+      "aliases": [
+        "emtricitabine-with-tenofovir-alafenamide",
+        "descovy"
+      ]
+    },
+    {
+      "name": "Emtricitabine/Tenofovir Disoproxil",
+      "aliases": [
+        "Emtricitabine-With-Tenofovir-Disoproxil",
+        "emtricitabine/tenofovir",
+        "truvada"
+      ]
+    },
+    {
+      "name": "Encorafenib",
+      "aliases": [
+        "Encorafenib-Specialist-Drug",
+        "braftovi"
+      ]
+    },
+    {
+      "name": "Enoxaparin",
+      "aliases": [
+        "clexane",
+        "inhixa"
+      ]
+    },
+    {
+      "name": "Entacapone",
+      "aliases": [
+        "comtess"
+      ]
+    },
+    {
+      "name": "Entecavir",
+      "aliases": [
+        "baraclude"
+      ]
+    },
+    {
+      "name": "Entrectinib",
+      "aliases": [
+        "Entrectinib-Specialist-Drug",
+        "rozlytrek"
+      ]
+    },
+    {
+      "name": "Enzalutamide",
+      "aliases": [
+        "xtandi"
+      ]
+    },
+    {
+      "name": "Epcoritamab",
+      "aliases": [
+        "tepkinly"
+      ]
+    },
+    {
+      "name": "Epirubicin",
+      "aliases": [
+        "pharmorubicin"
+      ]
+    },
+    {
+      "name": "Erdafitinib",
+      "aliases": [
+        "Erdafitinib-Specialist-Drug",
+        "balversa"
+      ]
+    },
+    {
+      "name": "Eribulin",
+      "aliases": [
+        "halaven"
+      ]
+    },
+    {
+      "name": "Erlotinib",
+      "aliases": [
+        "Erlotinib-Specialist-Drug",
+        "tarceva"
+      ]
+    },
+    {
+      "name": "Ertapenem",
+      "aliases": [
+        "invanz"
+      ]
+    },
+    {
+      "name": "Erythromycin",
+      "aliases": [
+        "erymax",
+        "erythrocin",
+        "erythroped"
+      ]
+    },
+    {
+      "name": "Esketamine",
+      "aliases": [
+        "spravato"
+      ]
+    },
+    {
+      "name": "Etanercept",
+      "aliases": [
+        "enbrel",
+        "benepali",
+        "erelzi"
+      ]
+    },
+    {
+      "name": "Ethambutol",
+      "aliases": [
+        "ethambutol hydrochloride"
+      ]
+    },
+    {
+      "name": "Ethosuximide",
+      "aliases": [
+        "zarontin"
+      ]
+    },
+    {
+      "name": "Etoposide",
+      "aliases": [
+        "Etoposide-Specialist-Drug",
+        "vepesid",
+        "etopophos"
+      ]
+    },
+    {
+      "name": "Etravirine",
+      "aliases": [
+        "intelence"
+      ]
+    },
+    {
+      "name": "Everolimus",
+      "aliases": [
+        "afinitor",
+        "certican",
+        "votubia"
+      ]
+    },
+    {
+      "name": "Exemestane",
+      "aliases": [
+        "aromasin"
+      ]
+    },
+    {
+      "name": "Famciclovir",
+      "aliases": [
+        "famvir"
+      ]
+    },
+    {
+      "name": "Fentanyl",
+      "aliases": [
+        "abstral",
+        "effentora",
+        "instanyl",
+        "pecfent",
+        "durogesic",
+        "matrifen",
+        "osmanil",
+        "fencino",
+        "victanyl"
+      ]
+    },
+    {
+      "name": "Fidaxomicin",
+      "aliases": [
+        "dificlir"
+      ]
+    },
+    {
+      "name": "Filgotinib",
+      "aliases": [
+        "jyseleca"
+      ]
+    },
+    {
+      "name": "Fingolimod",
+      "aliases": [
+        "gilenya"
+      ]
+    },
+    {
+      "name": "Flucloxacillin",
+      "aliases": [
+        "fluclox",
+        "floxapen"
+      ]
+    },
+    {
+      "name": "Fluconazole",
+      "aliases": [
+        "diflucan"
+      ]
+    },
+    {
+      "name": "Flucytosine",
+      "aliases": [
+        "ancotil"
+      ]
+    },
+    {
+      "name": "Fludarabine",
+      "aliases": [
+        "fludara"
+      ]
+    },
+    {
+      "name": "Fludrocortisone",
+      "aliases": [
+        "florinef",
+        "fludrocortisone acetate"
+      ]
+    },
+    {
+      "name": "Fluorouracil",
+      "aliases": [
+        "5-fu",
+        "efudix"
+      ]
+    },
+    {
+      "name": "Flupentixol",
+      "aliases": [
+        "depixol",
+        "fluanxol"
+      ]
+    },
+    {
+      "name": "Fluphenazine",
+      "aliases": [
+        "modecate"
+      ]
+    },
+    {
+      "name": "Fondaparinux",
+      "aliases": [
+        "arixtra"
+      ]
+    },
+    {
+      "name": "Fosamprenavir",
+      "aliases": [
+        "telzir"
+      ]
+    },
+    {
+      "name": "Foscarnet",
+      "aliases": [
+        "foscavir"
+      ]
+    },
+    {
+      "name": "Fosfomycin",
+      "aliases": [
+        "monuril"
+      ]
+    },
+    {
+      "name": "Foslevodopa With Foscarbidopa",
+      "aliases": []
+    },
+    {
+      "name": "Foslevodopa/Foscarbidopa",
+      "aliases": []
+    },
+    {
+      "name": "Fostemsavir",
+      "aliases": [
+        "rukobia"
+      ]
+    },
+    {
+      "name": "Fruquintinib",
+      "aliases": [
+        "Fruquintinib-Specialist-Drug",
+        "fruzaqla"
+      ]
+    },
+    {
+      "name": "Fulvestrant",
+      "aliases": [
+        "faslodex"
+      ]
+    },
+    {
+      "name": "Futibatinib",
+      "aliases": [
+        "Futibatinib-Specialist-Drug",
+        "lytgobi"
+      ]
+    },
+    {
+      "name": "Gabapentin",
+      "aliases": [
+        "neurontin"
+      ]
+    },
+    {
+      "name": "Ganciclovir",
+      "aliases": [
+        "cymevene"
+      ]
+    },
+    {
+      "name": "Gefitinib",
+      "aliases": [
+        "iressa"
+      ]
+    },
+    {
+      "name": "Gemcitabine",
+      "aliases": [
+        "gemzar"
+      ]
+    },
+    {
+      "name": "Gemtuzumab",
+      "aliases": [
+        "gemtuzumab ozogamicin",
+        "mylotarg"
+      ]
+    },
+    {
+      "name": "Gentamicin",
+      "aliases": [
+        "genticin",
+        "cidomycin"
+      ]
+    },
+    {
+      "name": "Gilteritinib",
+      "aliases": [
+        "Gilteritinib-Specialist-Drug",
+        "xospata"
+      ]
+    },
+    {
+      "name": "Glatiramer",
+      "aliases": [
+        "brabio",
+        "remurel"
+      ]
+    },
+    {
+      "name": "Glofitamab",
+      "aliases": [
+        "columvi"
+      ]
+    },
+    {
+      "name": "Golimumab",
+      "aliases": [
+        "simponi"
+      ]
+    },
+    {
+      "name": "Guselkumab",
+      "aliases": [
+        "tremfya"
+      ]
+    },
+    {
+      "name": "Haloperidol",
+      "aliases": [
+        "haldol",
+        "serenace"
+      ]
+    },
+    {
+      "name": "Haloperidol Decanoate",
+      "aliases": [
+        "haldol decanoate"
+      ]
+    },
+    {
+      "name": "Heparin",
+      "aliases": [
+        "heparin sodium",
+        "minihep",
+        "monoparin"
+      ]
+    },
+    {
+      "name": "Hydromorphone",
+      "aliases": [
+        "palladone",
+        "hydromorphone hydrochloride"
+      ]
+    },
+    {
+      "name": "Hydroxycarbamide",
+      "aliases": [
+        "siklos",
+        "hydroxyurea",
+        "hydrea"
+      ]
+    },
+    {
+      "name": "Ibrutinib",
+      "aliases": [
+        "Ibrutinib-Specialist-Drug",
+        "imbruvica"
+      ]
+    },
+    {
+      "name": "Idarubicin",
+      "aliases": [
+        "idarubicin hydrochloride",
+        "Idarubicin-Hydrochloride-Specialist-Drug",
+        "zavedos"
+      ]
+    },
+    {
+      "name": "Idelalisib",
+      "aliases": [
+        "Idelalisib-Specialist-Drug",
+        "zydelig"
+      ]
+    },
+    {
+      "name": "Ifosfamide",
+      "aliases": []
+    },
+    {
+      "name": "Imatinib",
+      "aliases": [
+        "Imatinib-Specialist-Drug",
+        "glivec",
+        "gleevec"
+      ]
+    },
+    {
+      "name": "Imipenem/Cilastatin",
+      "aliases": [
+        "primaxin"
+      ]
+    },
+    {
+      "name": "Immunoglobulin Human",
+      "aliases": [
+        "gamunex",
+        "iqymune",
+        "tegeline",
+        "privigen",
+        "octogam",
+        "subcuvia",
+        "hizentra",
+        "vigam",
+        "kiovig",
+        "subgam",
+        "cutaquig",
+        "gammanorm",
+        "cuvitru",
+        "flebogamma",
+        "gammaplex",
+        "octagam",
+        "panzyga"
+      ]
+    },
+    {
+      "name": "Infliximab",
+      "aliases": [
+        "remicade",
+        "inflectra",
+        "remsima",
+        "zessly",
+        "flixabi"
+      ]
+    },
+    {
+      "name": "Inotuzumab Ozogamicin",
+      "aliases": [
+        "besponsa"
+      ]
+    },
+    {
+      "name": "Insulin Abasaglar",
+      "aliases": [
+        "abasaglar"
+      ]
+    },
+    {
+      "name": "Insulin Aspart",
+      "aliases": [
+        "novorapid",
+        "fiasp"
+      ]
+    },
+    {
+      "name": "Insulin Aspart Biosimilar",
+      "aliases": [
+        "trurapi"
+      ]
+    },
+    {
+      "name": "Insulin Aspart Mix 30",
+      "aliases": [
+        "insulin biphasic aspart",
+        "insulin aspart prota 70",
+        "novomix 30"
+      ]
+    },
+    {
+      "name": "Insulin Degludec",
+      "aliases": [
+        "tresiba"
+      ]
+    },
+    {
+      "name": "Insulin Detemir",
+      "aliases": [
+        "levemir"
+      ]
+    },
+    {
+      "name": "Insulin Glargine",
+      "aliases": [
+        "lantus",
+        "toujeo",
+        "semglee"
+      ]
+    },
+    {
+      "name": "Insulin Glargine/Lixisenatide",
+      "aliases": [
+        "suliqua",
+        "insulin-glargine-with-lixisenatide"
+      ]
+    },
+    {
+      "name": "Insulin Glulisine",
+      "aliases": [
+        "apidra"
+      ]
+    },
+    {
+      "name": "Insulin Human Isophane",
+      "aliases": [
+        "humulin i",
+        "insulatard",
+        "insuman basal"
+      ]
+    },
+    {
+      "name": "Insulin Human Mix 30/70",
+      "aliases": [
+        "humulin m3",
+        "insuman comb 30"
+      ]
+    },
+    {
+      "name": "Insulin Human Soluble",
+      "aliases": [
+        "insulin soluble",
+        "soluble insulin",
+        "soluble human insulin",
+        "actrapid",
+        "humulin s",
+        "insuman rapid"
+      ]
+    },
+    {
+      "name": "Insulin Lispro Lyumjev",
+      "aliases": [
+        "Insulin LISPRO (Lyumjev)",
+        "lyumjev",
+        "lispro lyumjev",
+        "Lispro (Lyumjev)"
+      ]
+    },
+    {
+      "name": "Insulin Lispro Mix 25",
+      "aliases": [
+        "humalog mix 25"
+      ]
+    },
+    {
+      "name": "Insulin Lispro Mix 50",
+      "aliases": [
+        "humalog mix 50"
+      ]
+    },
+    {
+      "name": "Insulin Lispro Sanofi",
+      "aliases": [
+        "lispro sanfi"
+      ]
+    },
+    {
+      "name": "Insulin Porcine Isophane",
+      "aliases": [
+        "hypurin porcine isophane"
+      ]
+    },
+    {
+      "name": "Insulin Porcine Mix 30/70",
+      "aliases": [
+        "hypurin mix 30/70"
+      ]
+    },
+    {
+      "name": "Insulin Porcine Neutral",
+      "aliases": [
+        "hypurin porcine neutral"
+      ]
+    },
+    {
+      "name": "Irinotecan",
+      "aliases": [
+        "irinotecan hydrochloride",
+        "campto",
+        "irinotecan accord",
+        "irinotecan fresenius"
+      ]
+    },
+    {
+      "name": "Isatuximab",
+      "aliases": [
+        "sarclisa"
+      ]
+    },
+    {
+      "name": "Isavuconazole",
+      "aliases": [
+        "cresemba"
+      ]
+    },
+    {
+      "name": "Isoniazid",
+      "aliases": [
+        "rimifon"
+      ]
+    },
+    {
+      "name": "Isoniazid/Rifampicin",
+      "aliases": [
+        "rifampicin/isoniazid",
+        "Rifampicin-With-Isoniazid",
+        "rifinah"
+      ]
+    },
+    {
+      "name": "Itraconazole",
+      "aliases": [
+        "sporanox"
+      ]
+    },
+    {
+      "name": "Ivosidenib",
+      "aliases": [
+        "tibsovo"
+      ]
+    },
+    {
+      "name": "Ixazomib",
+      "aliases": [
+        "Ixazomib-Specialist-Drug",
+        "ninlaro"
+      ]
+    },
+    {
+      "name": "Ixekizumab",
+      "aliases": [
+        "taltz"
+      ]
+    },
+    {
+      "name": "Ketamine",
+      "aliases": [
+        "ketamine hydrochloride",
+        "ketalar"
+      ]
+    },
+    {
+      "name": "Lacosamide",
+      "aliases": [
+        "vimpat"
+      ]
+    },
+    {
+      "name": "Lamivudine",
+      "aliases": [
+        "epivir",
+        "zeffix"
+      ]
+    },
+    {
+      "name": "Lamivudine/Tenofovir Disoproxil/Doravirine",
+      "aliases": [
+        "lamivudine-with-tenofovir-disoproxil-and-doravirine"
+      ]
+    },
+    {
+      "name": "Lamivudine/Zidovudine",
+      "aliases": [
+        "combivir"
+      ]
+    },
+    {
+      "name": "Lamotrigine",
+      "aliases": [
+        "lamictal"
+      ]
+    },
+    {
+      "name": "Lapatinib",
+      "aliases": [
+        "tyverb"
+      ]
+    },
+    {
+      "name": "Larotrectinib",
+      "aliases": [
+        "Larotrectinib-Specialist-Drug",
+        "vitrakvi"
+      ]
+    },
+    {
+      "name": "Lenalidomide",
+      "aliases": [
+        "Lenalidomide-Specialist-Drug",
+        "revlimid"
+      ]
+    },
+    {
+      "name": "Lenvatinib",
+      "aliases": [
+        "Lenvatinib-Specialist-Drug",
+        "kisplyx",
+        "lenvima"
+      ]
+    },
+    {
+      "name": "Levetiracetam",
+      "aliases": [
+        "keppra",
+        "desitrend"
+      ]
+    },
+    {
+      "name": "Levodopa With Carbidopa And Entacapone",
+      "aliases": []
+    },
+    {
+      "name": "Levodopa/Benserazide",
+      "aliases": [
+        "co-beneldopa",
+        "co beneldopa",
+        "madopar"
+      ]
+    },
+    {
+      "name": "Levodopa/Carbidopa",
+      "aliases": [
+        "co-careldopa",
+        "co careldopa",
+        "duodopa",
+        "sinemet",
+        "caramet"
+      ]
+    },
+    {
+      "name": "Levofloxacin",
+      "aliases": [
+        "evoxil",
+        "tavanic"
+      ]
+    },
+    {
+      "name": "Levomepromazine",
+      "aliases": [
+        "nozinan"
+      ]
+    },
+    {
+      "name": "Linezolid",
+      "aliases": [
+        "zyvox"
+      ]
+    },
+    {
+      "name": "Lithium Carbonate",
+      "aliases": [
+        "priadel",
+        "priadel tablet",
+        "priadel tablets",
+        "camcolit",
+        "liskonum",
+        "lithonate"
+      ]
+    },
+    {
+      "name": "Lithium Citrate",
+      "aliases": [
+        "lithium chloride",
+        "priadel liquid",
+        "li-liquid"
+      ]
+    },
+    {
+      "name": "Lomustine",
+      "aliases": [
+        "ccnu"
+      ]
+    },
+    {
+      "name": "Loncastuximab",
+      "aliases": [
+        "loncastuximab tesirine",
+        "zynlonta"
+      ]
+    },
+    {
+      "name": "Lopinavir/Ritonavir",
+      "aliases": [
+        "kaletra",
+        "lopinavir-with-ritonavir"
+      ]
+    },
+    {
+      "name": "Lorazepam",
+      "aliases": [
+        "ativan"
+      ]
+    },
+    {
+      "name": "Lorlatinib",
+      "aliases": [
+        "Lorlatinib-Specialist-Drug",
+        "lorviqua"
+      ]
+    },
+    {
+      "name": "Lurasidone",
+      "aliases": [
+        "latuda",
+        "lurasidone hydrochloride"
+      ]
+    },
+    {
+      "name": "Maraviroc",
+      "aliases": [
+        "celsentri"
+      ]
+    },
+    {
+      "name": "Melphalan",
+      "aliases": [
+        "alkeran"
+      ]
+    },
+    {
+      "name": "Mepolizumab",
+      "aliases": [
+        "nucala"
+      ]
+    },
+    {
+      "name": "Mercaptopurine",
+      "aliases": [
+        "puri-nethol",
+        "xaluprine"
+      ]
+    },
+    {
+      "name": "Meropenem",
+      "aliases": [
+        "meronem"
+      ]
+    },
+    {
+      "name": "Mesalazine",
+      "aliases": [
+        "pentasa",
+        "asacol",
+        "octasa",
+        "salofalk",
+        "mezavant"
+      ]
+    },
+    {
+      "name": "Methadone",
+      "aliases": [
+        "physeptone",
+        "methadose",
+        "methadone hydrochloride"
+      ]
+    },
+    {
+      "name": "Methotrexate",
+      "aliases": [
+        "maxtrex",
+        "metoject",
+        "nordimet",
+        "zlatal"
+      ]
+    },
+    {
+      "name": "Methoxy Polyethylene Glycol-Epoetin Beta",
+      "aliases": [
+        "mircera"
+      ]
+    },
+    {
+      "name": "Methylprednisolone",
+      "aliases": [
+        "medrone",
+        "solu-medrone",
+        "depo-medrone"
+      ]
+    },
+    {
+      "name": "Methylprednisolone/Lidocaine",
+      "aliases": [
+        "depo-medrone with lidocaine"
+      ]
+    },
+    {
+      "name": "Metronidazole",
+      "aliases": [
+        "flagyl",
+        "metrogel",
+        "rozex",
+        "acea",
+        "anabact",
+        "metrotop",
+        "zyomet"
+      ]
+    },
+    {
+      "name": "Miconazole",
+      "aliases": [
+        "daktarin",
+        "gyno-daktarin",
+        "micatin"
+      ]
+    },
+    {
+      "name": "Midazolam",
+      "aliases": [
+        "epistatis",
+        "buccolam",
+        "hypnovel"
+      ]
+    },
+    {
+      "name": "Midazolam/Lidocaine",
+      "aliases": []
+    },
+    {
+      "name": "Midostaurin",
+      "aliases": [
+        "Midostaurin-Specialist-Drug",
+        "rydapt"
+      ]
+    },
+    {
+      "name": "Minocycline",
+      "aliases": [
+        "minocin",
+        "aknemin"
+      ]
+    },
+    {
+      "name": "Mirikizumab",
+      "aliases": [
+        "omvoh"
+      ]
+    },
+    {
+      "name": "Mitomycin",
+      "aliases": [
+        "mitomycin-c"
+      ]
+    },
+    {
+      "name": "Mitotane",
+      "aliases": [
+        "Mitotane-Specialist-Drug",
+        "lysodren"
+      ]
+    },
+    {
+      "name": "Mitoxantrone",
+      "aliases": [
+        "onkotrone"
+      ]
+    },
+    {
+      "name": "Mobocertinib",
+      "aliases": [
+        "exkivity"
+      ]
+    },
+    {
+      "name": "Molnupiravir",
+      "aliases": [
+        "lagevrio"
+      ]
+    },
+    {
+      "name": "Momelotinib",
+      "aliases": []
+    },
+    {
+      "name": "Mometasone",
+      "aliases": [
+        "elocon",
+        "nasonex",
+        "asmanex",
+        "mometasone furoate"
+      ]
+    },
+    {
+      "name": "Morphine",
+      "aliases": [
+        "morphine sulphate",
+        "morphine sulfate",
+        "mst",
+        "zomorph",
+        "morphgesic",
+        "mxl",
+        "actimorp",
+        "sevredol",
+        "oramorph",
+        "filnarine"
+      ]
+    },
+    {
+      "name": "Moxifloxacin",
+      "aliases": [
+        "avelox",
+        "moxivig"
+      ]
+    },
+    {
+      "name": "Mupirocin",
+      "aliases": [
+        "bactroban"
+      ]
+    },
+    {
+      "name": "Mycophenolate",
+      "aliases": [
+        "myfortic",
+        "cellcept",
+        "mycophenolate mofetil"
+      ]
+    },
+    {
+      "name": "Nalidixic Acid",
+      "aliases": []
+    },
+    {
+      "name": "Natalizumab",
+      "aliases": [
+        "tysabri",
+        "tyruko"
+      ]
+    },
+    {
+      "name": "Natamycin",
+      "aliases": []
+    },
+    {
+      "name": "Nelarabine",
+      "aliases": [
+        "atriance"
+      ]
+    },
+    {
+      "name": "Neomycin",
+      "aliases": []
+    },
+    {
+      "name": "Neostigmine",
+      "aliases": [
+        "prostigmin"
+      ]
+    },
+    {
+      "name": "Neratinib",
+      "aliases": [
+        "Neratinib-Specialist-Drug",
+        "nerlynx"
+      ]
+    },
+    {
+      "name": "Nevirapine",
+      "aliases": [
+        "viramune"
+      ]
+    },
+    {
+      "name": "Nilotinib",
+      "aliases": [
+        "Nilotinib-Specialist-Drug",
+        "tasigna"
+      ]
+    },
+    {
+      "name": "Niraparib",
+      "aliases": [
+        "Niraparib-Specialist-Drug",
+        "zejula"
+      ]
+    },
+    {
+      "name": "Nirmatrelvir/Ritonavir",
+      "aliases": [
+        "paxlovid",
+        "nirmatrelvir-with-ritonavir"
+      ]
+    },
+    {
+      "name": "Nitrofurantoin",
+      "aliases": [
+        "macrobid",
+        "macrodantin"
+      ]
+    },
+    {
+      "name": "Nivolumab",
+      "aliases": [
+        "opdivo"
+      ]
+    },
+    {
+      "name": "Nystatin",
+      "aliases": [
+        "nystan"
+      ]
+    },
+    {
+      "name": "Nystatin/Chlorhexidine/Hydrocortisone",
+      "aliases": [
+        "Nystatin/Chlorhex/Hydrocortisone",
+        "nystaform HC"
+      ]
+    },
+    {
+      "name": "Obinutuzumab",
+      "aliases": [
+        "gazyvaro"
+      ]
+    },
+    {
+      "name": "Ocrelizumab",
+      "aliases": [
+        "ocrevus"
+      ]
+    },
+    {
+      "name": "Ofloxacin",
+      "aliases": [
+        "tarivid",
+        "exocin"
+      ]
+    },
+    {
+      "name": "Olanzapine",
+      "aliases": [
+        "Zyprexa"
+      ]
+    },
+    {
+      "name": "Olaparib",
+      "aliases": [
+        "Olaparib-Specialist-Drug",
+        "lynparza"
+      ]
+    },
+    {
+      "name": "Olsalazine Sodium",
+      "aliases": [
+        "olsalazine",
+        "dipentum"
+      ]
+    },
+    {
+      "name": "Opium",
+      "aliases": []
+    },
+    {
+      "name": "Oseltamivir",
+      "aliases": [
+        "tamiflu"
+      ]
+    },
+    {
+      "name": "Oxaliplatin",
+      "aliases": [
+        "eloxatin"
+      ]
+    },
+    {
+      "name": "Oxcarbazepine",
+      "aliases": [
+        "trileptal"
+      ]
+    },
+    {
+      "name": "Oxycodone",
+      "aliases": [
+        "oxynorm",
+        "oxycontin",
+        "shortec",
+        "longtec",
+        "reltebon",
+        "oxypro",
+        "oxycodone hydrochloride"
+      ]
+    },
+    {
+      "name": "Oxycodone/Naloxone",
+      "aliases": [
+        "Oxycodone-With-Naloxone",
+        "targinact"
+      ]
+    },
+    {
+      "name": "Oxytetracycline",
+      "aliases": [
+        "oxymycin"
+      ]
+    },
+    {
+      "name": "Ozanimod",
+      "aliases": [
+        "zeposia"
+      ]
+    },
+    {
+      "name": "Paclitaxel",
+      "aliases": [
+        "taxol",
+        "abraxane"
+      ]
+    },
+    {
+      "name": "Palbociclib",
+      "aliases": [
+        "Palbociclib-Specialist-Drug",
+        "ibrance"
+      ]
+    },
+    {
+      "name": "Paliperidone",
+      "aliases": [
+        "invega",
+        "xeplion",
+        "trevicta"
+      ]
+    },
+    {
+      "name": "Palivizumab",
+      "aliases": [
+        "synagis"
+      ]
+    },
+    {
+      "name": "Panitumumab",
+      "aliases": [
+        "vectibix"
+      ]
+    },
+    {
+      "name": "Panobinostat",
+      "aliases": [
+        "Panobinostat-Specialist-Drug",
+        "farydak"
+      ]
+    },
+    {
+      "name": "Paromomycin",
+      "aliases": [
+        "humatin"
+      ]
+    },
+    {
+      "name": "Patiromer",
+      "aliases": [
+        "veltassa",
+        "patiromer calcium"
+      ]
+    },
+    {
+      "name": "Pazopanib",
+      "aliases": [
+        "Pazopanib-Specialist-Drug",
+        "votrient"
+      ]
+    },
+    {
+      "name": "Pegaspargase",
+      "aliases": [
+        "oncaspar"
+      ]
+    },
+    {
+      "name": "Pegfilgrastim",
+      "aliases": [
+        "neulasta",
+        "pelgraz",
+        "ziextenzo",
+        "fulphila",
+        "pelmeg",
+        "nyvepria"
+      ]
+    },
+    {
+      "name": "Peginterferon Alfa-2a",
+      "aliases": [
+        "pegasys"
+      ]
+    },
+    {
+      "name": "Peginterferon Alfa-2b",
+      "aliases": [
+        "viraferonpeg"
+      ]
+    },
+    {
+      "name": "Peginterferon Beta",
+      "aliases": [
+        "peginterferon beta-1a"
+      ]
+    },
+    {
+      "name": "Pembrolizumab",
+      "aliases": [
+        "keytruda"
+      ]
+    },
+    {
+      "name": "Pemetrexed",
+      "aliases": [
+        "alimta"
+      ]
+    },
+    {
+      "name": "Pemigatinib",
+      "aliases": [
+        "Pemigatinib-Specialist-Drug",
+        "pemazyre"
+      ]
+    },
+    {
+      "name": "Penicillin V",
+      "aliases": [
+        "phenoxymethylpenicillin"
+      ]
+    },
+    {
+      "name": "Pentamidine",
+      "aliases": [
+        "pentamidine isethionate",
+        "pentacarinat"
+      ]
+    },
+    {
+      "name": "Pentostatin",
+      "aliases": [
+        "nipent"
+      ]
+    },
+    {
+      "name": "Perampanel",
+      "aliases": [
+        "fycompa"
+      ]
+    },
+    {
+      "name": "Pergolide",
+      "aliases": [
+        "celance"
+      ]
+    },
+    {
+      "name": "Pericyazine",
+      "aliases": [
+        "neulactil"
+      ]
+    },
+    {
+      "name": "Pertuzumab",
+      "aliases": [
+        "perjeta"
+      ]
+    },
+    {
+      "name": "Pertuzumab/Trastuzumab",
+      "aliases": [
+        "phesgo"
+      ]
+    },
+    {
+      "name": "Pethidine",
+      "aliases": [
+        "meperidine",
+        "pethidine hydrochloride"
+      ]
+    },
+    {
+      "name": "Phenindione",
+      "aliases": []
+    },
+    {
+      "name": "Phenobarbital",
+      "aliases": [
+        "phenobarbital teva",
+        "phenobarbital accord",
+        "phenobarbital bristol",
+        "phenobarbital almus",
+        "phenobarbital actavis"
+      ]
+    },
+    {
+      "name": "Phenytoin",
+      "aliases": [
+        "phenytoin sodium",
+        "phenytoin sodium flynn",
+        "phenytoin sodium almus",
+        "phenytoin sodium teva",
+        "phenytoin sodium milpharm",
+        "phenytoin sodium nrim",
+        "phenytoin infatabs",
+        "epanutin"
+      ]
+    },
+    {
+      "name": "Pimecrolimus",
+      "aliases": [
+        "elidel"
+      ]
+    },
+    {
+      "name": "Pimozide",
+      "aliases": [
+        "orap"
+      ]
+    },
+    {
+      "name": "Piperacillin/Tazobactam",
+      "aliases": [
+        "tazocin"
+      ]
+    },
+    {
+      "name": "Pipotiazine",
+      "aliases": [
+        "piportil"
+      ]
+    },
+    {
+      "name": "Pirtobrutinib",
+      "aliases": [
+        "Pirtobrutinib-Specialist-Drug",
+        "jaypirca"
+      ]
+    },
+    {
+      "name": "Pivmecillinam",
+      "aliases": [
+        "selexid",
+        "pivmecillinam hydrochloride"
+      ]
+    },
+    {
+      "name": "Pixantrone",
+      "aliases": [
+        "pixuvri"
+      ]
+    },
+    {
+      "name": "Polatuzumab-Vedotin",
+      "aliases": [
+        "polivy"
+      ]
+    },
+    {
+      "name": "Pomalidomide",
+      "aliases": [
+        "Pomalidomide-Specialist-Drug",
+        "imnovid"
+      ]
+    },
+    {
+      "name": "Ponatinib",
+      "aliases": [
+        "Ponatinib-Specialist-Drug",
+        "iclusig"
+      ]
+    },
+    {
+      "name": "Ponesimod",
+      "aliases": [
+        "ponvory"
+      ]
+    },
+    {
+      "name": "Posaconazole",
+      "aliases": [
+        "noxafil"
+      ]
+    },
+    {
+      "name": "Potassium Chloride",
+      "aliases": [
+        "kay-cee-l"
+      ]
+    },
+    {
+      "name": "Pramipexole",
+      "aliases": [
+        "mirapexin"
+      ]
+    },
+    {
+      "name": "Prasugrel",
+      "aliases": [
+        "efient"
+      ]
+    },
+    {
+      "name": "Praziquantel",
+      "aliases": [
+        "biltricide"
+      ]
+    },
+    {
+      "name": "Prednisolone",
+      "aliases": [
+        "prednsiolone",
+        "pred forte"
+      ]
+    },
+    {
+      "name": "Pregabalin",
+      "aliases": [
+        "lyrica",
+        "alzain",
+        "axalid",
+        "lecaent",
+        "rewisca"
+      ]
+    },
+    {
+      "name": "Primaquine",
+      "aliases": []
+    },
+    {
+      "name": "Primidone",
+      "aliases": [
+        "mysoline"
+      ]
+    },
+    {
+      "name": "Pristinamycin",
+      "aliases": [
+        "pyostacine"
+      ]
+    },
+    {
+      "name": "Procaine Penicillin",
+      "aliases": [
+        "procaine penicillin g",
+        "procaine benzylpenicillin"
+      ]
+    },
+    {
+      "name": "Procarbazine",
+      "aliases": [
+        "Procarbazine-Specialist-Drug"
+      ]
+    },
+    {
+      "name": "Prochlorperazine",
+      "aliases": [
+        "Buccastem",
+        "Stemetil"
+      ]
+    },
+    {
+      "name": "Procyclidine",
+      "aliases": [
+        "kemadrin",
+        "arpicolin"
+      ]
+    },
+    {
+      "name": "Proguanil",
+      "aliases": [
+        "paludrine"
+      ]
+    },
+    {
+      "name": "Promazine",
+      "aliases": [
+        "promazine hydrochloride"
+      ]
+    },
+    {
+      "name": "Propofol",
+      "aliases": [
+        "diprivan",
+        "propoven"
+      ]
+    },
+    {
+      "name": "Prothrombin",
+      "aliases": [
+        "prothrombin complex",
+        "octaplex"
+      ]
+    },
+    {
+      "name": "Pyrazinamide",
+      "aliases": []
+    },
+    {
+      "name": "Pyridostigmine",
+      "aliases": [
+        "mestinon"
+      ]
+    },
+    {
+      "name": "Pyrimethamine",
+      "aliases": [
+        "daraprim"
+      ]
+    },
+    {
+      "name": "Quetiapine",
+      "aliases": [
+        "seroquel",
+        "biquelle"
+      ]
+    },
+    {
+      "name": "Quizartinib",
+      "aliases": [
+        "vanflyta"
+      ]
+    },
+    {
+      "name": "Raltegravir",
+      "aliases": [
+        "isentress"
+      ]
+    },
+    {
+      "name": "Rasagiline",
+      "aliases": [
+        "azilect"
+      ]
+    },
+    {
+      "name": "Ravulizumab",
+      "aliases": [
+        "ultomiris"
+      ]
+    },
+    {
+      "name": "Remdesivir",
+      "aliases": [
+        "veklury"
+      ]
+    },
+    {
+      "name": "Remifentanil",
+      "aliases": [
+        "ultiva"
+      ]
+    },
+    {
+      "name": "Retigabine",
+      "aliases": [
+        "trobalt"
+      ]
+    },
+    {
+      "name": "Ribavirin",
+      "aliases": [
+        "rebetol",
+        "copegus"
+      ]
+    },
+    {
+      "name": "Rifampicin",
+      "aliases": [
+        "rifadin",
+        "rimactane"
+      ]
+    },
+    {
+      "name": "Rilpivirine",
+      "aliases": [
+        "edurant"
+      ]
+    },
+    {
+      "name": "Risankizumab",
+      "aliases": [
+        "skyrizi"
+      ]
+    },
+    {
+      "name": "Risperidone",
+      "aliases": [
+        "risperdal",
+        "risperdal consta"
+      ]
+    },
+    {
+      "name": "Ritonavir",
+      "aliases": [
+        "norvir"
+      ]
+    },
+    {
+      "name": "Rituximab",
+      "aliases": [
+        "mabthera",
+        "truxima",
+        "ruxience",
+        "rixathon",
+        "riximyo",
+        "blitzima"
+      ]
+    },
+    {
+      "name": "Rivaroxaban",
+      "aliases": [
+        "xarelto"
+      ]
+    },
+    {
+      "name": "Ropinirole",
+      "aliases": [
+        "requip",
+        "ralnea",
+        "spiroco"
+      ]
+    },
+    {
+      "name": "Rotigotine",
+      "aliases": [
+        "neupro"
+      ]
+    },
+    {
+      "name": "Rufinamide",
+      "aliases": [
+        "inovelon"
+      ]
+    },
+    {
+      "name": "Sacituzumab",
+      "aliases": [
+        "sacituzumab govitecan",
+        "trodelvy"
+      ]
+    },
+    {
+      "name": "Safinamide",
+      "aliases": [
+        "xadago"
+      ]
+    },
+    {
+      "name": "Secukinumab",
+      "aliases": [
+        "cosentyx"
+      ]
+    },
+    {
+      "name": "Selegiline",
+      "aliases": [
+        "eldepryl",
+        "zelapar"
+      ]
+    },
+    {
+      "name": "Semisodium Valproate",
+      "aliases": [
+        "depakote",
+        "valproic acid",
+        "convulex",
+        "syonell",
+        "belvo"
+      ]
+    },
+    {
+      "name": "Sodium Valproate",
+      "aliases": [
+        "Sodium Valp. (Epilim)",
+        "Epilim",
+        "Sodium Valp. (Episenta)",
+        "Episenta",
+        "Sodium valp.",
+        "sodium valp",
+        "valproate sodium",
+        "valproate",
+        "Dyzantil",
+        "Epival",
+        "Depakin"
+      ]
+    },
+    {
+      "name": "Sofosbuvir",
+      "aliases": [
+        "sovaldi"
+      ]
+    },
+    {
+      "name": "Sorafenib",
+      "aliases": [
+        "Sorafenib-Specialist-Drug",
+        "nexavar"
+      ]
+    },
+    {
+      "name": "Sotrovimab",
+      "aliases": [
+        "xevudy"
+      ]
+    },
+    {
+      "name": "Stiripentol",
+      "aliases": [
+        "diacomit"
+      ]
+    },
+    {
+      "name": "Sufentanil",
+      "aliases": [
+        "sufenta"
+      ]
+    },
+    {
+      "name": "Sultiame",
+      "aliases": [
+        "ospolot"
+      ]
+    },
+    {
+      "name": "Sunitinib",
+      "aliases": [
+        "Sunitinib-Specialist-Drug",
+        "sutent"
+      ]
+    },
+    {
+      "name": "Tacrolimus",
+      "aliases": [
+        "prograf",
+        "adoport",
+        "advagraf",
+        "envarsus",
+        "modigraf"
+      ]
+    },
+    {
+      "name": "Tapentadol",
+      "aliases": [
+        "palexia"
+      ]
+    },
+    {
+      "name": "Teicoplanin",
+      "aliases": [
+        "targocid"
+      ]
+    },
+    {
+      "name": "Temozolomide",
+      "aliases": [
+        "Temozolomide-Specialist-Drug",
+        "temodal"
+      ]
+    },
+    {
+      "name": "Tenofovir alafenamide",
+      "aliases": [
+        "vemlidy"
+      ]
+    },
+    {
+      "name": "Tenofovir disoproxil",
+      "aliases": [
+        "viread"
+      ]
+    },
+    {
+      "name": "Thalidomide",
+      "aliases": [
+        "Thalidomide-Specialist-Drug"
+      ]
+    },
+    {
+      "name": "Thiopental",
+      "aliases": [
+        "thiopental sodium",
+        "thiopentone"
+      ]
+    },
+    {
+      "name": "Tiagabine",
+      "aliases": [
+        "gabitril"
+      ]
+    },
+    {
+      "name": "Ticagrelor",
+      "aliases": [
+        "brilique"
+      ]
+    },
+    {
+      "name": "Tobramycin",
+      "aliases": [
+        "tobi",
+        "bramitob",
+        "tymbrineb",
+        "vantobra"
+      ]
+    },
+    {
+      "name": "Tocilizumab",
+      "aliases": [
+        "roactemra",
+        "tyenne"
+      ]
+    },
+    {
+      "name": "Tolcapone",
+      "aliases": [
+        "tasmar"
+      ]
+    },
+    {
+      "name": "Topiramate",
+      "aliases": [
+        "topamax"
+      ]
+    },
+    {
+      "name": "Tramadol",
+      "aliases": [
+        "zydol",
+        "zamadol",
+        "marol",
+        "maxitram",
+        "tramquel",
+        "tramadol hydrochloride"
+      ]
+    },
+    {
+      "name": "Trastuzumab",
+      "aliases": [
+        "herceptin",
+        "herzuma",
+        "ontruzant",
+        "kadcyla",
+        "enhertu",
+        "ogivri",
+        "trazimera"
+      ]
+    },
+    {
+      "name": "Trifluoperazine",
+      "aliases": [
+        "stelazine"
+      ]
+    },
+    {
+      "name": "Trihexyphenidyl",
+      "aliases": [
+        "benzhexol"
+      ]
+    },
+    {
+      "name": "Upadacitinib",
+      "aliases": [
+        "rinvoq"
+      ]
+    },
+    {
+      "name": "Ustekinumab",
+      "aliases": [
+        "stelara",
+        "pyzchiva",
+        "wezenla"
+      ]
+    },
+    {
+      "name": "Valaciclovir",
+      "aliases": [
+        "valtrex"
+      ]
+    },
+    {
+      "name": "Valganciclovir",
+      "aliases": [
+        "valcyte"
+      ]
+    },
+    {
+      "name": "Vancomycin",
+      "aliases": [
+        "vancocin",
+        "vancomycin flynn"
+      ]
+    },
+    {
+      "name": "Vedolizumab",
+      "aliases": [
+        "entyvio"
+      ]
+    },
+    {
+      "name": "Venetoclax",
+      "aliases": [
+        "Venetoclax-Specialist-Drug",
+        "venclyxto"
+      ]
+    },
+    {
+      "name": "Vigabatrin",
+      "aliases": [
+        "sabril"
+      ]
+    },
+    {
+      "name": "Vinblastine",
+      "aliases": [
+        "vinblastine sulphate"
+      ]
+    },
+    {
+      "name": "Vincristine",
+      "aliases": [
+        "vincristine sulphate",
+        "oncovin"
+      ]
+    },
+    {
+      "name": "Vinorelbine",
+      "aliases": [
+        "Vinorelbine-Specialist-Drug",
+        "navelbine"
+      ]
+    },
+    {
+      "name": "Voriconazole",
+      "aliases": [
+        "vfend"
+      ]
+    },
+    {
+      "name": "Warfarin",
+      "aliases": [
+        "warfarin sodium",
+        "marevan"
+      ]
+    },
+    {
+      "name": "Zidovudine",
+      "aliases": [
+        "retrovir",
+        "azt"
+      ]
+    },
+    {
+      "name": "Zonisamide",
+      "aliases": [
+        "zonegran"
+      ]
+    },
+    {
+      "name": "Zuclopenthixol",
+      "aliases": [
+        "zuclopenthixol decanoate",
+        "clopixol"
+      ]
+    }
+  ]
+}

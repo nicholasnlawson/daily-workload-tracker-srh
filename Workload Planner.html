@@ -1,0 +1,2063 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pharmacy Workload Planner</title>
+    <style>
+      :root {
+        --hdr: #dce6f1;
+        --accent: #005eb8;
+        --border: #9aa5b1;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+        margin: 0;
+        background: #f2f4f7;
+        color: #212b32;
+      }
+      header {
+        background: var(--accent);
+        color: #fff;
+        padding: 14px 24px;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 20px;
+      }
+      header p {
+        margin: 4px 0 0;
+        opacity: 0.9;
+        font-size: 13px;
+      }
+      main {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 16px 24px 40px;
+      }
+      .card {
+        background: #fff;
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      }
+      .drop {
+        border: 2px dashed var(--border);
+        border-radius: 6px;
+        padding: 26px;
+        text-align: center;
+        color: #4c6272;
+        transition: background 0.15s;
+      }
+      .drop.over {
+        background: #e8f1fb;
+        border-color: var(--accent);
+      }
+      .btns {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 7px 14px;
+        border-radius: 4px;
+        border: 1px solid var(--accent);
+        background: #fff;
+        color: var(--accent);
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .btn:hover {
+        background: #e8f1fb;
+      }
+      .btn.primary {
+        background: var(--accent);
+        color: #fff;
+      }
+      .btn.primary:hover {
+        background: #004a93;
+      }
+      #status {
+        margin-top: 12px;
+        font-size: 13px;
+      }
+      #status ul {
+        margin: 4px 0;
+        padding-left: 20px;
+      }
+      .ok {
+        color: #007f3b;
+      }
+      .warn {
+        color: #b35900;
+      }
+      .err {
+        color: #d5281b;
+      }
+      #controls {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      #controls select {
+        font-size: 14px;
+        padding: 4px;
+      }
+      #copyMsg {
+        font-size: 13px;
+      }
+      #colDialog {
+        border: none;
+        border-radius: 6px;
+        padding: 20px;
+        width: min(560px, 92vw);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      }
+      #colDialog::backdrop {
+        background: rgba(0, 0, 0, 0.35);
+      }
+      #colDialog h3 {
+        margin: 0 0 4px;
+      }
+      #colList fieldset {
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        margin: 0 0 10px;
+        padding: 6px 10px;
+      }
+      #colList legend {
+        font-weight: bold;
+        font-size: 13px;
+      }
+      #colList label {
+        display: inline-block;
+        margin: 3px 16px 3px 0;
+        white-space: nowrap;
+      }
+      /* Keep the tables inside the white card: text wraps (with hyphenation) as the
+         window narrows; only in a very narrow window does the card scroll sideways */
+      #tableWrap {
+        max-width: 100%;
+        overflow-x: auto;
+      }
+      table.wl {
+        border-collapse: collapse;
+        margin-bottom: 14px;
+        max-width: 100%;
+      }
+      /* Full width only when there are pharmacist/comment columns to give the space to */
+      table.wl.main.full {
+        width: 100%;
+      }
+      table.wl th,
+      table.wl td {
+        border: 1px solid #000;
+        padding: 2px 4px;
+        font-size: 13px;
+        hyphens: auto;
+        overflow-wrap: break-word;
+      }
+      table.wl td.txt {
+        overflow-wrap: anywhere;
+        min-width: 64px;
+      }
+      @media (max-width: 1150px) {
+        table.wl th,
+        table.wl td {
+          font-size: 11px;
+          padding: 1px 3px;
+        }
+        table.wl.main td.edit.pharm {
+          min-width: 80px;
+        }
+        table.wl.main td.edit.comment {
+          min-width: 110px;
+        }
+      }
+      /* Count columns shrink to their content so the pharmacist and comment
+         columns get the spare width */
+      table.wl.main.full td.num {
+        width: 1%;
+      }
+      @media (min-width: 1150px) {
+        table.wl.main td.txt {
+          min-width: 90px;
+        }
+      }
+      table.wl.main td.pharm {
+        width: 14%;
+        min-width: 110px;
+      }
+      table.wl.main td.comment {
+        width: 24%;
+        min-width: 160px;
+      }
+      /* Auto-growing text box: a hidden copy of the text sets the size */
+      .grow {
+        display: grid;
+      }
+      .grow::after {
+        content: attr(data-val) " ";
+        visibility: hidden;
+        white-space: pre-wrap;
+      }
+      .grow > textarea,
+      .grow::after {
+        grid-area: 1 / 1;
+        font: inherit;
+        padding: 2px 0;
+        margin: 0;
+        border: none;
+        overflow-wrap: anywhere;
+        line-height: 1.3;
+      }
+      .grow > textarea {
+        width: 100%;
+        min-width: 0;
+        resize: none;
+        overflow: hidden;
+        background: transparent;
+        text-align: inherit;
+      }
+      .grow > textarea:focus {
+        outline: 2px solid var(--accent);
+        background: #fff;
+      }
+      table.wl.general th {
+        text-align: left;
+      }
+      table.wl.staff td.edit.wide {
+        min-width: 120px;
+      }
+      table.wl.staff.general td.edit.wide {
+        min-width: 200px;
+      }
+      table.wl th {
+        background: var(--hdr);
+      }
+      table.wl td.num {
+        text-align: center;
+      }
+      table.wl td.grey {
+        background: #808080;
+      }
+      table.wl input {
+        width: 100%;
+        border: none;
+        background: transparent;
+        font: inherit;
+        padding: 2px 0;
+      }
+      table.wl input:focus {
+        outline: 2px solid var(--accent);
+        background: #fff;
+      }
+      table.wl input {
+        min-width: 0;
+      }
+      table.wl td.edit {
+        min-width: 40px;
+      }
+      table.wl td.edit.wide {
+        min-width: 70px;
+      }
+      .legend {
+        font-size: 12px;
+        color: #4c6272;
+      }
+      details summary {
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .detail-ward {
+        margin-top: 14px;
+      }
+      .detail-ward h3 {
+        font-size: 14px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .det-meta {
+        font-size: 11px;
+        color: #4c6272;
+        margin: 2px 0 4px;
+      }
+      .det-actions {
+        margin: 8px 0 0;
+      }
+      .btn.small {
+        padding: 2px 10px;
+        font-size: 12px;
+      }
+      table.det {
+        border-collapse: collapse;
+        font-size: 12px;
+        width: 100%;
+        table-layout: fixed;
+      }
+      table.det th,
+      table.det td {
+        border: 1px solid #ccc;
+        padding: 2px 4px;
+        text-align: left;
+        overflow-wrap: anywhere;
+        vertical-align: top;
+      }
+      table.det th {
+        background: #f0f0f0;
+        font-size: 11px;
+      }
+      table.det td.c {
+        text-align: center;
+      }
+      tr.old td.days {
+        color: #d5281b;
+        font-weight: bold;
+      }
+      .crit-label {
+        font-weight: bold;
+      }
+      .crit {
+        color: #d5281b;
+        font-weight: bold;
+      }
+      @media print {
+        @page {
+          size: A4 landscape;
+          margin: 10mm;
+        }
+        body[data-print] {
+          background: #fff;
+        }
+        body[data-print] header,
+        body[data-print] main > section:not(#details),
+        body[data-print] summary,
+        body[data-print] .no-print,
+        body[data-print] .detail-ward:not(.printing) {
+          display: none !important;
+        }
+        body[data-print] main {
+          padding: 0;
+          max-width: none;
+        }
+        body[data-print] .card {
+          box-shadow: none;
+          padding: 0;
+          margin: 0;
+        }
+        body[data-print] .detail-ward.printing ~ .detail-ward.printing {
+          break-before: page;
+        }
+        table.det thead {
+          display: table-header-group;
+        }
+        table.det tr {
+          break-inside: avoid;
+        }
+        table.det th,
+        table.det td {
+          border-color: #000;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Pharmacy Workload Planner</h1>
+      <p>
+        Builds the daily directorate workload table from Pharmacy Ward List
+        reports and <b>ward_directory.csv</b>.
+      </p>
+    </header>
+    <main>
+      <section class="card">
+        <div id="drop" class="drop">
+          Drag the ward list and review list reports (PDF or text),
+          <b>ward_directory.csv</b> and <b>Critical_meds.json</b> here, or drag
+          the whole folder.
+        </div>
+        <div class="btns">
+          <label class="btn primary"
+            >Choose folder&hellip;<input
+              type="file"
+              id="pickFolder"
+              webkitdirectory
+              multiple
+              hidden
+          /></label>
+          <label class="btn"
+            >Choose files&hellip;<input
+              type="file"
+              id="pickFiles"
+              multiple
+              hidden
+          /></label>
+          <label class="btn"
+            >Load ward directory (CSV)&hellip;<input
+              type="file"
+              id="pickDir"
+              accept=".csv"
+              hidden
+          /></label>
+          <button id="clearBtn" class="btn">Clear reports</button>
+        </div>
+        <div id="status"></div>
+      </section>
+
+      <section id="controls" class="card" hidden>
+        <label
+          >Directorate:
+          <select id="dirSel"></select
+        ></label>
+        <label
+          ><input type="checkbox" id="optStaff" /> Include staffing &amp;
+          pharmacist allocation</label
+        >
+        <button id="colBtn" class="btn">Columns&hellip;</button>
+        <button id="copyBtn" class="btn primary">Copy table for email</button>
+        <span id="copyMsg"></span>
+      </section>
+
+      <dialog id="colDialog">
+        <form method="dialog">
+          <h3>Columns to show</h3>
+          <p class="legend" id="colFor"></p>
+          <div id="colList"></div>
+          <div class="btns">
+            <button type="button" id="colReset" class="btn">
+              Reset to defaults
+            </button>
+            <button class="btn primary">Done</button>
+          </div>
+        </form>
+      </dialog>
+
+      <section id="output" class="card" hidden>
+        <div id="tableWrap"></div>
+        <p class="legend">
+          <b>Hx.</b> = patients with no recognised status. <b>Total</b> is all
+          of them; the hrs columns split them by time since admission (report
+          date minus admit date/time), so Total also includes those admitted
+          &lt;18 hrs ago. <b>UQ</b> = Urgent Queries, <b>Q</b> = Outstanding
+          Queries, <b>PRI</b> = Review Incomplete (<b>PRI &gt;24 hrs</b> = PRI
+          last updated more than 24 hrs before the report), <b>TMR</b> = Tech
+          Meds Rec, <b>PRC</b> = Review Complete. <b>Not r/v &gt;1 week</b> =
+          patients with a status whose last review is more than 7 days before
+          the report date. <b>Unreviewed items</b> come from the review list
+          PDF: Total, and those prescribed more than 48 hrs / 7 days before the
+          review list was run (&gt;48 hrs includes the &gt;7 days items);
+          &ndash; means no review list was loaded for that ward. Boarders and
+          the white boxes are typed in by hand.
+        </p>
+      </section>
+
+      <section id="details" class="card" hidden>
+        <details>
+          <summary>Patient details (for checking; not copied)</summary>
+          <div id="detailWrap"></div>
+        </details>
+        <div class="det-actions no-print">
+          <button id="printAll" class="btn">Print all ward lists</button>
+          <span class="legend"
+            >Prints the patient details for the wards in the selected
+            directorate, one ward per page.</span
+          >
+        </div>
+      </section>
+    </main>
+
+    <!-- PDF.js 3.11.174 (Apache 2.0), bundled for offline use. Loading the worker
+         as a script lets it run on the page, which works when opened from disk. -->
+    <script src="lib/pdf.min.js"></script>
+    <script src="lib/pdf.worker.min.js"></script>
+    <script>
+      (() => {
+        "use strict";
+
+        const VALID = ["UQ", "Q", "PRI", "TMR", "PRC"];
+        const WEEK_MS = 7 * 24 * 3600 * 1000;
+        const PALETTE = [
+          "#d5e8d4",
+          "#fff2cc",
+          "#f8d9c4",
+          "#e1dcf5",
+          "#dae8fc",
+          "#f5d0e0",
+          "#d0f0ef",
+          "#e6e6e6",
+          "#fde3b6",
+          "#cfe2c3",
+        ];
+        // Staffing section layouts. Directorates listed in SURGERY_DIRECTORATES use the
+        // surgery layout (2 label/value pairs per row); all others, including
+        // "All loaded wards", use the general layout (1 pair per row).
+        // Fields with the same key (e.g. coord) share their value between layouts.
+        const SURGERY_DIRECTORATES = ["surgery"];
+        const STAFF_LAYOUTS = {
+          surgery: {
+            perRow: 2,
+            fields: [
+              ["coord", "Co-ordinator"],
+              ["mrPharm", "Meds Rec Pharmacist"],
+              ["latePharm", "Late pharmacists"],
+              ["mrTech", "Meds Rec IMM Tech"],
+              ["lateCover", "Late ward cover"],
+              ["mrTrainee", "Meds Rec Trainee"],
+              [null, ""],
+              [
+                "pmLong",
+                'PM long stay reviews<br><i style="font-weight:normal">[from SSEH lunch cover]</i>',
+              ],
+            ],
+          },
+          general: {
+            perRow: 1,
+            fields: [
+              ["coord", "Coordinator:"],
+              ["helpPharm", "Help Pharmacist:"],
+              ["mrTechnician", "Meds Rec Technician:"],
+              ["latePharm", "Late Pharmacists:"],
+            ],
+          },
+        };
+
+        const state = {
+          wards: new Map(),
+          reviews: new Map(),
+          directory: [],
+          dirFile: null,
+          critical: [],
+          critFile: null,
+          files: [],
+          warnings: [],
+          edits: {},
+          staff: Object.fromEntries(
+            Object.values(STAFF_LAYOUTS)
+              .flatMap((l) => l.fields)
+              .filter((f) => f[0])
+              .map((f) => [f[0], "n/a"]),
+          ),
+        };
+        const layoutName = () =>
+          SURGERY_DIRECTORATES.includes(
+            String(document.getElementById("dirSel").value)
+              .trim()
+              .toLowerCase(),
+          )
+            ? "surgery"
+            : "general";
+        const staffLayout = () => STAFF_LAYOUTS[layoutName()];
+
+        // Column choices are kept per layout (surgery / general) on this computer.
+        // Everything is shown by default, except Boarders outside surgery.
+        const COL_KEY = "workloadPlanner.columns";
+        let colPrefs = {};
+        try {
+          colPrefs = JSON.parse(localStorage.getItem(COL_KEY) || "{}") || {};
+        } catch (_) {}
+        const colDefaults = (l) => ({ medBords: l === "surgery" });
+        const shown = (key, l = layoutName()) =>
+          (colPrefs[l] || {})[key] ?? colDefaults(l)[key] ?? true;
+        const saveColPrefs = () => {
+          try {
+            localStorage.setItem(COL_KEY, JSON.stringify(colPrefs));
+          } catch (_) {}
+        };
+
+        const $ = (id) => document.getElementById(id);
+        const esc = (s) =>
+          String(s ?? "").replace(
+            /[&<>"]/g,
+            (c) =>
+              ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+          );
+        const norm = (s) =>
+          String(s || "")
+            .trim()
+            .toUpperCase();
+
+        function parseDate(d, t) {
+          const [dd, mm, yy] = d.split("/").map(Number);
+          const [h, m] = (t || "00:00").split(":").map(Number);
+          return new Date(yy < 100 ? 2000 + yy : yy, mm - 1, dd, h, m);
+        }
+        const fmtDate = (d) =>
+          d
+            ? d.toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "2-digit",
+              })
+            : "";
+        const fmtDateTime = (d) =>
+          d ? fmtDate(d) + " " + d.toTimeString().slice(0, 5) : "";
+
+        // ---------- Report parsing ----------
+        const RE_SKIP =
+          /Pharmacy - Ward List|NHS Foundation Trust|User:|Status Key:|^\s*UQ\s+-\s+Urgent Queries/;
+        const RE_REPORT_DATE =
+          /Date:\s*(\d{2}\/\d{2}\/\d{2,4})\s+(\d{1,2}:\d{2})/;
+        const RE_TOTAL = /Total Patients on Ward:\s*(\d+)/i;
+        const RE_WARD_EDD = /^\s{0,3}(\S+)\s+Initial EDD\s*$/;
+        const RE_STATUS =
+          /^\s{0,3}([A-Za-z]{1,5})\s+(\d{2}\/\d{2}\/\d{2,4})\s+(\d{1,2}:\d{2})(.*)$/;
+        const RE_PATIENT =
+          /^\s{0,3}(\S+)\s+(\S.*?)\s{2,}.*\s(\d{2}\/\d{2}\/\d{2,4})\s*$/;
+        const RE_TIME_END = /\s(\d{1,2}:\d{2})\s*$/;
+        // Ward codes may include : - / . (e.g. EAU:1-3, EAU-SR)
+        const RE_WARD_CODE = /^[A-Za-z0-9][A-Za-z0-9:\/.\-]{1,11}$/;
+        // A line holding only a ward code (ignoring header words). PDFs can split a
+        // code into pieces, so the pieces are joined back together.
+        function wardFromLine(line) {
+          const t = line.replace(/Admit (Date|Time)|Initial EDD/g, "").trim();
+          if (!t || t.split(/\s+/).length > 3) return null;
+          const c = t.replace(/\s+/g, "");
+          return RE_WARD_CODE.test(c) ? c : null;
+        }
+        // Hospital number (ward list "Med Rec Num" / review list "Unit Number"), e.g. X051400000
+        const RE_MRN = /^[A-Za-z]{0,3}\d{5,10}[A-Za-z]?$/;
+        const findMrn = (tokens) => {
+          const t = tokens.find((x) => RE_MRN.test(x));
+          return t ? t.toUpperCase() : "";
+        };
+
+        function parseReport(text, fileName) {
+          const lines = text.replace(/\r/g, "").split("\n");
+          const fromName = (fileName.match(
+            /^([A-Za-z0-9]+?)[ _-]*ward[ _-]*list/i,
+          ) || [])[1];
+          let reportDate = null,
+            ward = null,
+            patient = null,
+            inHeader = false,
+            afterPageHeader = false;
+          const found = [];
+
+          const startWard = (code) => {
+            code = norm(code);
+            if (ward && ward.code === code) return;
+            ward = found.find((w) => w.code === code);
+            if (!ward) {
+              ward = {
+                code,
+                patients: [],
+                reportedTotal: null,
+                file: fileName,
+              };
+              found.push(ward);
+            }
+            patient = null;
+          };
+
+          for (const line of lines) {
+            if (!reportDate) {
+              const m = line.match(RE_REPORT_DATE);
+              if (m) reportDate = parseDate(m[1], m[2]);
+            }
+            if (/Patient Name/.test(line) && /Bed/.test(line)) {
+              inHeader = true;
+              afterPageHeader = false;
+              continue;
+            }
+            // "User:" is the last line of each page header
+            if (/User:/.test(line)) {
+              afterPageHeader = true;
+              continue;
+            }
+            if (RE_SKIP.test(line)) continue;
+
+            let m;
+            // A new ward starts on a new page with its code alone on the first line
+            // after the page header, e.g. " DGD41" or " EAU:1-3"
+            const code =
+              !inHeader && /^\s{0,3}\S/.test(line) && wardFromLine(line);
+            if (
+              code &&
+              /[A-Za-z]/.test(code) &&
+              (afterPageHeader || dirEntry(norm(code)))
+            ) {
+              startWard(code);
+              afterPageHeader = false;
+              continue;
+            }
+            if (line.trim()) afterPageHeader = false;
+            if ((m = line.match(RE_TOTAL))) {
+              if (!ward)
+                startWard(found.length ? "UNKNOWN" : fromName || "UNKNOWN");
+              ward.reportedTotal = Number(m[1]);
+              ward = null;
+              patient = null;
+              continue;
+            }
+            if (RE_WARD_EDD.test(line) || inHeader) {
+              if (!line.trim()) {
+                inHeader = false;
+                continue;
+              }
+              const hc = wardFromLine(line);
+              if (hc) {
+                startWard(hc);
+                inHeader = false;
+              }
+              if (inHeader || hc) continue;
+            }
+            if ((m = line.match(RE_STATUS))) {
+              if (patient) {
+                const st = {
+                  code: m[1].toUpperCase(),
+                  date: parseDate(m[2], m[3]),
+                  comment: m[4].trim(),
+                };
+                if (!patient.status || st.date > patient.status.date)
+                  patient.status = st;
+              }
+              continue;
+            }
+            if ((m = line.match(RE_PATIENT))) {
+              if (!ward)
+                startWard(found.length ? "UNKNOWN" : fromName || "UNKNOWN");
+              patient = {
+                bed: m[1],
+                mrn: findMrn(line.trim().split(/\s+/).slice(1)),
+                name: m[2].trim(),
+                status: null,
+                admitDate: m[3],
+                admitTime: null,
+              };
+              ward.patients.push(patient);
+              continue;
+            }
+            if (patient && !patient.admitTime && (m = line.match(RE_TIME_END)))
+              patient.admitTime = m[1];
+          }
+          found.forEach((w) => {
+            w.reportDate = reportDate;
+            w.patients.forEach(
+              (p) => (p.admitted = parseDate(p.admitDate, p.admitTime)),
+            );
+          });
+          return found;
+        }
+
+        // ---------- CSV ----------
+        function parseCSV(text) {
+          const rows = [];
+          let row = [],
+            field = "",
+            q = false;
+          text = text.replace(/^\uFEFF/, "");
+          for (let i = 0; i < text.length; i++) {
+            const c = text[i];
+            if (q) {
+              if (c === '"' && text[i + 1] === '"') {
+                field += '"';
+                i++;
+              } else if (c === '"') q = false;
+              else field += c;
+            } else if (c === '"') q = true;
+            else if (c === ",") {
+              row.push(field);
+              field = "";
+            } else if (c === "\n" || c === "\r") {
+              if (c === "\r" && text[i + 1] === "\n") i++;
+              row.push(field);
+              rows.push(row);
+              row = [];
+              field = "";
+            } else field += c;
+          }
+          if (field || row.length) {
+            row.push(field);
+            rows.push(row);
+          }
+          return rows.filter((r) => r.some((x) => x.trim()));
+        }
+
+        function loadDirectory(text) {
+          const rows = parseCSV(text);
+          if (!rows.length) return null;
+          const head = rows[0].map((h) => h.trim().toLowerCase());
+          const idx = (k) => head.findIndex((h) => h.includes(k));
+          const iW = idx("ward"),
+            iD = idx("display"),
+            iS = idx("special"),
+            iDir = idx("director");
+          if (iW < 0 || iS < 0 || iDir < 0) return null;
+          return rows
+            .slice(1)
+            .map((r) => ({
+              ward: norm(r[iW]),
+              display: (iD >= 0 && r[iD] && r[iD].trim()) || norm(r[iW]),
+              specialty: (r[iS] || "").trim(),
+              directorate: (r[iDir] || "").trim() || "Unassigned",
+            }))
+            .filter((r) => r.ward);
+        }
+
+        // ---------- File loading ----------
+        async function filesFromDrop(dt) {
+          const entries = [...dt.items]
+            .map((i) => i.webkitGetAsEntry && i.webkitGetAsEntry())
+            .filter(Boolean);
+          if (!entries.length) return [...dt.files];
+          const out = [];
+          const walk = async (e) => {
+            if (e.isFile)
+              out.push(await new Promise((res, rej) => e.file(res, rej)));
+            else if (e.isDirectory) {
+              const reader = e.createReader();
+              let batch;
+              do {
+                batch = await new Promise((res, rej) =>
+                  reader.readEntries(res, rej),
+                );
+                for (const x of batch) await walk(x);
+              } while (batch.length);
+            }
+          };
+          for (const e of entries) await walk(e);
+          return out;
+        }
+
+        // ---------- PDF / text page handling ----------
+        // Both report types can arrive as PDF or text. Each page becomes a list of
+        // rows, and each row a list of parts {x, s, w}. x is in points for PDFs
+        // and in character columns for text files.
+        async function pdfPages(data) {
+          const doc = await pdfjsLib.getDocument({
+            data,
+            isEvalSupported: false,
+          }).promise;
+          const pages = [];
+          for (let p = 1; p <= doc.numPages; p++) {
+            const tc = await (await doc.getPage(p)).getTextContent();
+            const rows = [];
+            tc.items.forEach((it, i) => {
+              if (!it.str.trim()) return;
+              const [x, y] = [it.transform[4], it.transform[5]];
+              let row = rows.find((r) => Math.abs(r.y - y) < 2.5);
+              if (!row) rows.push((row = { y, parts: [] }));
+              row.parts.push({ x, s: it.str.trim(), w: it.width, i });
+            });
+            rows.sort((a, b) => b.y - a.y);
+            // Items printed at the same spot keep their original print order
+            rows.forEach((r) =>
+              r.parts.sort((a, b) =>
+                Math.abs(a.x - b.x) < 1 ? a.i - b.i : a.x - b.x,
+              ),
+            );
+            pages.push(rows);
+          }
+          return pages;
+        }
+
+        function textPages(text) {
+          return text
+            .replace(/\r/g, "")
+            .split("\f")
+            .map((page) =>
+              page.split("\n").map((line) => ({
+                parts: [...line.matchAll(/\S+/g)].map((m) => ({
+                  x: m.index,
+                  s: m[0],
+                })),
+              })),
+            );
+        }
+
+        // Rebuild fixed-width text from PDF rows so the ward list text parser can be reused
+        function pagesToText(pages) {
+          const parts = pages.flat().flatMap((r) => r.parts);
+          const chars = parts.reduce((a, q) => a + q.s.length, 0);
+          const cw = parts.reduce((a, q) => a + (q.w || 0), 0) / chars || 5;
+          const left = Math.min(...parts.map((q) => q.x));
+          return pages
+            .map((rows) =>
+              rows
+                .flatMap((r) => {
+                  // Overprinted text (overlapping an earlier item) goes on its own line
+                  const lines = [];
+                  let pending = r.parts;
+                  while (pending.length) {
+                    let out = "",
+                      end = null,
+                      start = null;
+                    const rest = [];
+                    for (const q of pending) {
+                      if (
+                        end != null &&
+                        q.x < end - 1 &&
+                        q.x - start < cw * 2
+                      ) {
+                        rest.push(q);
+                        continue;
+                      }
+                      const col = Math.round((q.x - left) / cw);
+                      // Separate columns get 2+ spaces, including text that runs into the next column
+                      const min =
+                        end == null
+                          ? 0
+                          : q.x - end > cw * 1.5 || q.x < end - 1
+                            ? 2
+                            : 1;
+                      out += " ".repeat(Math.max(min, col - out.length)) + q.s;
+                      end = q.x + (q.w || q.s.length * cw);
+                      start = q.x;
+                    }
+                    lines.push(out);
+                    pending = rest;
+                  }
+                  return lines;
+                })
+                .join("\n"),
+            )
+            .join("\n");
+        }
+
+        const pageText = (pages) =>
+          pages
+            .map((rows) =>
+              rows.map((r) => r.parts.map((q) => q.s).join(" ")).join("\n"),
+            )
+            .join("\n");
+
+        // ---------- Review list parsing ----------
+        const RE_PX =
+          /\b(\d{2}\/\d{2}\/\d{2,4})-(\d{2})(\d{2})(?:\s+([A-Z]{2,5})\b)?/;
+        const RE_LOC = /^[A-Za-z0-9][A-Za-z0-9:\/.\-]*-[^\s-]+$/;
+        // Split a location like "DG06-22" or "EAU:4-6-4.1" into ward and bed. Prefer a
+        // known ward code (from loaded ward lists or the directory); otherwise split
+        // at the last hyphen.
+        function splitLoc(s) {
+          if (!RE_LOC.test(s)) return null;
+          const u = norm(s);
+          const known = [
+            ...state.wards.keys(),
+            ...state.directory.map((d) => d.ward),
+          ]
+            .filter((c) => u.startsWith(c + "-") && u.length > c.length + 1)
+            .sort((a, b) => b.length - a.length)[0];
+          if (known) return [known, s.slice(known.length + 1)];
+          const i = s.lastIndexOf("-");
+          return [s.slice(0, i), s.slice(i + 1)];
+        }
+        const isReviewText = (t) =>
+          /Location/.test(t) && /Medication/.test(t) && /Px\s+Date/.test(t);
+
+        function parseReview(pages, fileName) {
+          const fileWard = (fileName.match(
+            /^([A-Za-z0-9]+?)[ _-]*review[ _-]*list/i,
+          ) || [])[1];
+          const out = {
+            items: [],
+            reportDate: null,
+            grandTotal: null,
+            isReview: false,
+          };
+          for (const rows of pages) {
+            let locX = null,
+              medX = null,
+              medEnd = Infinity;
+            for (const r of rows) {
+              const text = r.parts.map((q) => q.s).join(" ");
+              let m;
+              if (
+                !out.reportDate &&
+                (m = text.match(
+                  /DATE:\s*(\d{2}\/\d{2}\/\d{2,4})\s*@\s*(\d{2})(\d{2})/,
+                ))
+              )
+                out.reportDate = parseDate(m[1], `${m[2]}:${m[3]}`);
+              if ((m = text.match(/Grand\s+Total\s*=\s*(\d+)/i)))
+                out.grandTotal = (out.grandTotal || 0) + Number(m[1]);
+              const hLoc = r.parts.find((q) => /\bLocation\b/.test(q.s));
+              const hMed = r.parts.find((q) => /^Medication\b/.test(q.s));
+              if (hLoc && hMed) {
+                const hPts = r.parts.find((q) => /^Patients\b/.test(q.s));
+                locX = Math.min(hLoc.x, hPts ? hPts.x : hLoc.x);
+                medX = hMed.x;
+                // The medication column ends at the next header (Admit Date or Px Date)
+                medEnd = Math.min(
+                  Infinity,
+                  ...r.parts.filter((q) => q.x > medX + 1).map((q) => q.x),
+                );
+                out.isReview = true;
+                continue;
+              }
+              const px = text.match(RE_PX);
+              if (!px) continue;
+              const locPart =
+                locX != null
+                  ? r.parts.find((q) => q.x >= locX - 2 && q.x < medX - 1)
+                  : r.parts.find((q) => RE_LOC.test(q.s));
+              const locText = (locPart || {}).s || "";
+              const loc = splitLoc(locText);
+              const ward = loc ? loc[0] : fileWard;
+              if (!ward) continue;
+              out.items.push({
+                ward: norm(ward),
+                bed: loc ? loc[1] : "",
+                mrn: findMrn(r.parts.slice(0, 1).map((q) => q.s)),
+                px: parseDate(px[1], `${px[2]}:${px[3]}`),
+                type: px[4] || "",
+                // Medication text runs from after the location (text reports don't
+                // line up with the Medication header) to the end of the column
+                med: (medX != null
+                  ? r.parts
+                      .filter(
+                        (q) =>
+                          (locPart ? q.x > locPart.x : q.x >= medX - 2) &&
+                          q.x < medEnd - 2 &&
+                          !RE_PX.test(q.s),
+                      )
+                      .map((q) => q.s)
+                      .join(" ")
+                  : text.slice(0, px.index)
+                )
+                  .replace(/^~/, "")
+                  .trim(),
+              });
+            }
+          }
+          out.wards = [...new Set(out.items.map((i) => i.ward))];
+          if (fileWard && !out.wards.includes(norm(fileWard)) && out.isReview)
+            out.wards.push(norm(fileWard));
+          return out;
+        }
+
+        // Keep the newest report when the same ward is loaded twice
+        function mergeLatest(map, code, entry, label) {
+          const prev = map.get(code);
+          if (
+            prev &&
+            prev.reportDate &&
+            entry.reportDate &&
+            prev.reportDate > entry.reportDate
+          ) {
+            state.warnings.push(
+              `${code} ${label} in "${entry.file}" ignored: older than "${prev.file}".`,
+            );
+            return;
+          }
+          if (prev)
+            state.warnings.push(
+              `${code} ${label} found in "${prev.file}" and "${entry.file}"; using "${entry.file}".`,
+            );
+          map.set(code, entry);
+        }
+
+        function addWardList(text, name) {
+          const wards = parseReport(text, name);
+          state.files.push({
+            name,
+            wards: wards.map((w) => w.code),
+            kind: "ward list",
+          });
+          for (const w of wards)
+            mergeLatest(state.wards, w.code, w, "ward list");
+        }
+
+        function addReviewList(pages, f) {
+          const r = parseReview(pages, f.name);
+          if (!r.isReview) return;
+          state.files.push({
+            name: f.name,
+            wards: r.wards,
+            kind: "review list",
+          });
+          if (r.grandTotal != null && r.grandTotal !== r.items.length)
+            state.warnings.push(
+              `"${f.name}": found ${r.items.length} unreviewed items but the report Grand Total says ${r.grandTotal}.`,
+            );
+          for (const code of r.wards)
+            mergeLatest(
+              state.reviews,
+              code,
+              {
+                items: r.items.filter((i) => i.ward === code),
+                reportDate: r.reportDate,
+                file: f.name,
+              },
+              "review list",
+            );
+        }
+
+        const SKIP_EXT = /\.(html?|xlsx?|docx?|png|jpe?g|gif|zip|js|css)$/i;
+        const RE_WARDLIST = /Pharmacy - Ward List|Total Patients on Ward/i;
+        const DIR_KEY = "workloadPlanner.wardDirectory";
+
+        function setDirectory(text, label) {
+          const dir = loadDirectory(text);
+          if (!dir) return false;
+          state.directory = dir;
+          state.dirFile = label;
+          return true;
+        }
+
+        // ---------- Critical medicines ----------
+        // Critical_meds.json: a list of medicines, each a name or
+        // { "name": "...", "aliases": ["...", ...] }, either as the whole file or
+        // under "medications". Names and aliases are matched as whole words
+        // (any case) in the review list medication text.
+        const CRIT_KEY = "workloadPlanner.criticalMeds";
+        const RE_CRIT_FILE = /critical.*\.json$/i;
+        function setCritical(text, label) {
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch (err) {
+            state.warnings.push(
+              `Could not read "${label}" as a critical medicines list (${err.message}).`,
+            );
+            return false;
+          }
+          const list = Array.isArray(data) ? data : data && data.medications;
+          if (!Array.isArray(list)) {
+            state.warnings.push(
+              `"${label}" has no "medications" list; critical medicines not loaded.`,
+            );
+            return false;
+          }
+          state.critical = list
+            .map((m) => (typeof m === "string" ? { name: m } : m || {}))
+            .map((m) => {
+              const name = String(m.name || "").trim();
+              const words = [name, ...(m.aliases || [])]
+                .map((a) => String(a).trim())
+                .filter(Boolean)
+                .map((a) =>
+                  a
+                    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+                    .replace(/\s+/g, "\\s+"),
+                );
+              return (
+                name && {
+                  name,
+                  re: new RegExp(
+                    `(?<![A-Za-z0-9])(?:${words.join("|")})(?![A-Za-z0-9])`,
+                    "i",
+                  ),
+                }
+              );
+            })
+            .filter(Boolean);
+          state.critFile = label;
+          return true;
+        }
+        // Critical medicine names found in a patient's unreviewed items, in list order
+        const criticalMeds = (items) =>
+          state.critical.filter((c) => items.some((i) => c.re.test(i.med)));
+
+        async function handleFiles(files) {
+          // Review lists are read last so their locations can be matched to known ward codes
+          const reviews = [];
+          for (const f of files) {
+            if (
+              f.name.startsWith(".") ||
+              SKIP_EXT.test(f.name) ||
+              f.size > 20e6
+            )
+              continue;
+            if (/\.pdf$/i.test(f.name)) {
+              if (!window.pdfjsLib) {
+                state.warnings.push(
+                  `Cannot read "${f.name}": the lib folder (PDF reader) is missing from next to this page.`,
+                );
+                continue;
+              }
+              let pages;
+              try {
+                pages = await pdfPages(new Uint8Array(await f.arrayBuffer()));
+              } catch (err) {
+                state.warnings.push(
+                  `Could not read "${f.name}" as a PDF (${err.message}).`,
+                );
+                continue;
+              }
+              const plain = pageText(pages);
+              if (RE_WARDLIST.test(plain))
+                addWardList(pagesToText(pages), f.name);
+              else if (isReviewText(plain)) reviews.push([pages, f]);
+              continue;
+            }
+            const text = await f.text();
+            if (RE_CRIT_FILE.test(f.name)) {
+              if (setCritical(text, f.name)) {
+                try {
+                  localStorage.setItem(
+                    CRIT_KEY,
+                    JSON.stringify({ name: f.name, text, saved: Date.now() }),
+                  );
+                } catch (_) {}
+              }
+              continue;
+            }
+            if (/\.csv$/i.test(f.name)) {
+              if (setDirectory(text, f.name)) {
+                try {
+                  localStorage.setItem(
+                    DIR_KEY,
+                    JSON.stringify({ name: f.name, text, saved: Date.now() }),
+                  );
+                } catch (_) {}
+              }
+              continue;
+            }
+            if (RE_WARDLIST.test(text)) addWardList(text, f.name);
+            else if (isReviewText(text)) reviews.push([textPages(text), f]);
+          }
+          reviews.forEach(([pages, f]) => addReviewList(pages, f));
+          render();
+        }
+
+        // ---------- Stats ----------
+        const DAY_MS = 24 * 3600 * 1000;
+        const hoursIn = (p, w) =>
+          p.admitted && !isNaN(p.admitted) && w.reportDate
+            ? (w.reportDate - p.admitted) / 3600e3
+            : null;
+
+        // Count columns shown after Pts. Grouped columns share a top header cell.
+        function statCols() {
+          const H = "Hx.",
+            R = "Review status";
+          return [
+            { key: "hx", label: "Total", text: "Hx", group: H, zero: true },
+            {
+              key: "hx18",
+              label: "18&ndash;24<br>hrs",
+              text: "Hx 18-24 hrs",
+              group: H,
+            },
+            {
+              key: "hx24",
+              label: "24&ndash;48<br>hrs",
+              text: "Hx 24-48 hrs",
+              group: H,
+            },
+            {
+              key: "hx48",
+              label: "&gt;48<br>hrs",
+              text: "Hx >48 hrs",
+              group: H,
+            },
+            ...[
+              ["UQ"],
+              ["Q"],
+              ["PRI"],
+              ["pri24", "PRI<br>&gt;24 hrs", "PRI >24 hrs"],
+              ["TMR"],
+              ["PRC"],
+              ["notRv", "Not r/v<br>&gt;1 week", "Not r/v >1 week"],
+            ].map(([key, label = key, text = key]) => ({
+              key,
+              label,
+              text,
+              group: R,
+            })),
+            ...[
+              ["unrev", "Total", "Unreviewed"],
+              ["unrev48", "&gt;48<br>hrs", "Unreviewed >48 hrs"],
+              ["unrev7", "&gt;7<br>days", "Unreviewed >7 days"],
+            ].map(([key, label, text]) => ({
+              key,
+              label,
+              text,
+              group: "Unreviewed items",
+              rev: true,
+            })),
+          ];
+        }
+
+        function wardStats(w) {
+          const s = {
+            pts: w.patients.length,
+            hx: 0,
+            hx18: 0,
+            hx24: 0,
+            hx48: 0,
+            pri24: 0,
+            notRv: 0,
+            unknown: [],
+            noAdmit: [],
+          };
+          VALID.forEach((c) => (s[c] = 0));
+          for (const p of w.patients) {
+            const code = p.status && p.status.code;
+            if (!code || !VALID.includes(code)) {
+              s.hx++;
+              if (code) s.unknown.push(`${p.bed} (${code})`);
+              const hrs = hoursIn(p, w);
+              if (hrs == null) s.noAdmit.push(p.bed);
+              else if (hrs >= 48) s.hx48++;
+              else if (hrs >= 24) s.hx24++;
+              else if (hrs >= 18) s.hx18++;
+              continue;
+            }
+            s[code]++;
+            if (code === "PRI" && w.reportDate - p.status.date > DAY_MS)
+              s.pri24++;
+            if (w.reportDate && w.reportDate - p.status.date > WEEK_MS)
+              s.notRv++;
+          }
+          const rv = state.reviews.get(w.code);
+          s.revMissing = !rv;
+          s.unrev = s.unrev48 = s.unrev7 = 0;
+          if (rv)
+            for (const it of rv.items) {
+              const age = (rv.reportDate || w.reportDate) - it.px;
+              s.unrev++;
+              if (age > 2 * DAY_MS) s.unrev48++;
+              if (age > WEEK_MS) s.unrev7++;
+            }
+          return s;
+        }
+
+        const colColor = (c) => (c.key === "UQ" ? "color:#d5281b;" : "");
+
+        const cellValue = (c, s, dash) =>
+          c.rev && s.revMissing ? dash : c.zero ? s[c.key] : s[c.key] || "";
+
+        const dirEntry = (code) => state.directory.find((d) => d.ward === code);
+
+        function visibleWards() {
+          const sel = $("dirSel").value;
+          const codes = [...state.wards.keys()];
+          const order = (c) => {
+            const i = state.directory.findIndex((d) => d.ward === c);
+            return i < 0 ? 1e6 : i;
+          };
+          return codes
+            .filter((c) => {
+              const d = dirEntry(c);
+              if (sel === "__all") return true;
+              if (sel === "__none") return !d;
+              return d && d.directorate === sel;
+            })
+            .sort(
+              (a, b) =>
+                order(a) - order(b) ||
+                a.localeCompare(b, undefined, { numeric: true }),
+            )
+            .map((c) => state.wards.get(c));
+        }
+
+        const editOf = (code) =>
+          state.edits[code] ||
+          (state.edits[code] = { medBords: "", am: "", pm: "", comment: "" });
+
+        function pharmacistColours(wards) {
+          const map = new Map();
+          for (const w of wards)
+            for (const k of ["am", "pm"]) {
+              const n = editOf(w.code)[k].trim().toLowerCase();
+              if (n && n !== "n/a" && !map.has(n))
+                map.set(n, PALETTE[map.size % PALETTE.length]);
+            }
+          return map;
+        }
+
+        // ---------- Table building (shared by screen + email) ----------
+        function buildHTML(email) {
+          const wards = visibleWards();
+          const staff = $("optStaff").checked;
+          const colours = pharmacistColours(wards);
+          const cols = statCols().filter((c) => shown(c.key));
+          const show = {
+            spec: shown("specialty"),
+            pts: shown("pts"),
+            mb: shown("medBords"),
+            pharm: staff && shown("pharm"),
+            comment: staff && shown("comment"),
+          };
+          const B =
+            "border:1px solid #000;padding:2px 6px;font-family:Arial,sans-serif;font-size:10pt;";
+          const TH = email
+            ? ` style="${B}background:#dce6f1;font-weight:bold;text-align:center;vertical-align:top;"`
+            : "";
+          const td = (extra = "") => (email ? ` style="${B}${extra}"` : "");
+          const blank0 = (n) => (n ? n : "");
+          const inp = (code, key, val, cls = "") =>
+            email
+              ? esc(val)
+              : `<input data-ward="${esc(code)}" data-key="${key}" value="${esc(val)}" class="${cls}" size="1">`;
+          // Pharmacist and comment boxes grow with their text (wider, then onto
+          // more lines); Enter starts a new line
+          const grow = (code, key, val) =>
+            email
+              ? esc(val).replace(/\n/g, "<br>")
+              : `<div class="grow" data-val="${esc(val)}"><textarea rows="1" data-ward="${esc(code)}" data-key="${key}">${esc(val)}</textarea></div>`;
+
+          let html = "";
+          const dirName =
+            { __all: "All wards", __none: "Wards not in directory" }[
+              $("dirSel").value
+            ] || $("dirSel").value;
+          const repDate = wards
+            .map((w) => w.reportDate)
+            .filter(Boolean)
+            .sort((a, b) => b - a)[0];
+          if (email)
+            html += `<p style="font-family:Arial,sans-serif;font-size:11pt;font-weight:bold;margin:0 0 6px;">Pharmacy workload &ndash; ${esc(dirName)}${repDate ? " &ndash; " + fmtDateTime(repDate) : ""}</p>`;
+
+          if (staff) {
+            const layout = staffLayout();
+            const general = layout.perRow === 1;
+            html += `<table class="wl staff${general ? " general" : ""}" style="border-collapse:collapse;margin-bottom:12px;">`;
+            for (let i = 0; i < layout.fields.length; i += layout.perRow) {
+              html += "<tr>";
+              for (const [key, label] of layout.fields.slice(
+                i,
+                i + layout.perRow,
+              )) {
+                if (!key) {
+                  html += email
+                    ? `<td colspan="2" style="${B}background:#808080;"></td>`
+                    : '<td colspan="2" class="grey"></td>';
+                  continue;
+                }
+                const align = general ? "left" : "center";
+                html += `<th${email ? ` style="${B}background:#dce6f1;font-weight:bold;text-align:${align};"` : ""}>${label}</th>`;
+                html += `<td class="edit wide"${td(`text-align:${align};min-width:${general ? 240 : 140}px;`)}>${email ? esc(state.staff[key]) : `<input data-staff="${key}" value="${esc(state.staff[key])}" size="1">`}</td>`;
+              }
+              html += "</tr>";
+            }
+            html += "</table>";
+          }
+
+          const amCount = new Set(
+            wards
+              .map((w) => editOf(w.code).am.trim().toLowerCase())
+              .filter((n) => n && n !== "n/a"),
+          ).size;
+          const pmCount = new Set(
+            wards
+              .map((w) => editOf(w.code).pm.trim().toLowerCase())
+              .filter((n) => n && n !== "n/a"),
+          ).size;
+          const twoRows = cols.some((c) => c.group) || show.pharm;
+          const rs = twoRows ? ' rowspan="2"' : "";
+
+          html += `<table class="wl main${show.pharm || show.comment ? " full" : ""}" style="border-collapse:collapse;"><thead><tr>`;
+          html += `<th${TH}${rs}>Ward</th>`;
+          if (show.spec) html += `<th${TH}${rs}>Specialty</th>`;
+          if (show.pts) html += `<th${TH}${rs}>Pts.</th>`;
+          for (let i = 0; i < cols.length; i++) {
+            const g = cols[i].group;
+            if (!g) {
+              html += `<th${TH}${rs}>${cols[i].label}</th>`;
+              continue;
+            }
+            let n = 1;
+            while (cols[i + n] && cols[i + n].group === g) n++;
+            html += `<th${TH} colspan="${n}">${g}</th>`;
+            i += n - 1;
+          }
+          if (show.mb) html += `<th${TH}${rs}>Boarders</th>`;
+          if (show.pharm) html += `<th${TH} colspan="2">Pharmacist</th>`;
+          if (show.comment) html += `<th${TH}${rs}>Comments</th>`;
+          if (twoRows) {
+            html += "</tr><tr>";
+            html += cols
+              .filter((c) => c.group)
+              .map((c) => `<th${TH}>${c.label}</th>`)
+              .join("");
+            if (show.pharm)
+              html += `<th${TH}>AM (${amCount})</th><th${TH}>PM (${pmCount})</th>`;
+          }
+          html += "</tr></thead><tbody>";
+
+          const totals = { pts: 0, revMissing: true };
+          cols.forEach((c) => (totals[c.key] = 0));
+          for (const w of wards) {
+            const s = wardStats(w),
+              d = dirEntry(w.code),
+              e = editOf(w.code);
+            totals.pts += s.pts;
+            if (!s.revMissing) totals.revMissing = false;
+            cols.forEach((c) => (totals[c.key] += s[c.key]));
+            const bg = (k) => {
+              const c = colours.get(e[k].trim().toLowerCase());
+              return c ? `background:${c};` : "";
+            };
+            html += "<tr>";
+            // On screen, allow line breaks after : - / so long names wrap neatly
+            const brk = (t) =>
+              email ? esc(t) : esc(t).replace(/([:\-\/])/g, "$1<wbr>");
+            html += `<td class="txt"${td()}>${brk(d ? d.display : w.code)}</td>`;
+            if (show.spec)
+              html += `<td class="txt"${td("text-align:center;")}>${brk(d ? d.specialty : "")}</td>`;
+            if (show.pts)
+              html += `<td class="num"${td("text-align:center;")}>${s.pts}</td>`;
+            html += cols
+              .map(
+                (c) =>
+                  `<td class="num"${email ? td("text-align:center;" + colColor(c)) : colColor(c) ? ` style="${colColor(c)}"` : ""}>${cellValue(c, s, "&ndash;")}</td>`,
+              )
+              .join("");
+            if (show.mb)
+              html += `<td class="edit num"${td("text-align:center;")}>${inp(w.code, "medBords", e.medBords)}</td>`;
+            if (show.pharm) {
+              const cs = (k) => (email ? td(bg(k)) : ` style="${bg(k)}"`);
+              html += `<td class="edit wide pharm"${cs("am")}>${grow(w.code, "am", e.am)}</td>`;
+              html += `<td class="edit wide pharm"${cs("pm")}>${grow(w.code, "pm", e.pm)}</td>`;
+            }
+            if (show.comment)
+              html += `<td class="edit wide comment"${td("text-align:center;")}>${grow(w.code, "comment", e.comment)}</td>`;
+            html += "</tr>";
+          }
+          if (wards.length > 1) {
+            const TBc = (extra = "") =>
+              email
+                ? ` style="${B}font-weight:bold;text-align:center;background:#f2f2f2;${extra}"`
+                : ` class="num" style="font-weight:bold;background:#f2f2f2;${extra}"`;
+            const TB = TBc();
+            html += `<tr><td${TB}${show.spec ? ' colspan="2"' : ""}>Total</td>`;
+            if (show.pts) html += `<td${TB}>${totals.pts}</td>`;
+            html += cols
+              .map(
+                (c) =>
+                  `<td${TBc(colColor(c))}>${cellValue(c, totals, "&ndash;")}</td>`,
+              )
+              .join("");
+            const mb = wards.reduce(
+              (a, w) => a + (parseInt(editOf(w.code).medBords, 10) || 0),
+              0,
+            );
+            if (show.mb) html += `<td${TB}>${blank0(mb)}</td>`;
+            const sc = (show.pharm ? 2 : 0) + (show.comment ? 1 : 0);
+            if (sc) html += `<td${TB} colspan="${sc}"></td>`;
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+          return html;
+        }
+
+        function buildText() {
+          const wards = visibleWards(),
+            staff = $("optStaff").checked;
+          const cols = statCols().filter((c) => shown(c.key));
+          const spec = shown("specialty"),
+            pts = shown("pts"),
+            mb = shown("medBords"),
+            pharm = staff && shown("pharm"),
+            comment = staff && shown("comment");
+          const rows = [];
+          if (staff) {
+            staffLayout()
+              .fields.filter((f) => f[0])
+              .forEach(([k, l]) =>
+                rows.push([
+                  l
+                    .replace(/<[^>]+>/g, " ")
+                    .replace(/\s+/g, " ")
+                    .trim(),
+                  state.staff[k],
+                ]),
+              );
+            rows.push([]);
+          }
+          rows.push([
+            "Ward",
+            ...(spec ? ["Specialty"] : []),
+            ...(pts ? ["Pts"] : []),
+            ...cols.map((c) => c.text),
+            ...(mb ? ["Boarders"] : []),
+            ...(pharm ? ["AM", "PM"] : []),
+            ...(comment ? ["Comments"] : []),
+          ]);
+          for (const w of wards) {
+            const s = wardStats(w),
+              d = dirEntry(w.code),
+              e = editOf(w.code);
+            rows.push(
+              [
+                d ? d.display : w.code,
+                ...(spec ? [d ? d.specialty : ""] : []),
+                ...(pts ? [s.pts] : []),
+                ...cols.map((c) => cellValue(c, s, "-")),
+                ...(mb ? [e.medBords] : []),
+                ...(pharm ? [e.am, e.pm] : []),
+                ...(comment ? [e.comment] : []),
+              ].map((v) => String(v).replace(/\s*\n\s*/g, " / ")),
+            );
+          }
+          return rows.map((r) => r.join("\t")).join("\n");
+        }
+
+        // Link each unreviewed item to a ward list patient: by hospital number,
+        // or by bed when there's no hospital number to match (and the bed is unique)
+        function matchReviews(w) {
+          const rv = state.reviews.get(w.code);
+          if (!rv) return null;
+          const byPatient = new Map(),
+            unmatched = [];
+          const wardHasMrns = w.patients.some((p) => p.mrn);
+          for (const it of rv.items) {
+            let cands = it.mrn
+              ? w.patients.filter((p) => p.mrn === it.mrn)
+              : [];
+            if (!cands.length && (!it.mrn || !wardHasMrns)) {
+              const byBed = w.patients.filter(
+                (p) => norm(p.bed) === norm(it.bed),
+              );
+              if (byBed.length === 1) cands = byBed;
+            }
+            if (!cands.length) {
+              unmatched.push(it);
+              continue;
+            }
+            const list = byPatient.get(cands[0]) || [];
+            list.push(it);
+            byPatient.set(cands[0], list);
+          }
+          return { rv, byPatient, unmatched };
+        }
+
+        function buildDetails() {
+          return visibleWards()
+            .map((w) => {
+              const rv = state.reviews.get(w.code);
+              const match = matchReviews(w);
+              const rows = w.patients
+                .map((p) => {
+                  const items = match ? match.byPatient.get(p) || [] : null;
+                  const over48 = items
+                    ? items.filter(
+                        (i) =>
+                          (rv.reportDate || w.reportDate) - i.px > 2 * DAY_MS,
+                      ).length
+                    : 0;
+                  const unrev = !items
+                    ? "&ndash;"
+                    : items.length
+                      ? `${items.length}${over48 ? ` <span class="warn">(${over48})</span>` : ""}`
+                      : "";
+                  const st = p.status;
+                  const days =
+                    st && w.reportDate
+                      ? Math.floor((w.reportDate - st.date) / 864e5)
+                      : "";
+                  const valid = st && VALID.includes(st.code);
+                  const old = valid && w.reportDate - st.date > WEEK_MS;
+                  const hrs = hoursIn(p, w);
+                  const status = !st
+                    ? "<i>Hx</i>"
+                    : valid
+                      ? esc(st.code)
+                      : `<span class="warn" title="Not a recognised status &ndash; counted as Hx">${esc(st.code)}*</span>`;
+                  // Hx patients: flag critical medicines among their unreviewed items
+                  const crit = !valid && items ? criticalMeds(items) : [];
+                  const critHtml = crit.length
+                    ? `<span class="crit-label">CRITICAL MEDS:</span> <span class="crit" title="${esc(
+                        items
+                          .filter((i) => crit.some((c) => c.re.test(i.med)))
+                          .map((i) => i.med)
+                          .join("\n"),
+                      )}">${crit.map((c) => esc(c.name)).join(", ")}</span>`
+                    : "";
+                  const comment = st ? esc(st.comment) : "";
+                  return `<tr class="${old ? "old" : ""}"><td>${esc(p.bed)}</td><td>${esc(p.name)}</td>
+          <td class="c">${p.admitted && !isNaN(p.admitted) ? fmtDate(p.admitted) : ""}</td><td class="c">${valid || hrs == null ? "" : Math.floor(hrs)}</td>
+          <td class="c">${status}</td><td class="c">${st ? fmtDate(st.date) : ""}</td><td class="c days">${days}</td>
+          <td>${comment || critHtml}</td><td class="c">${unrev}</td></tr>${
+            comment && critHtml
+              ? `<tr class="crit-row"><td colspan="7"></td><td>${critHtml}</td><td></td></tr>`
+              : ""
+          }`;
+                })
+                .join("");
+              const d = dirEntry(w.code);
+              const groups = new Map();
+              for (const it of match ? match.unmatched : []) {
+                const k = `${it.bed}|${it.mrn}`;
+                groups.set(k, (groups.get(k) || 0) + 1);
+              }
+              const unmatchedNote = groups.size
+                ? `<div class="det-meta warn">Unreviewed items on the review list not matched to a patient on this ward list (patient may have moved or been discharged): ${[
+                    ...groups,
+                  ]
+                    .map(([k, n]) => {
+                      const [bed, mrn] = k.split("|");
+                      return `bed ${esc(bed || "?")}${mrn ? ` (${esc(mrn)})` : ""} &ndash; ${n} item${n > 1 ? "s" : ""}`;
+                    })
+                    .join("; ")}</div>`
+                : "";
+              const rvNote = rv
+                ? `review list run ${fmtDateTime(rv.reportDate)} ("${esc(rv.file)}")`
+                : "no review list loaded";
+              return `<div class="detail-ward" data-ward="${esc(w.code)}">
+        <h3>${esc(d ? d.display : w.code)}${d && d.specialty ? " &ndash; " + esc(d.specialty) : ""} &ndash; ${w.patients.length} patients
+          <button class="btn small no-print" data-print="${esc(w.code)}">Print</button></h3>
+        <div class="det-meta">Ward list run ${fmtDateTime(w.reportDate)} ("${esc(w.file)}"); ${rvNote}. * = status not recognised, counted as Hx. Hrs = hours since admission (Hx patients only). Unrev. items = unreviewed items matched by hospital number, with those &gt;48 hrs old in brackets. CRITICAL MEDS = medicines from the critical medicines list found in a Hx patient's unreviewed items.</div>
+        <table class="det">
+          <colgroup><col style="width:44px"><col style="width:190px"><col style="width:62px"><col style="width:44px"><col style="width:50px"><col style="width:62px"><col style="width:40px"><col><col style="width:66px"></colgroup>
+          <thead><tr><th>Bed</th><th>Patient</th><th>Admitted</th><th>Hrs</th><th>Status</th><th>Last r/v</th><th>Days ago</th><th>Comment</th><th>Unrev. items (&gt;48 hrs)</th></tr></thead>
+          <tbody>${rows}</tbody></table>${unmatchedNote}</div>`;
+            })
+            .join("");
+        }
+
+        // ---------- Render ----------
+        function renderStatus() {
+          const out = [];
+          out.push(
+            state.dirFile
+              ? `<div class="ok">Ward directory: "${esc(state.dirFile)}" (${state.directory.length} wards)</div>`
+              : `<div class="warn">No ward directory loaded. Include <b>ward_directory.csv</b> to get specialties and directorates.</div>`,
+          );
+          out.push(
+            state.critFile
+              ? `<div class="ok">Critical medicines: "${esc(state.critFile)}" (${state.critical.length} medicines)</div>`
+              : `<div class="warn">No critical medicines list loaded. Include <b>Critical_meds.json</b> to flag critical medicines for Hx patients.</div>`,
+          );
+          if (state.files.length) {
+            out.push(
+              "<div>Reports loaded:</div><ul>" +
+                state.files
+                  .map(
+                    (f) =>
+                      `<li>${esc(f.name)} (${f.kind}): ${f.wards.map(esc).join(", ") || '<span class="err">no wards found</span>'}</li>`,
+                  )
+                  .join("") +
+                "</ul>",
+            );
+          }
+          const warns = [...state.warnings];
+          if (state.wards.size && !state.reviews.size)
+            warns.push(
+              "No review list loaded: the Unreviewed items columns will show \u2013.",
+            );
+          for (const w of state.wards.values()) {
+            const s = wardStats(w);
+            const match = matchReviews(w);
+            if (match && match.unmatched.length)
+              warns.push(
+                `${w.code}: ${match.unmatched.length} unreviewed item(s) not matched to a patient on the ward list (see Patient details).`,
+              );
+            if (state.reviews.size && s.revMissing)
+              warns.push(
+                `${w.code}: no review list loaded (if this ward has no unreviewed items, its review list may not have been printed).`,
+              );
+            if (w.reportedTotal != null && w.reportedTotal !== s.pts)
+              warns.push(
+                `${w.code}: found ${s.pts} patients but the report total says ${w.reportedTotal}.`,
+              );
+            if (s.unknown.length)
+              warns.push(
+                `${w.code}: unrecognised status counted as Hx for bed(s) ${s.unknown.join(", ")}.`,
+              );
+            if (s.noAdmit.length)
+              warns.push(
+                `${w.code}: admission date not found for Hx bed(s) ${s.noAdmit.join(", ")}; not included in the Hx time columns.`,
+              );
+            if (state.dirFile && !dirEntry(w.code))
+              warns.push(
+                `${w.code} is not in the ward directory; add it to ward_directory.csv.`,
+              );
+          }
+          if (warns.length)
+            out.push(
+              '<div class="warn">Check:</div><ul class="warn">' +
+                warns.map((x) => `<li>${esc(x)}</li>`).join("") +
+                "</ul>",
+            );
+          $("status").innerHTML = out.join("");
+        }
+
+        function renderDirSelect() {
+          const sel = $("dirSel"),
+            prev = sel.value;
+          const dirs = [];
+          let unlisted = false;
+          for (const code of state.wards.keys()) {
+            const d = dirEntry(code);
+            if (d) {
+              if (!dirs.includes(d.directorate)) dirs.push(d.directorate);
+            } else unlisted = true;
+          }
+          dirs.sort();
+          const opts = dirs.map((d) => [d, d]);
+          if (unlisted) opts.push(["__none", "Not in directory"]);
+          opts.push(["__all", "All loaded wards"]);
+          sel.innerHTML = opts
+            .map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`)
+            .join("");
+          sel.value = opts.some((o) => o[0] === prev) ? prev : opts[0][0];
+        }
+
+        function renderTable() {
+          $("tableWrap").innerHTML = buildHTML(false);
+          $("detailWrap").innerHTML = buildDetails();
+        }
+
+        function render() {
+          renderStatus();
+          const has = state.wards.size > 0;
+          $("controls").hidden =
+            $("output").hidden =
+            $("details").hidden =
+              !has;
+          if (!has) return;
+          renderDirSelect();
+          renderTable();
+        }
+
+        // ---------- Events ----------
+        const drop = $("drop");
+        ["dragenter", "dragover"].forEach((ev) =>
+          document.addEventListener(ev, (e) => {
+            e.preventDefault();
+            drop.classList.add("over");
+          }),
+        );
+        ["dragleave", "drop"].forEach((ev) =>
+          document.addEventListener(ev, (e) => {
+            e.preventDefault();
+            if (ev === "drop" || e.target === drop)
+              drop.classList.remove("over");
+          }),
+        );
+        document.addEventListener("drop", async (e) =>
+          handleFiles(await filesFromDrop(e.dataTransfer)),
+        );
+        $("pickFolder").addEventListener("change", (e) => {
+          handleFiles([...e.target.files]);
+          e.target.value = "";
+        });
+        $("pickFiles").addEventListener("change", (e) => {
+          handleFiles([...e.target.files]);
+          e.target.value = "";
+        });
+        $("pickDir").addEventListener("change", (e) => {
+          handleFiles([...e.target.files]);
+          e.target.value = "";
+        });
+        $("clearBtn").addEventListener("click", () => {
+          Object.assign(state, {
+            wards: new Map(),
+            reviews: new Map(),
+            files: [],
+            warnings: [],
+            edits: {},
+          });
+          render();
+        });
+        $("dirSel").addEventListener("change", renderTable);
+        $("optStaff").addEventListener("change", renderTable);
+        // Column chooser
+        function colGroups() {
+          const sc = statCols();
+          const plain = (s) => s.replace(/<br>/g, " ");
+          return [
+            [
+              "Ward details",
+              [
+                ["specialty", "Specialty"],
+                ["pts", "Pts."],
+              ],
+            ],
+            ...["Hx.", "Review status", "Unreviewed items"].map((g) => [
+              g,
+              sc
+                .filter((c) => c.group === g)
+                .map((c) => [c.key, plain(c.label)]),
+            ]),
+            ["Other", [["medBords", "Boarders"]]],
+            [
+              "Staffing (when staffing &amp; allocation is included)",
+              [
+                ["pharm", "Pharmacist AM / PM"],
+                ["comment", "Comments"],
+              ],
+            ],
+          ];
+        }
+        function renderColList() {
+          const l = layoutName();
+          $("colFor").textContent =
+            (l === "surgery"
+              ? "These choices apply to the Surgery directorate."
+              : "These choices apply to all directorates other than Surgery, and to All loaded wards.") +
+            " They are remembered on this computer.";
+          $("colList").innerHTML = colGroups()
+            .map(
+              ([g, items]) =>
+                `<fieldset><legend>${g}</legend>${items
+                  .map(
+                    ([k, lab]) =>
+                      `<label><input type="checkbox" data-col="${k}"${shown(k, l) ? " checked" : ""}> ${lab}</label>`,
+                  )
+                  .join("")}</fieldset>`,
+            )
+            .join("");
+        }
+        $("colBtn").addEventListener("click", () => {
+          renderColList();
+          $("colDialog").showModal();
+        });
+        $("colList").addEventListener("change", (e) => {
+          const k = e.target.dataset.col;
+          if (!k) return;
+          const l = layoutName();
+          colPrefs[l] = { ...(colPrefs[l] || {}), [k]: e.target.checked };
+          saveColPrefs();
+          renderTable();
+        });
+        $("colReset").addEventListener("click", () => {
+          delete colPrefs[layoutName()];
+          saveColPrefs();
+          renderColList();
+          renderTable();
+        });
+
+        // Print patient details: one ward, or every ward in the selected directorate
+        function printDetails(code) {
+          const det = $("details").querySelector("details");
+          const wasOpen = det.open;
+          det.open = true;
+          document.body.dataset.print = code || "all";
+          document
+            .querySelectorAll(".detail-ward")
+            .forEach((el) =>
+              el.classList.toggle(
+                "printing",
+                !code || el.dataset.ward === code,
+              ),
+            );
+          window.print();
+          det.open = wasOpen;
+          delete document.body.dataset.print;
+        }
+        $("printAll").addEventListener("click", () => printDetails(null));
+        $("detailWrap").addEventListener("click", (e) => {
+          const b = e.target.closest("button[data-print]");
+          if (b) printDetails(b.dataset.print);
+        });
+
+        $("tableWrap").addEventListener("input", (e) => {
+          const t = e.target;
+          if (t.dataset.staff) state.staff[t.dataset.staff] = t.value;
+          else if (t.dataset.ward)
+            editOf(t.dataset.ward)[t.dataset.key] = t.value;
+          if (t.parentNode.classList.contains("grow"))
+            t.parentNode.dataset.val = t.value;
+        });
+        $("tableWrap").addEventListener("change", (e) => {
+          if (!e.target.dataset.ward || e.target.dataset.key === "comment")
+            return;
+          const sel = `[data-ward="${CSS.escape(e.target.dataset.ward)}"][data-key="${e.target.dataset.key}"]`;
+          renderTable();
+          const next = document.activeElement;
+          if (next === document.body) {
+            const el = $("tableWrap").querySelector(sel);
+            if (el) el.focus();
+          }
+        });
+        $("tableWrap").addEventListener("keydown", (e) => {
+          if (
+            e.key !== "Enter" ||
+            !e.target.dataset.ward ||
+            e.target.tagName !== "INPUT"
+          )
+            return;
+          const inputs = [
+            ...$("tableWrap").querySelectorAll(
+              `input[data-key="${e.target.dataset.key}"]`,
+            ),
+          ];
+          const i = inputs.indexOf(e.target);
+          e.target.blur();
+          const target = [
+            ...$("tableWrap").querySelectorAll(
+              `input[data-key="${e.target.dataset.key}"]`,
+            ),
+          ][i + 1];
+          if (target) target.focus();
+        });
+
+        async function copyRich(html, text) {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                "text/html": new Blob([html], { type: "text/html" }),
+                "text/plain": new Blob([text], { type: "text/plain" }),
+              }),
+            ]);
+            return true;
+          } catch (_) {
+            const div = document.createElement("div");
+            div.contentEditable = "true";
+            div.style.cssText = "position:fixed;left:-9999px;top:0;";
+            div.innerHTML = html;
+            document.body.appendChild(div);
+            const r = document.createRange();
+            r.selectNodeContents(div);
+            const s = getSelection();
+            s.removeAllRanges();
+            s.addRange(r);
+            const ok = document.execCommand("copy");
+            s.removeAllRanges();
+            div.remove();
+            return ok;
+          }
+        }
+
+        $("copyBtn").addEventListener("click", async () => {
+          document.activeElement &&
+            document.activeElement.blur &&
+            document.activeElement.blur();
+          const ok = await copyRich(buildHTML(true), buildText());
+          const msg = $("copyMsg");
+          msg.className = ok ? "ok" : "err";
+          msg.textContent = ok
+            ? "Copied. Paste into your email (Ctrl+V)."
+            : "Copy failed. Select the table and press Ctrl+C.";
+          setTimeout(() => (msg.textContent = ""), 4000);
+        });
+
+        // Use the last ward directory loaded on this computer until a newer one is loaded
+        try {
+          const saved = JSON.parse(localStorage.getItem(DIR_KEY) || "null");
+          if (saved)
+            setDirectory(
+              saved.text,
+              `${saved.name} (saved copy from ${fmtDateTime(new Date(saved.saved))})`,
+            );
+        } catch (_) {}
+        try {
+          const saved = JSON.parse(localStorage.getItem(CRIT_KEY) || "null");
+          if (saved)
+            setCritical(
+              saved.text,
+              `${saved.name} (saved copy from ${fmtDateTime(new Date(saved.saved))})`,
+            );
+        } catch (_) {}
+        // Try to auto-load the directory and critical medicines (works in some
+        // browsers when opened from disk)
+        fetch("ward_directory.csv")
+          .then((r) => (r.ok ? r.text() : null))
+          .then((t) => {
+            if (t && setDirectory(t, "ward_directory.csv")) render();
+          })
+          .catch(() => {});
+        fetch("Critical_meds.json")
+          .then((r) => (r.ok ? r.text() : null))
+          .then((t) => {
+            if (t && setCritical(t, "Critical_meds.json")) render();
+          })
+          .catch(() => {});
+        render();
+      })();
+    </script>
+  </body>
+</html>

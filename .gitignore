@@ -1,0 +1,9 @@
+# ignore example reports
+Ward Reports/dg06reviewlist.pdf
+Ward Reports/dg06reviewlist.txt
+Ward Reports/dg06wardlist
+Ward Reports/dg06wardlist.pdf
+
+# macOS
+.DS_Store
+
