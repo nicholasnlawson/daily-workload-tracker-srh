@@ -108,11 +108,12 @@
         background: #fff;
         color: var(--accent);
       }
-      body[data-page="wards"] main > section:not(#wardPage),
-      body:not([data-page="wards"]) #wardPage {
+      /* Sections with data-page belong to that page; the rest to the planner */
+      body:not([data-page="planner"]) main > section:not([data-page]),
+      main > section[data-page]:not(.current) {
         display: none !important;
       }
-      #wardPage h2 {
+      main > section[data-page] h2 {
         margin: 0 0 6px;
         font-size: 17px;
       }
@@ -123,15 +124,40 @@
       #wcSource {
         margin: 10px 0 6px;
       }
+      /* The ward list scrolls inside its own box, sized in JS to fit the window,
+         so the buttons above stay in view */
+      #wcScroll {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+        max-height: 60vh;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+      }
+      /* Separate borders so the sticky header row fully covers rows scrolling under it */
       table.wc {
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
         font-size: 13px;
+      }
+      table.wc thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
       }
       table.wc th,
       table.wc td {
-        border: 1px solid #ccc;
+        border: solid #ccc;
+        border-width: 0 1px 1px 0;
         padding: 3px 10px;
         text-align: left;
+      }
+      table.wc tr > :last-child {
+        border-right: 0;
+      }
+      table.wc tbody tr:last-child td {
+        border-bottom: 0;
       }
       table.wc th {
         background: var(--hdr);
@@ -164,6 +190,167 @@
         background: #cdebd8;
         border-color: #007f3b;
         color: #00552a;
+      }
+      /* Ward directory / critical medicines editors */
+      .ed-bar {
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .ed-bar input[type="search"] {
+        font: inherit;
+        padding: 6px 8px;
+        min-width: 260px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+      }
+      .ed-msg {
+        font-size: 13px;
+      }
+      .ed-errs ul {
+        margin: 4px 0 8px;
+        padding-left: 20px;
+        font-size: 13px;
+      }
+      .ed-scroll {
+        max-height: calc(100vh - 300px);
+        min-height: 200px;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+      }
+      table.ed {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        font-size: 13px;
+      }
+      table.ed thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--hdr);
+        text-align: left;
+        padding: 5px 6px;
+        border-bottom: 1px solid #ccc;
+      }
+      table.ed td {
+        border-bottom: 1px solid #e3e6ea;
+        padding: 2px 4px;
+        vertical-align: top;
+      }
+      table.ed td.n {
+        padding-top: 6px;
+      }
+      /* Critical medicines: most of the width goes to the aliases */
+      table.ed th.c-name {
+        width: 16%;
+      }
+      table.ed th.c-aliases {
+        width: 44%;
+      }
+      /* Wrapping boxes look like the single-line ones; the hidden copy that
+         sizes them needs the same padding and border */
+      table.ed .grow > textarea,
+      table.ed .grow::after {
+        padding: 4px 6px;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        line-height: 1.35;
+      }
+      table.ed .grow > textarea:hover {
+        border-color: #ccc;
+      }
+      table.ed td.n {
+        color: #4c6272;
+        text-align: right;
+        width: 1%;
+      }
+      table.ed td.act {
+        white-space: nowrap;
+        width: 1%;
+      }
+      table.ed input {
+        width: 100%;
+        font: inherit;
+        padding: 4px 6px;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        background: transparent;
+      }
+      table.ed input:hover {
+        border-color: #ccc;
+      }
+      table.ed input:focus {
+        outline: 2px solid var(--accent);
+        background: #fff;
+      }
+      table.ed td.exc {
+        min-width: 360px;
+      }
+      table.ed .xrow {
+        display: flex;
+        gap: 4px;
+        align-items: flex-start;
+        margin: 2px 0;
+      }
+      table.ed .xrow .grow {
+        flex: 1;
+        min-width: 100px;
+      }
+      table.ed .xrow .grow > textarea,
+      table.ed .xrow .grow::after {
+        border-color: #ccc;
+      }
+      table.ed .xrow select {
+        font: inherit;
+        padding: 3px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        background: #fff;
+        flex: 0 0 auto;
+      }
+
+      table.ed .link {
+        font: inherit;
+        font-size: 12px;
+        border: none;
+        background: none;
+        color: var(--accent);
+        cursor: pointer;
+        padding: 2px 0;
+      }
+      table.ed .link:hover {
+        text-decoration: underline;
+      }
+      table.ed tr.bad td {
+        background: #fde8e6;
+      }
+      table.ed tr.new td {
+        background: #fff7d6;
+      }
+      table.ed .icon {
+        font: inherit;
+        border: 1px solid transparent;
+        background: none;
+        cursor: pointer;
+        padding: 2px 7px;
+        border-radius: 3px;
+        color: #4c6272;
+      }
+      table.ed .icon:hover {
+        border-color: var(--border);
+        color: #212b32;
+      }
+      table.ed .icon.del:hover {
+        color: #d5281b;
+        border-color: #d5281b;
+      }
+      table.ed .icon:disabled {
+        visibility: hidden;
+      }
+      header nav button.unsaved::after {
+        content: " \2022";
+        color: #ffb81c;
       }
       #status {
         margin-top: 12px;
@@ -416,6 +603,10 @@
         color: #d5281b;
         font-weight: bold;
       }
+      .hx-req {
+        color: #d5281b;
+        font-weight: bold;
+      }
       @media print {
         @page {
           size: A4 landscape;
@@ -460,24 +651,26 @@
     <header>
       <h1>Pharmacy Workload Planner</h1>
       <p>
-        Builds the daily directorate workload table from Pharmacy Ward List
-        reports and <b>ward_directory.csv</b>.
+        Builds the daily directorate workload table from Pharmacy Ward List and
+        Review List reports.
       </p>
       <nav>
         <button type="button" data-page="planner">Workload table</button>
         <button type="button" data-page="wards">
           Ward list for EMR reports
         </button>
+        <button type="button" data-page="directory">Ward directory</button>
+        <button type="button" data-page="medicines">Critical medicines</button>
       </nav>
     </header>
     <main>
-      <section id="wardPage" class="card">
+      <section id="wardPage" class="card" data-page="wards">
         <h2>Ward list for EMR reports</h2>
         <p class="legend">
           Click a ward code to copy it, or click <b>Copy next</b> to copy the
           wards one at a time in order, then paste into the EMR report generator
           (Ctrl+V). The next ward to copy is highlighted blue; copied wards turn
-          green. The list comes from <b>ward_directory.csv</b>.
+          green. The list comes from the <b>Ward directory</b> page.
         </p>
         <div class="btns">
           <button type="button" id="wcNext" class="btn primary">
@@ -485,23 +678,81 @@
           </button>
           <button type="button" id="wcUndo" class="btn">Undo</button>
           <button type="button" id="wcReset" class="btn">Reset</button>
-          <label class="btn"
-            >Load ward directory (CSV)&hellip;<input
-              type="file"
-              id="wcPickDir"
-              accept=".csv"
-              hidden
-          /></label>
           <span id="wcMsg"></span>
         </div>
         <div id="wcSource" class="legend"></div>
-        <table id="wcTable" class="wc"></table>
+        <div id="wcScroll"><table id="wcTable" class="wc"></table></div>
+      </section>
+
+      <section id="dirPage" class="card" data-page="directory">
+        <h2>Ward directory</h2>
+        <p class="legend">
+          Sets each ward's display name, specialty and directorate, the order of
+          the workload table and the ward list for EMR reports. The
+          <b>Ward code</b> must match the code printed on the reports exactly
+          (e.g. <b>EAU:1-3</b>). Use the arrows to change the order. Changes
+          take effect for everyone once saved as <b>ward_directory.js</b> in the
+          Workload Planner folder, replacing the old file.
+        </p>
+        <div class="btns ed-bar">
+          <button type="button" class="btn" data-ed-add="dir">Add ward</button>
+          <button type="button" class="btn primary" data-ed-save="dir">
+            Save ward_directory.js&hellip;
+          </button>
+          <button type="button" class="btn" data-ed-discard="dir">
+            Discard changes
+          </button>
+          <span class="ed-msg" id="dirMsg"></span>
+        </div>
+        <div class="ed-errs" id="dirErrs"></div>
+        <div class="ed-scroll"><table class="ed" id="dirEdit"></table></div>
+        <datalist id="dirDirectorates"></datalist>
+      </section>
+
+      <section id="medPage" class="card" data-page="medicines">
+        <h2>Critical medicines</h2>
+        <p class="legend">
+          Medicines flagged as <b>CRITICAL MEDS</b> for Hx patients. Names and
+          aliases (e.g. brand names) are matched as whole words, in any case, in
+          the review list drug name. Separate aliases with commas.
+          <b>Exceptions</b> stop a matching prescription being flagged, e.g.
+          Enoxaparin with <i>Dose is at or below</i> <b>40 MG</b>. The
+          <i>drug name</i> is the review list's drug name column; the
+          <i>full prescription</i> adds the dose, directions and type (SCH, PRN,
+          ONCE). Words are matched as whole words, any case; separate several
+          with commas (any one of them counts). The list is sorted A&ndash;Z
+          when saved. Changes take effect for everyone once saved as
+          <b>critical_meds.js</b> in the Workload Planner folder, replacing the
+          old file.
+        </p>
+        <div class="btns ed-bar">
+          <input
+            type="search"
+            id="medSearch"
+            placeholder="Search medicines and aliases"
+          />
+          <label class="legend"
+            ><input type="checkbox" id="medOnlyExc" /> Only medicines with
+            exceptions</label
+          >
+          <button type="button" class="btn" data-ed-add="crit">
+            Add medicine
+          </button>
+          <button type="button" class="btn primary" data-ed-save="crit">
+            Save critical_meds.js&hellip;
+          </button>
+          <button type="button" class="btn" data-ed-discard="crit">
+            Discard changes
+          </button>
+          <span class="ed-msg" id="critMsg"></span>
+        </div>
+        <div class="ed-errs" id="critErrs"></div>
+        <div class="ed-scroll"><table class="ed" id="critEdit"></table></div>
       </section>
 
       <section class="card">
         <div id="drop" class="drop">
-          Drag the ward list and review list reports (PDF or text),
-          <b>ward_directory.csv</b> and <b>Critical_meds.json</b> here, or drag
+          Drag the ward list and review list reports (PDF or text) here, or drag
           the whole folder.
         </div>
         <div class="btns">
@@ -518,13 +769,6 @@
               type="file"
               id="pickFiles"
               multiple
-              hidden
-          /></label>
-          <label class="btn"
-            >Load ward directory (CSV)&hellip;<input
-              type="file"
-              id="pickDir"
-              accept=".csv"
               hidden
           /></label>
           <button id="clearBtn" class="btn">Clear reports</button>
@@ -596,6 +840,19 @@
 
     <!-- PDF.js 3.11.174 (Apache 2.0), bundled for offline use. Loading the worker
          as a script lets it run on the page, which works when opened from disk. -->
+    <!-- Ward directory and critical medicines, edited on their pages in this
+         tool. A file that is missing is noted for the status box. -->
+    <script>
+      window.DATA_MISSING = [];
+    </script>
+    <script
+      src="ward_directory.js"
+      onerror="DATA_MISSING.push('ward_directory.js')"
+    ></script>
+    <script
+      src="critical_meds.js"
+      onerror="DATA_MISSING.push('critical_meds.js')"
+    ></script>
     <script src="lib/pdf.min.js"></script>
     <script src="lib/pdf.worker.min.js"></script>
     <script>
@@ -868,59 +1125,220 @@
           return found;
         }
 
-        // ---------- CSV ----------
-        function parseCSV(text) {
-          const rows = [];
-          let row = [],
-            field = "",
-            q = false;
-          text = text.replace(/^\uFEFF/, "");
-          for (let i = 0; i < text.length; i++) {
-            const c = text[i];
-            if (q) {
-              if (c === '"' && text[i + 1] === '"') {
-                field += '"';
-                i++;
-              } else if (c === '"') q = false;
-              else field += c;
-            } else if (c === '"') q = true;
-            else if (c === ",") {
-              row.push(field);
-              field = "";
-            } else if (c === "\n" || c === "\r") {
-              if (c === "\r" && text[i + 1] === "\n") i++;
-              row.push(field);
-              rows.push(row);
-              row = [];
-              field = "";
-            } else field += c;
-          }
-          if (field || row.length) {
-            row.push(field);
-            rows.push(row);
-          }
-          return rows.filter((r) => r.some((x) => x.trim()));
-        }
+        // ---------- Ward directory and critical medicines data files ----------
+        // ward_directory.js and critical_meds.js sit next to this page and load
+        // as scripts, which works when the page is opened from disk (fetching
+        // a .json/.csv file doesn't). Each holds JSON wrapped in one line:
+        //   window.WARD_DIRECTORY = { "wards": [ {ward, display, specialty, directorate}, ... ] };
+        //   window.CRITICAL_MEDS = { "medications": [ {name, aliases: [...]}, ... ] };
+        const DATA_FILES = {
+          dir: {
+            file: "ward_directory.js",
+            global: "WARD_DIRECTORY",
+            key: "wards",
+            title: "Ward directory",
+          },
+          crit: {
+            file: "critical_meds.js",
+            global: "CRITICAL_MEDS",
+            key: "medications",
+            title: "Critical medicines list",
+          },
+        };
+        const clean = (s) => String(s ?? "").trim();
 
-        function loadDirectory(text) {
-          const rows = parseCSV(text);
-          if (!rows.length) return null;
-          const head = rows[0].map((h) => h.trim().toLowerCase());
-          const idx = (k) => head.findIndex((h) => h.includes(k));
-          const iW = idx("ward"),
-            iD = idx("display"),
-            iS = idx("special"),
-            iDir = idx("director");
-          if (iW < 0 || iS < 0 || iDir < 0) return null;
-          return rows
-            .slice(1)
+        function setDirectory(list, label) {
+          state.directory = (list || [])
             .map((r) => ({
-              ward: norm(r[iW]),
-              display: (iD >= 0 && r[iD] && r[iD].trim()) || norm(r[iW]),
-              specialty: (r[iS] || "").trim(),
-              directorate: (r[iDir] || "").trim() || "Unassigned",
+              ward: norm(r.ward),
+              display: clean(r.display) || norm(r.ward),
+              specialty: clean(r.specialty),
+              directorate: clean(r.directorate) || "Unassigned",
             }))
             .filter((r) => r.ward);
+          state.dirFile = label;
+        }
+
+        // Whole words/phrases, any case. A number doesn't match part of a
+        // decimal, so "4" doesn't match "0.4".
+        const wordsRe = (words) =>
+          new RegExp(
+            `(?<![A-Za-z0-9]|\\d\\.)(?:${words
+              .map((a) =>
+                a
+                  .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+                  .replace(/\s+/g, "\\s+"),
+              )
+              .join("|")})(?![A-Za-z0-9]|\\.\\d)`,
+            "i",
+          );
+        const splitList = (s) =>
+          String(s ?? "")
+            .split(",")
+            .map(clean);
+
+        // ---------- Critical medicine exceptions ----------
+        // A critical medicine can have exceptions: review list items that match
+        // its name or an alias but should NOT be flagged. Each is
+        // { "rule": key, "value": "..." }. Parts of a review list item:
+        //   drug name    - the drug name column (e.g. "Enoxaparin 40 MG/0.4 ML Syringe")
+        //   prescription - drug name, dose, directions and type together
+        //   dose         - the prescribed dose (e.g. "40 MG", "1-2 TABLET")
+        //   type         - SCH, PRN, ONCE, etc.
+        const rxText = (i) =>
+          [i.med, i.dose, i.directions, i.type].filter(Boolean).join(" ");
+        // Doses compare in a common unit where they can (mg/g/microgram, ml/l)
+        const UNITS = {
+          NG: ["mass", 1e-6],
+          NANOGRAM: ["mass", 1e-6],
+          MCG: ["mass", 1e-3],
+          UG: ["mass", 1e-3],
+          MICROGRAM: ["mass", 1e-3],
+          MG: ["mass", 1],
+          MILLIGRAM: ["mass", 1],
+          G: ["mass", 1e3],
+          GM: ["mass", 1e3],
+          GRAM: ["mass", 1e3],
+          ML: ["vol", 1],
+          L: ["vol", 1e3],
+          LITRE: ["vol", 1e3],
+          UNIT: ["unit", 1],
+          IU: ["unit", 1],
+        };
+        function parseDose(s) {
+          const m = String(s || "")
+            .toUpperCase()
+            .match(/^\s*([\d.,\s\-–]*\d)\s*([A-Z]*)/);
+          if (!m) return null;
+          const nums = (m[1].match(/\d[\d,]*(?:\.\d+)?|\.\d+/g) || []).map(
+            (n) => Number(n.replace(/,/g, "")),
+          );
+          const u = m[2].replace(/S$/, "");
+          return nums.length ? { nums, unit: u, conv: UNITS[u] } : null;
+        }
+        // Dose numbers in the rule's unit (null if the units can't be compared)
+        function doseIn(dose, unit) {
+          if (!unit) return dose.nums;
+          if (dose.unit === unit.unit) return dose.nums;
+          if (!dose.conv || !unit.conv || dose.conv[0] !== unit.conv[0])
+            return null;
+          return dose.nums.map((n) => (n * dose.conv[1]) / unit.conv[1]);
+        }
+        const doseRule = (cmp) => ({
+          kind: "dose",
+          placeholder: "e.g. 40 MG",
+          compile: (v) => {
+            const lim = parseDose(v);
+            return (
+              lim &&
+              lim.nums.length === 1 &&
+              ((i) => {
+                const d = parseDose(i.dose);
+                const nums = d && doseIn(d, lim.unit && lim);
+                return !!nums && cmp(nums, lim.nums[0]);
+              })
+            );
+          },
+        });
+        const wordRule = (part, has) => ({
+          kind: "words",
+          placeholder: "words, separated by commas",
+          compile: (v) => {
+            const w = splitList(v).filter(Boolean);
+            if (!w.length) return null;
+            const re = wordsRe(w);
+            return (i) => re.test(part(i)) === has;
+          },
+        });
+        const CRIT_RULES = {
+          nameHas: {
+            label: "Drug name contains",
+            ...wordRule((i) => i.med, true),
+          },
+          nameLacks: {
+            label: "Drug name does not contain",
+            ...wordRule((i) => i.med, false),
+          },
+          rxHas: {
+            label: "Full prescription contains",
+            ...wordRule(rxText, true),
+          },
+          rxLacks: {
+            label: "Full prescription does not contain",
+            ...wordRule(rxText, false),
+          },
+          // A dose range (e.g. 20-40 MG) counts as at or below only if all of it is
+          doseAtMost: {
+            label: "Dose is at or below",
+            ...doseRule((nums, lim) => Math.max(...nums) <= lim),
+          },
+          doseAtLeast: {
+            label: "Dose is at or above",
+            ...doseRule((nums, lim) => Math.min(...nums) >= lim),
+          },
+          typeIs: {
+            label: "Prescription type is",
+            kind: "type",
+            placeholder: "e.g. PRN (or SCH, ONCE)",
+            compile: (v) => {
+              const t = splitList(v.toUpperCase()).filter(Boolean);
+              return (
+                t.length && ((i) => t.includes(String(i.type).toUpperCase()))
+              );
+            },
+          },
+        };
+        const ruleText = (x) =>
+          `${CRIT_RULES[x.rule].label.toLowerCase()} ${x.value}`;
+
+        // Names and aliases are matched as whole words (any case) in the drug name
+        function setCritical(list, label) {
+          state.critProblems = [];
+          state.critical = (list || [])
+            .map((m) => (typeof m === "string" ? { name: m } : m || {}))
+            .map((m) => {
+              const name = clean(m.name);
+              if (!name) return null;
+              const aliases = (m.aliases || []).map(clean).filter(Boolean);
+              const exceptions = [],
+                tests = [];
+              for (const x of m.exceptions || []) {
+                const rule = CRIT_RULES[x && x.rule];
+                const value = clean(x && x.value);
+                const test = rule && rule.compile(value);
+                if (!test) {
+                  state.critProblems.push(
+                    `${name}: exception ${JSON.stringify(x)} not understood, so ignored.`,
+                  );
+                  continue;
+                }
+                exceptions.push({ rule: x.rule, value });
+                tests.push({ x: exceptions[exceptions.length - 1], test });
+              }
+              return {
+                name,
+                aliases,
+                exceptions,
+                tests,
+                re: wordsRe([name, ...aliases]),
+              };
+            })
+            .filter(Boolean);
+          state.critFile = label;
+        }
+
+        // File text in the same layout as the shipped files: one entry per line
+        function dataFileText(kind, items) {
+          const f = DATA_FILES[kind];
+          const page = kind === "dir" ? "Ward directory" : "Critical medicines";
+          return (
+            `// ${f.title} for the Pharmacy Workload Planner.\n` +
+            `// Edit it on the "${page}" page of Workload Planner.html. If editing by hand,\n` +
+            `// keep the JSON format: double quotes, and a comma after every entry but the last.\n` +
+            `window.${f.global} = {\n  "${f.key}": [\n` +
+            items.map((i) => "    " + JSON.stringify(i)).join(",\n") +
+            `\n  ]\n};\n`
+          );
         }
 
         // ---------- File loading ----------
@@ -1087,6 +1505,11 @@
             let locX = null,
               medX = null,
               medEnd = Infinity;
+            // Character width: points for PDFs, 1 column for text reports
+            const all = rows.flatMap((r) => r.parts);
+            const cw =
+              all.reduce((a, q) => a + (q.w || 0), 0) /
+                all.reduce((a, q) => a + q.s.length, 0) || 1;
             for (const r of rows) {
               const text = r.parts.map((q) => q.s).join(" ");
               let m;
@@ -1123,28 +1546,34 @@
               const loc = splitLoc(locText);
               const ward = loc ? loc[0] : fileWard;
               if (!ward) continue;
+              // Medication text runs from after the location (text reports don't
+              // line up with the Medication header) to the end of the column. It
+              // holds the drug name, dose and directions, separated by wide gaps.
+              const segs = [];
+              if (medX != null) {
+                let end = null;
+                for (const q of r.parts.filter(
+                  (q) =>
+                    (locPart ? q.x > locPart.x : q.x >= medX - 2) &&
+                    q.x < medEnd - 2 &&
+                    !RE_PX.test(q.s),
+                )) {
+                  if (end == null || q.x - end > 4 * cw) segs.push([]);
+                  segs[segs.length - 1].push(q.s);
+                  end = q.x + (q.w || q.s.length * cw);
+                }
+              } else segs.push([text.slice(0, px.index)]);
+              const [name = "", ...rest] = segs.map((s) => s.join(" ").trim());
+              const hasDose = rest.length && /^\d|^\.\d/.test(rest[0]);
               out.items.push({
                 ward: norm(ward),
                 bed: loc ? loc[1] : "",
                 mrn: findMrn(r.parts.slice(0, 1).map((q) => q.s)),
                 px: parseDate(px[1], `${px[2]}:${px[3]}`),
                 type: px[4] || "",
-                // Medication text runs from after the location (text reports don't
-                // line up with the Medication header) to the end of the column
-                med: (medX != null
-                  ? r.parts
-                      .filter(
-                        (q) =>
-                          (locPart ? q.x > locPart.x : q.x >= medX - 2) &&
-                          q.x < medEnd - 2 &&
-                          !RE_PX.test(q.s),
-                      )
-                      .map((q) => q.s)
-                      .join(" ")
-                  : text.slice(0, px.index)
-                )
-                  .replace(/^~/, "")
-                  .trim(),
+                med: name.replace(/^~/, "").trim(),
+                dose: hasDose ? rest[0] : "",
+                directions: rest.slice(hasDose ? 1 : 0).join(" "),
               });
             }
           }
@@ -1217,69 +1646,23 @@
 
         const SKIP_EXT = /\.(html?|xlsx?|docx?|png|jpe?g|gif|zip|js|css)$/i;
         const RE_WARDLIST = /Pharmacy - Ward List|Total Patients on Ward/i;
-        const DIR_KEY = "workloadPlanner.wardDirectory";
 
-        function setDirectory(text, label) {
-          const dir = loadDirectory(text);
-          if (!dir) return false;
-          state.directory = dir;
-          state.dirFile = label;
-          return true;
-        }
-
-        // ---------- Critical medicines ----------
-        // Critical_meds.json: a list of medicines, each a name or
-        // { "name": "...", "aliases": ["...", ...] }, either as the whole file or
-        // under "medications". Names and aliases are matched as whole words
-        // (any case) in the review list medication text.
-        const CRIT_KEY = "workloadPlanner.criticalMeds";
-        const RE_CRIT_FILE = /critical.*\.json$/i;
-        function setCritical(text, label) {
-          let data;
-          try {
-            data = JSON.parse(text);
-          } catch (err) {
-            state.warnings.push(
-              `Could not read "${label}" as a critical medicines list (${err.message}).`,
-            );
-            return false;
-          }
-          const list = Array.isArray(data) ? data : data && data.medications;
-          if (!Array.isArray(list)) {
-            state.warnings.push(
-              `"${label}" has no "medications" list; critical medicines not loaded.`,
-            );
-            return false;
-          }
-          state.critical = list
-            .map((m) => (typeof m === "string" ? { name: m } : m || {}))
-            .map((m) => {
-              const name = String(m.name || "").trim();
-              const words = [name, ...(m.aliases || [])]
-                .map((a) => String(a).trim())
-                .filter(Boolean)
-                .map((a) =>
-                  a
-                    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-                    .replace(/\s+/g, "\\s+"),
-                );
-              return (
-                name && {
-                  name,
-                  re: new RegExp(
-                    `(?<![A-Za-z0-9])(?:${words.join("|")})(?![A-Za-z0-9])`,
-                    "i",
-                  ),
-                }
-              );
-            })
-            .filter(Boolean);
-          state.critFile = label;
-          return true;
-        }
         // Critical medicine names found in a patient's unreviewed items, in list order
+        // For each critical medicine named in the items: the items flagged, and
+        // those skipped because an exception applies (with the exception)
         const criticalMeds = (items) =>
-          state.critical.filter((c) => items.some((i) => c.re.test(i.med)));
+          state.critical
+            .map((c) => {
+              const hits = [],
+                skipped = [];
+              for (const i of items.filter((i) => c.re.test(i.med))) {
+                const t = c.tests.find((t) => t.test(i));
+                if (t) skipped.push({ item: i, x: t.x });
+                else hits.push(i);
+              }
+              return { c, hits, skipped };
+            })
+            .filter((r) => r.hits.length || r.skipped.length);
 
         async function handleFiles(files) {
           // Review lists are read last so their locations can be matched to known ward codes
@@ -1313,29 +1696,8 @@
               else if (isReviewText(plain)) reviews.push([pages, f]);
               continue;
             }
+            if (/\.(csv|json)$/i.test(f.name)) continue;
             const text = await f.text();
-            if (RE_CRIT_FILE.test(f.name)) {
-              if (setCritical(text, f.name)) {
-                try {
-                  localStorage.setItem(
-                    CRIT_KEY,
-                    JSON.stringify({ name: f.name, text, saved: Date.now() }),
-                  );
-                } catch (_) {}
-              }
-              continue;
-            }
-            if (/\.csv$/i.test(f.name)) {
-              if (setDirectory(text, f.name)) {
-                try {
-                  localStorage.setItem(
-                    DIR_KEY,
-                    JSON.stringify({ name: f.name, text, saved: Date.now() }),
-                  );
-                } catch (_) {}
-              }
-              continue;
-            }
             if (RE_WARDLIST.test(text)) addWardList(text, f.name);
             else if (isReviewText(text)) reviews.push([textPages(text), f]);
           }
@@ -1797,25 +2159,35 @@
                   const valid = st && VALID.includes(st.code);
                   const old = valid && w.reportDate - st.date > WEEK_MS;
                   const hrs = hoursIn(p, w);
-                  const status = !st
-                    ? "<i>Hx</i>"
-                    : valid
-                      ? esc(st.code)
-                      : `<span class="warn" title="Not a recognised status &ndash; counted as Hx">${esc(st.code)}*</span>`;
+                  const status = valid
+                    ? esc(st.code)
+                    : `<span class="warn" title="Not a recognised status &ndash; counted as Hx">${esc(st.code)}*</span>`;
                   // Hx patients: flag critical medicines among their unreviewed items
                   const crit = !valid && items ? criticalMeds(items) : [];
-                  const critHtml = crit.length
+                  const flagged = crit.filter((r) => r.hits.length);
+                  const skipTip = (r) =>
+                    r.skipped.map(
+                      (s) =>
+                        `${rxText(s.item)}\n  not flagged: ${ruleText(s.x)}`,
+                    );
+                  const critHtml = flagged.length
                     ? `<span class="crit-label">CRITICAL MEDS:</span> <span class="crit" title="${esc(
-                        items
-                          .filter((i) => crit.some((c) => c.re.test(i.med)))
-                          .map((i) => i.med)
+                        flagged
+                          .flatMap((r) => [
+                            ...r.hits.map(rxText),
+                            ...skipTip(r),
+                          ])
                           .join("\n"),
-                      )}">${crit.map((c) => esc(c.name)).join(", ")}</span>`
+                      )}">${flagged.map((r) => esc(r.c.name)).join(", ")}</span>`
                     : "";
                   const comment = st ? esc(st.comment) : "";
                   return `<tr class="${old ? "old" : ""}"><td>${esc(p.bed)}</td><td>${esc(p.name)}</td>
           <td class="c">${p.admitted && !isNaN(p.admitted) ? fmtDate(p.admitted) : ""}</td><td class="c">${valid || hrs == null ? "" : Math.floor(hrs)}</td>
-          <td class="c">${status}</td><td class="c">${st ? fmtDate(st.date) : ""}</td><td class="c days">${days}</td>
+          ${
+            st
+              ? `<td class="c">${status}</td><td class="c">${fmtDate(st.date)}</td><td class="c days">${days}</td>`
+              : `<td class="c hx-req" colspan="3">Hx required</td>`
+          }
           <td>${comment || critHtml}</td><td class="c">${unrev}</td></tr>${
             comment && critHtml
               ? `<tr class="crit-row"><td colspan="7"></td><td>${critHtml}</td><td></td></tr>`
@@ -1860,12 +2232,12 @@
           out.push(
             state.dirFile
               ? `<div class="ok">Ward directory: "${esc(state.dirFile)}" (${state.directory.length} wards)</div>`
-              : `<div class="warn">No ward directory loaded. Include <b>ward_directory.csv</b> to get specialties and directorates.</div>`,
+              : `<div class="err">No ward directory loaded. ${dataProblem("dir")} Specialties and directorates can't be shown.</div>`,
           );
           out.push(
             state.critFile
               ? `<div class="ok">Critical medicines: "${esc(state.critFile)}" (${state.critical.length} medicines)</div>`
-              : `<div class="warn">No critical medicines list loaded. Include <b>Critical_meds.json</b> to flag critical medicines for Hx patients.</div>`,
+              : `<div class="err">No critical medicines list loaded. ${dataProblem("crit")} Critical medicines won't be flagged.</div>`,
           );
           if (state.files.length) {
             out.push(
@@ -1889,7 +2261,10 @@
                 "</ul>",
             );
           }
-          const warns = [...state.warnings];
+          const warns = [
+            ...state.warnings,
+            ...(state.critProblems || []).map((p) => `critical_meds.js: ${p}`),
+          ];
           if (state.wards.size && !state.reviews.size)
             warns.push(
               "No review list loaded: the Unreviewed items columns will show \u2013.",
@@ -1927,7 +2302,7 @@
               );
             if (state.dirFile && !dirEntry(w.code))
               warns.push(
-                `${w.code} is not in the ward directory; add it to ward_directory.csv.`,
+                `${w.code} is not in the ward directory; add it on the Ward directory page.`,
               );
           }
           if (warns.length)
@@ -1983,7 +2358,7 @@
           const n = state.directory.length;
           $("wcSource").innerHTML = state.dirFile
             ? `${n} wards from "${esc(state.dirFile)}"; ${wcDone.length} copied.`
-            : `<span class="warn">No ward directory loaded. Click <b>Load ward directory (CSV)&hellip;</b> and choose <b>ward_directory.csv</b>.</span>`;
+            : `<span class="err">No ward directory loaded. ${dataProblem("dir")}</span>`;
           $("wcTable").innerHTML = n
             ? `<thead><tr><th></th><th>Ward</th><th>Display Name</th><th>Specialty</th><th>Directorate</th></tr></thead><tbody>${state.directory
                 .map((d, i) => {
@@ -2003,6 +2378,7 @@
               : "Copy next";
           $("wcNext").disabled = !next;
           $("wcUndo").disabled = $("wcReset").disabled = !wcDone.length;
+          wcFit();
         }
 
         async function copyText(text) {
@@ -2030,8 +2406,33 @@
           msg.textContent = ok
             ? `Copied ${code}. Paste into the EMR (Ctrl+V).`
             : `Copy failed for ${code}. Select the ward code and press Ctrl+C.`;
-          const nextBtn = $("wcTable").querySelector(".wcode.next");
-          if (nextBtn) nextBtn.scrollIntoView({ block: "nearest" });
+          wcScrollToNext();
+        }
+
+        // Fit the ward list box between its top and the bottom of the window
+        function wcFit() {
+          const box = $("wcScroll");
+          if (!box.offsetParent) return;
+          const top = box.getBoundingClientRect().top + scrollY;
+          box.style.maxHeight = `${Math.max(200, innerHeight - top - 80)}px`;
+        }
+
+        // Scroll only the ward list box (not the page) so the next ward is in
+        // view, with a couple of rows after it showing
+        function wcScrollToNext() {
+          const box = $("wcScroll");
+          const row = box.querySelector(".wcode.next")?.closest("tr");
+          if (!row) return;
+          const head = box.querySelector("thead").offsetHeight;
+          const ahead = row.offsetHeight * 2;
+          if (row.offsetTop - head < box.scrollTop)
+            box.scrollTop = row.offsetTop - head;
+          else if (
+            row.offsetTop + row.offsetHeight + ahead >
+            box.scrollTop + box.clientHeight
+          )
+            box.scrollTop =
+              row.offsetTop + row.offsetHeight + ahead - box.clientHeight;
         }
 
         function wcSetMsg(text) {
@@ -2039,6 +2440,7 @@
           $("wcMsg").textContent = text;
         }
 
+        const PAGES = ["planner", "wards", "directory", "medicines"];
         function showPage(page) {
           document.body.dataset.page = page;
           document
@@ -2048,12 +2450,428 @@
                 ? b.setAttribute("aria-current", "page")
                 : b.removeAttribute("aria-current"),
             );
+          document
+            .querySelectorAll("main > section[data-page]")
+            .forEach((s) =>
+              s.classList.toggle("current", s.dataset.page === page),
+            );
           history.replaceState(
             null,
             "",
-            page === "wards" ? "#wards" : location.pathname + location.search,
+            page === "planner"
+              ? location.pathname + location.search
+              : "#" + page,
           );
+          wcFit();
         }
+
+        // ---------- Ward directory / critical medicines editors ----------
+        // Each editor works on a draft copy of the list; Save writes the data
+        // file and then applies the draft to the planner.
+        const ED = {
+          dir: {
+            label: "ward",
+            fields: [
+              ["ward", "Ward code"],
+              ["display", "Display name"],
+              ["specialty", "Specialty"],
+              ["directorate", "Directorate"],
+            ],
+            ordered: true,
+          },
+          crit: {
+            label: "medicine",
+            fields: [
+              ["name", "Medicine"],
+              ["aliases", "Aliases (separate with commas)", true],
+            ],
+            exceptions: true,
+          },
+        };
+        // Text box that wraps onto more lines as the text grows (see .grow)
+        const growBox = (attrs, val, label) =>
+          `<div class="grow" data-val="${esc(val)}"><textarea rows="1" ${attrs} aria-label="${label}">${esc(val)}</textarea></div>`;
+        // Exceptions cell: one rule drop-down and value box per exception
+        const exceptionCell = (r) =>
+          `<td class="exc">${(r.exceptions || [])
+            .map(
+              (x, j) =>
+                `<div class="xrow"><select data-x="${j}" data-xf="rule" aria-label="Exception rule">${Object.entries(
+                  CRIT_RULES,
+                )
+                  .map(
+                    ([k, v]) =>
+                      `<option value="${k}"${k === x.rule ? " selected" : ""}>${v.label}</option>`,
+                  )
+                  .join("")}</select>${growBox(
+                  `data-x="${j}" data-xf="value" placeholder="${esc(CRIT_RULES[x.rule].placeholder)}"`,
+                  x.value,
+                  "Exception value",
+                )}<button type="button" class="icon del" data-act="xdel" data-x="${j}" title="Remove this exception">&times;</button></div>`,
+            )
+            .join(
+              "",
+            )}<button type="button" class="link" data-act="xadd">+ Add exception</button></td>`;
+        const drafts = { dir: [], crit: [] };
+        const dirty = { dir: false, crit: false };
+        const splitAliases = (s) => String(s).split(",").map(clean);
+
+        function edSetDirty(kind, on) {
+          dirty[kind] = on;
+          document
+            .querySelector(
+              `header nav button[data-page="${kind === "dir" ? "directory" : "medicines"}"]`,
+            )
+            .classList.toggle("unsaved", on);
+          if (on) edMsg(kind, "Unsaved changes.", "warn");
+        }
+
+        function edMsg(kind, text, cls = "") {
+          const m = $(kind + "Msg");
+          m.className = "ed-msg " + cls;
+          m.textContent = text;
+        }
+
+        function edReset(kind) {
+          drafts[kind] =
+            kind === "dir"
+              ? state.directory.map((d) => ({ ...d }))
+              : state.critical.map((c) => ({
+                  name: c.name,
+                  aliases: c.aliases.join(", "),
+                  exceptions: c.exceptions.map((x) => ({ ...x })),
+                }));
+          edSetDirty(kind, false);
+          $(kind + "Errs").innerHTML = "";
+          edRender(kind);
+        }
+
+        function edRender(kind, bad = new Set()) {
+          const { fields, ordered, label, exceptions } = ED[kind];
+          const rows = drafts[kind];
+          const last = rows.length - 1;
+          $(kind + "Edit").innerHTML =
+            `<thead><tr><th></th>${fields.map(([f, l]) => `<th class="c-${f}">${l}</th>`).join("")}${exceptions ? '<th class="c-exc">Exceptions (not flagged when&hellip;)</th>' : ""}<th></th></tr></thead><tbody>` +
+            rows
+              .map(
+                (r, i) =>
+                  `<tr data-i="${i}" class="${bad.has(i) ? "bad" : r._new ? "new" : ""}"><td class="n">${i + 1}</td>${fields
+                    .map(([f, l, wrap]) =>
+                      wrap
+                        ? `<td>${growBox(`data-f="${f}"`, r[f], l)}</td>`
+                        : `<td><input data-f="${f}" value="${esc(r[f])}" aria-label="${l}"${f === "directorate" ? ' list="dirDirectorates"' : ""}></td>`,
+                    )
+                    .join(
+                      "",
+                    )}${exceptions ? exceptionCell(r) : ""}<td class="act">${
+                    ordered
+                      ? `<button type="button" class="icon" data-act="up" title="Move up"${i ? "" : " disabled"}>&uarr;</button><button type="button" class="icon" data-act="down" title="Move down"${i < last ? "" : " disabled"}>&darr;</button>`
+                      : ""
+                  }<button type="button" class="icon del" data-act="del" title="Delete this ${label}">&times;</button></td></tr>`,
+              )
+              .join("") +
+            "</tbody>";
+          if (kind === "dir") dirSuggestions();
+          else medFilter();
+        }
+
+        // Directorate box suggestions: the directorates already in use
+        const dirSuggestions = () =>
+          ($("dirDirectorates").innerHTML = [
+            ...new Set(
+              drafts.dir.map((r) => clean(r.directorate)).filter(Boolean),
+            ),
+          ]
+            .sort()
+            .map((d) => `<option value="${esc(d)}">`)
+            .join(""));
+
+        // Critical medicines search: hide rows whose name, aliases and exception
+        // values don't match (and, if ticked, those without exceptions)
+        function medFilter() {
+          const q = $("medSearch").value.trim().toLowerCase();
+          const onlyExc = $("medOnlyExc").checked;
+          $("critEdit")
+            .querySelectorAll("tbody tr")
+            .forEach((tr) => {
+              const r = drafts.crit[tr.dataset.i];
+              const x = r.exceptions || [];
+              tr.hidden =
+                !r._new &&
+                ((onlyExc && !x.length) ||
+                  (!!q &&
+                    !`${r.name} ${r.aliases} ${x.map((e) => e.value).join(" ")}`
+                      .toLowerCase()
+                      .includes(q)));
+            });
+        }
+
+        // Check the draft; returns the cleaned list, or the problems found
+        function edValidate(kind) {
+          const errors = [],
+            bad = new Set(),
+            seen = new Map(),
+            items = [];
+          drafts[kind].forEach((r, i) => {
+            const fail = (msg) => {
+              errors.push(`Row ${i + 1}: ${msg}`);
+              bad.add(i);
+            };
+            if (
+              ED[kind].fields.every(([f]) => !clean(r[f])) &&
+              !(r.exceptions || []).length
+            )
+              return;
+            let item, key;
+            if (kind === "dir") {
+              item = {
+                ward: norm(r.ward),
+                display: clean(r.display) || norm(r.ward),
+                specialty: clean(r.specialty),
+                directorate: clean(r.directorate) || "Unassigned",
+              };
+              key = item.ward;
+              if (!key) return fail("the ward code is missing.");
+              if (/\s/.test(key))
+                return fail(`ward code "${key}" contains a space.`);
+            } else {
+              const name = clean(r.name);
+              if (!name) return fail("the medicine name is missing.");
+              const lower = new Set([name.toLowerCase()]);
+              const exceptions = [];
+              for (const x of r.exceptions || []) {
+                const rule = CRIT_RULES[x.rule];
+                const value =
+                  rule.kind === "type"
+                    ? clean(x.value).toUpperCase()
+                    : clean(x.value);
+                if (!value)
+                  return fail(
+                    `the exception "${rule.label}" needs a value (${rule.placeholder}).`,
+                  );
+                if (!rule.compile(value))
+                  return fail(
+                    `"${value}" doesn't work with "${rule.label}" (${rule.placeholder}).`,
+                  );
+                exceptions.push({ rule: x.rule, value });
+              }
+              item = {
+                name,
+                aliases: splitAliases(r.aliases).filter(
+                  (a) =>
+                    a &&
+                    !lower.has(a.toLowerCase()) &&
+                    lower.add(a.toLowerCase()),
+                ),
+                ...(exceptions.length ? { exceptions } : {}),
+              };
+              key = name.toLowerCase();
+            }
+            if (seen.has(key))
+              return fail(
+                `"${kind === "dir" ? key : item.name}" is already on row ${seen.get(key) + 1}.`,
+              );
+            seen.set(key, i);
+            items.push(item);
+          });
+          if (kind === "crit")
+            items.sort((a, b) =>
+              a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
+            );
+          return { items, errors, bad };
+        }
+
+        async function edSave(kind) {
+          const { items, errors, bad } = edValidate(kind);
+          $(kind + "Errs").innerHTML = errors.length
+            ? `<ul class="err">${errors.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>`
+            : "";
+          if (errors.length) {
+            edRender(kind, bad);
+            edMsg(kind, "Not saved: fix the rows in red first.", "err");
+            return;
+          }
+          const f = DATA_FILES[kind];
+          const text = dataFileText(kind, items);
+          let note;
+          try {
+            note = await saveFile(f.file, text);
+          } catch (err) {
+            edMsg(
+              kind,
+              err.name === "AbortError"
+                ? "Not saved (cancelled)."
+                : `Not saved: ${err.message}`,
+              "err",
+            );
+            return;
+          }
+          (kind === "dir" ? setDirectory : setCritical)(items, f.file);
+          edReset(kind);
+          render();
+          edMsg(kind, note.text, note.ok ? "ok" : "warn");
+        }
+
+        // Save with a Save dialog where the browser allows it (Edge/Chrome),
+        // otherwise download the file
+        async function saveFile(name, text) {
+          if (window.showSaveFilePicker) {
+            const h = await showSaveFilePicker({
+              id: "workloadPlanner",
+              suggestedName: name,
+              types: [
+                {
+                  description: "Workload Planner data file",
+                  accept: { "text/javascript": [".js"] },
+                },
+              ],
+            });
+            const w = await h.createWritable();
+            await w.write(text);
+            await w.close();
+            return h.name === name
+              ? {
+                  ok: true,
+                  text: `Saved "${name}". Make sure it went into the Workload Planner folder; others see the changes when they next open the planner.`,
+                }
+              : {
+                  ok: false,
+                  text: `Saved as "${h.name}", but the planner only reads "${name}". Save again using that exact name.`,
+                };
+          }
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(
+            new Blob([text], { type: "text/javascript" }),
+          );
+          a.download = name;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+          return {
+            ok: false,
+            text: `Downloaded "${name}". Move it into the Workload Planner folder, replacing the old file.`,
+          };
+        }
+
+        // Why a data file didn't load, for the status messages
+        function dataProblem(kind) {
+          const f = DATA_FILES[kind];
+          return DATA_MISSING.includes(f.file)
+            ? `<b>${f.file}</b> is missing from next to this page.`
+            : `<b>${f.file}</b> has a mistake in it (check for a missing comma or double quote), or is empty. Fix it in a text editor, or replace it with an earlier copy.`;
+        }
+
+        for (const kind of ["dir", "crit"]) {
+          const table = $(kind + "Edit");
+          table.addEventListener("input", (e) => {
+            const tr = e.target.closest("tr[data-i]");
+            const { f, x, xf } = e.target.dataset;
+            if (!tr || !(f || xf)) return;
+            const r = drafts[kind][tr.dataset.i];
+            // Pasted line breaks become commas
+            if (/\n/.test(e.target.value))
+              e.target.value = e.target.value
+                .replace(/\s*\n\s*/g, ", ")
+                .replace(/^, |, $/g, "");
+            if (f) r[f] = e.target.value;
+            else {
+              r.exceptions[x][xf] = e.target.value;
+              if (xf === "rule")
+                e.target.parentNode.querySelector(
+                  '[data-xf="value"]',
+                ).placeholder = CRIT_RULES[e.target.value].placeholder;
+            }
+            if (e.target.parentNode.classList.contains("grow"))
+              e.target.parentNode.dataset.val = e.target.value;
+            if (!dirty[kind]) edSetDirty(kind, true);
+          });
+          // The wrapping boxes hold one line of text: Enter doesn't add a new line
+          table.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && e.target.tagName === "TEXTAREA")
+              e.preventDefault();
+          });
+          table.addEventListener("change", (e) => {
+            if (kind === "dir" && e.target.dataset.f === "directorate")
+              dirSuggestions();
+          });
+          table.addEventListener("click", (e) => {
+            const b = e.target.closest("button[data-act]");
+            if (!b) return;
+            const i = Number(b.closest("tr").dataset.i);
+            const rows = drafts[kind];
+            const r = rows[i];
+            if (b.dataset.act === "xadd" || b.dataset.act === "xdel") {
+              if (b.dataset.act === "xadd")
+                (r.exceptions ||= []).push({ rule: "nameHas", value: "" });
+              else r.exceptions.splice(Number(b.dataset.x), 1);
+              edSetDirty(kind, true);
+              edRender(kind);
+              const tr = table.querySelector(`tr[data-i="${i}"]`);
+              (b.dataset.act === "xadd"
+                ? [...tr.querySelectorAll(".xrow select")].pop()
+                : tr.querySelector('[data-act="xadd"]')
+              ).focus();
+              return;
+            }
+            if (b.dataset.act === "del") {
+              const name = kind === "dir" ? r.ward : r.name;
+              if (
+                clean(name) &&
+                !confirm(
+                  `Delete ${clean(name)}? (Not saved until you click Save.)`,
+                )
+              )
+                return;
+              rows.splice(i, 1);
+            } else {
+              const j = b.dataset.act === "up" ? i - 1 : i + 1;
+              [rows[i], rows[j]] = [rows[j], rows[i]];
+            }
+            edSetDirty(kind, true);
+            edRender(kind);
+            const moved = table.querySelector(
+              `tr[data-i="${b.dataset.act === "del" ? Math.min(i, rows.length - 1) : b.dataset.act === "up" ? i - 1 : i + 1}"] button[data-act="${b.dataset.act}"]:not(:disabled)`,
+            );
+            if (moved) moved.focus();
+          });
+        }
+        document.querySelectorAll("[data-ed-add]").forEach((b) =>
+          b.addEventListener("click", () => {
+            const kind = b.dataset.edAdd;
+            const row = Object.fromEntries(
+              ED[kind].fields.map(([f]) => [f, ""]),
+            );
+            row._new = true;
+            // New wards go at the end (order matters); new medicines at the top
+            // (the list is sorted when saved)
+            if (kind === "dir") drafts.dir.push(row);
+            else drafts.crit.unshift(row);
+            edSetDirty(kind, true);
+            edRender(kind);
+            const tr = $(kind + "Edit").querySelector(
+              `tr[data-i="${kind === "dir" ? drafts.dir.length - 1 : 0}"]`,
+            );
+            tr.scrollIntoView({ block: "nearest" });
+            tr.querySelector("input").focus();
+          }),
+        );
+        document
+          .querySelectorAll("[data-ed-save]")
+          .forEach((b) =>
+            b.addEventListener("click", () => edSave(b.dataset.edSave)),
+          );
+        document.querySelectorAll("[data-ed-discard]").forEach((b) =>
+          b.addEventListener("click", () => {
+            const kind = b.dataset.edDiscard;
+            if (dirty[kind] && !confirm("Discard all unsaved changes?")) return;
+            edReset(kind);
+            edMsg(kind, "Changes discarded.");
+          }),
+        );
+        $("medSearch").addEventListener("input", medFilter);
+        $("medOnlyExc").addEventListener("change", medFilter);
+        addEventListener("beforeunload", (e) => {
+          if (dirty.dir || dirty.crit) e.preventDefault();
+        });
 
         function render() {
           renderStatus();
@@ -2094,10 +2912,7 @@
           handleFiles([...e.target.files]);
           e.target.value = "";
         });
-        $("pickDir").addEventListener("change", (e) => {
-          handleFiles([...e.target.files]);
-          e.target.value = "";
-        });
+
         $("clearBtn").addEventListener("click", () => {
           Object.assign(state, {
             wards: new Map(),
@@ -2114,11 +2929,12 @@
           .forEach((b) =>
             b.addEventListener("click", () => showPage(b.dataset.page)),
           );
-        showPage(location.hash === "#wards" ? "wards" : "planner");
-        $("wcPickDir").addEventListener("change", (e) => {
-          handleFiles([...e.target.files]);
-          e.target.value = "";
-        });
+        showPage(
+          PAGES.includes(location.hash.slice(1))
+            ? location.hash.slice(1)
+            : "planner",
+        );
+        addEventListener("resize", wcFit);
         $("wcTable").addEventListener("click", (e) => {
           const b = e.target.closest("button[data-code]");
           if (b) wcCopy(b.dataset.code);
@@ -2130,11 +2946,13 @@
         $("wcUndo").addEventListener("click", () => {
           const code = wcDone.pop();
           renderWardPage();
+          wcScrollToNext();
           if (code) wcSetMsg(`Undone: ${code} is no longer marked as copied.`);
         });
         $("wcReset").addEventListener("click", () => {
           wcDone = [];
           renderWardPage();
+          wcScrollToNext();
           wcSetMsg("Reset: no wards marked as copied.");
         });
         $("dirSel").addEventListener("change", renderTable);
@@ -2310,37 +3128,22 @@
           setTimeout(() => (msg.textContent = ""), 4000);
         });
 
-        // Use the last ward directory loaded on this computer until a newer one is loaded
+        // The data files loaded as scripts before this one; a missing file or a
+        // mistake in one leaves its global unset
+        const loadData = (kind, set) => {
+          const f = DATA_FILES[kind],
+            list = window[f.global] && window[f.global][f.key];
+          if (Array.isArray(list)) set(list, f.file);
+        };
+        loadData("dir", setDirectory);
+        loadData("crit", setCritical);
+        // Saved copies from older versions, which stored the lists in the browser
         try {
-          const saved = JSON.parse(localStorage.getItem(DIR_KEY) || "null");
-          if (saved)
-            setDirectory(
-              saved.text,
-              `${saved.name} (saved copy from ${fmtDateTime(new Date(saved.saved))})`,
-            );
+          localStorage.removeItem("workloadPlanner.wardDirectory");
+          localStorage.removeItem("workloadPlanner.criticalMeds");
         } catch (_) {}
-        try {
-          const saved = JSON.parse(localStorage.getItem(CRIT_KEY) || "null");
-          if (saved)
-            setCritical(
-              saved.text,
-              `${saved.name} (saved copy from ${fmtDateTime(new Date(saved.saved))})`,
-            );
-        } catch (_) {}
-        // Try to auto-load the directory and critical medicines (works in some
-        // browsers when opened from disk)
-        fetch("ward_directory.csv")
-          .then((r) => (r.ok ? r.text() : null))
-          .then((t) => {
-            if (t && setDirectory(t, "ward_directory.csv")) render();
-          })
-          .catch(() => {});
-        fetch("Critical_meds.json")
-          .then((r) => (r.ok ? r.text() : null))
-          .then((t) => {
-            if (t && setCritical(t, "Critical_meds.json")) render();
-          })
-          .catch(() => {});
+        edReset("dir");
+        edReset("crit");
         render();
       })();
     </script>

@@ -10,8 +10,10 @@ Keep these together in the same folder on the shared drive:
 | ----------------------- | ------------------------------------------------------- |
 | `Workload Planner.html` | The tool – open this                                    |
 | `lib` folder            | PDF reader used by the tool – **do not delete or move** |
-| `ward_directory.csv`    | List of wards with their specialty and directorate      |
-| `Critical_meds.json`    | Critical medicines (and their aliases) to flag          |
+| `ward_directory.js`     | List of wards with their specialty and directorate      |
+| `critical_meds.js`      | Critical medicines (and their aliases) to flag          |
+
+The ward directory and critical medicines list load automatically when the page opens. There's no need to select them. Edit them on the **Ward directory** and **Critical medicines** pages of the tool (see below).
 
 Save each day's reports into this folder, or into a subfolder inside it (e.g. `Ward Reports`).
 
@@ -29,7 +31,7 @@ Save each day's reports into this folder, or into a subfolder inside it (e.g. `W
 
 ### Closed wards
 
-A closed ward's Ward List report prints a page that says only **No records found.** Any ward in `ward_directory.csv` that has no ward list data appears in the table as **Closed** (in red, across the count columns). Its pharmacist and comment boxes can still be filled in, e.g. "Open – 15 patients" or "Email to follow". Closed wards are not included in the totals or the Patient details.
+A closed ward's Ward List report prints a page that says only **No records found.** Any ward in the ward directory that has no ward list data appears in the table as **Closed** (in red, across the count columns). Its pharmacist and comment boxes can still be filled in, e.g. "Open – 15 patients" or "Email to follow". Closed wards are not included in the totals or the Patient details.
 
 The status box shows how many "No records found" pages each report contains. If the number of wards shown as Closed doesn't match the number of "No records found" pages, a **Check:** warning lists the closed wards. This usually means a ward's report was not run or not saved.
 
@@ -37,14 +39,15 @@ The status box shows how many "No records found" pages each report contains. If 
 
 ## Ward list for EMR reports
 
-Click **Ward list for EMR reports** at the top of the page to see every ward in `ward_directory.csv`, in file order. Use it to enter ward codes into the EMR report generator quickly:
+Click **Ward list for EMR reports** at the top of the page to see every ward in the ward directory, in order. Use it to enter ward codes into the EMR report generator quickly:
 
 - **Click a ward code** to copy it, then paste into the EMR with Ctrl+V. Only the code itself copies; the other columns don't.
 - **Copy next** copies the wards one at a time in order. The button shows which ward is next.
 - The next ward to copy is highlighted **blue**. Copied wards turn **green**.
+- A long list scrolls inside its own box, which follows the blue ward, so the buttons stay at the top of the screen.
 - **Undo** un-marks the last ward copied. **Reset** clears all the marks.
 
-The list updates whenever the ward directory is loaded (on either page, or with **Load ward directory (CSV)…** on this page). Copied marks are not saved; refreshing the page clears them.
+The list comes from the **Ward directory** page. Copied marks are not saved; refreshing the page clears them.
 
 ## What the columns mean
 
@@ -69,46 +72,56 @@ Expand **Patient details** at the bottom to see each patient's status, last revi
 
 Unreviewed items are matched to patients by hospital number. Any items that can't be matched are listed in red under that ward's table, for example if the patient has moved or been discharged.
 
-For patients who need a history (Hx), any of their unreviewed items that appear on the critical medicines list are shown in the **Comment** column as **CRITICAL MEDS:** followed by the medicine names in red. If the patient already has a comment, the critical medicines go on an extra row underneath. Hover over the names to see the matching review list items.
+For patients who need a history (Hx), any of their unreviewed items that appear on the critical medicines list are shown in the **Comment** column as **CRITICAL MEDS:** followed by the medicine names in red. If the patient already has a comment, the critical medicines go on an extra row underneath. Hover over the names to see the matching review list items. Medicines that matched but were skipped by an exception (see below) are not shown.
 
-## Updating the critical medicines list
+Patients with no status on the ward list show **Hx required** in bold red across the Status, Last r/v and Days ago columns.
 
-`Critical_meds.json` lists the critical medicines. Edit it in Notepad (or any text editor) and keep the file name the same. Each medicine has a `name` (shown on the list) and optional `aliases` (other names, such as brand names, that also count as that medicine):
+## Updating the ward directory and critical medicines
 
-```json
-{
-  "medications": [
-    { "name": "Tacrolimus", "aliases": ["Adoport", "Prograf"] },
-    { "name": "Insulin", "aliases": [] }
-  ]
-}
-```
+The **Ward directory** and **Critical medicines** pages (buttons at the top of the tool) let anyone edit the lists:
 
-- Names and aliases are matched as whole words, in any case, anywhere in the review list medication text. For example, `Insulin` matches "Insulin Aspart" but not "Insulinx".
-- Every name and alias needs double quotes, and every item except the last in a list needs a comma after it. If the file has a mistake, the status box says so and no critical medicines are flagged.
-- Each browser remembers the last list it loaded. After editing the file, load the folder again.
+- **Ward directory** – each ward's **Ward code** (must match the code printed on the reports exactly, e.g. `EAU:1-3`), **Display name** (shown in the table), **Specialty** and **Directorate**. The workload table and the ward list for EMR reports follow this order; use the ↑ ↓ arrows to change it. **Add ward** adds a row at the bottom. The Directorate box suggests the directorates already in use. Keep the spelling the same so wards are grouped together.
+- **Critical medicines** – each medicine's **name** (shown as CRITICAL MEDS) and its **aliases** (other names, such as brand names), separated by commas. Use the search box to find a medicine or alias. **Add medicine** adds a row at the top. The list is sorted A–Z when saved. Names and aliases are matched as whole words, in any case, anywhere in the review list drug name. For example, `Insulin` matches "Insulin Aspart" but not "Insulinx". Medicines can also have **exceptions** (see below).
+- **×** deletes a row. Rows with problems (a missing name or code, or a duplicate) turn red when you save, and nothing is saved until they're fixed.
+- A dot next to the page button means there are unsaved changes. **Discard changes** goes back to the saved list.
 
-## Updating the ward directory
+### Critical medicine exceptions
 
-`ward_directory.csv` controls which wards belong to each directorate. Open it in **Excel**, edit it, and save it in **CSV** format, keeping the file name the same. Columns:
+An exception stops a prescription being flagged even though it matches the medicine's name or an alias. For example, Enoxaparin with **Dose is at or below** `40 MG` flags treatment doses but not prophylactic ones. Click **+ Add exception** under a medicine, choose the rule from the drop-down and type the value. A medicine can have several exceptions; if **any** of them applies, that prescription isn't flagged. Tick **Only medicines with exceptions** to list just those.
 
-| Column       | Example                                                                               |
-| ------------ | ------------------------------------------------------------------------------------- |
-| Ward         | `DGC31` – must match the ward code exactly as printed on the reports (e.g. `EAU:1-3`) |
-| Display Name | `C31 (ESAU)` – name shown in the table                                                |
-| Specialty    | `General Surgery (Emerg)`                                                             |
-| Directorate  | `Surgery`                                                                             |
+Each review list item has a **drug name** (the drug name column, e.g. "Enoxaparin 40 MG/0.4 ML Syringe"), a **dose** (e.g. "40 MG"), **directions** (e.g. "ONCE A DAY AT 6pm") and a **type** (SCH, PRN, ONCE). The **full prescription** is all four together.
 
-The table follows the row order of this file. Each browser remembers the last directory it loaded, so after editing the file, load it again (**Load ward directory (CSV)…** or Choose folder).
+| Rule                               | Not flagged when…                                | Example value                |
+| ---------------------------------- | ------------------------------------------------ | ---------------------------- |
+| Drug name contains                 | the drug name contains any of the words          | `cream, ointment, eye drops` |
+| Drug name does not contain         | the drug name contains none of the words         | `glargine, detemir`          |
+| Full prescription contains         | the full prescription contains any of the words  | `STAT`                       |
+| Full prescription does not contain | the full prescription contains none of the words | `EVERY 6 HR`                 |
+| Dose is at or below                | the prescribed dose is at or below the amount    | `40 MG`                      |
+| Dose is at or above                | the prescribed dose is at or above the amount    | `10000 UNITS`                |
+| Prescription type is               | the type is one of those listed                  | `PRN`                        |
+
+- Words are matched as whole words or phrases, in any case. Separate several with commas; any one of them counts. A number only matches a whole number, so `4` doesn't match "40" or "0.4".
+- **Dose rules** use the dose column, not the strength in the drug name. A 300 mg/3 ml vial prescribed at 40 mg counts as 40 mg. Doses in mg, g and micrograms are converted to compare, as are ml and litres. A range (e.g. `20-60 MG`) only counts as "at or below" if all of it is. If there's no dose, or its unit can't be compared (e.g. ml against mg), the prescription **is** flagged, to be safe. Leave the unit off (e.g. `40`) to compare the number whatever the unit.
+- Text (.txt) review lists cut the drug name off at 35 characters (e.g. "…M/R Ca" for "M/R Capsule"); PDF review lists show it in full. Check that drug name words still match when text reports are used.
+
+**Saving:** click **Save ward_directory.js…** or **Save critical_meds.js…**. In Edge a Save window opens. The first time, go to the Workload Planner folder, then save and choose to **replace** the existing file, keeping the file name exactly the same. Edge remembers the folder after that. In browsers without a Save window, the file is downloaded instead; move it from Downloads into the Workload Planner folder, replacing the old file.
+
+The changes apply straight away on your screen, and for everyone else the next time they open the planner. Consider keeping a copy of the old file before making big changes.
+
+The files can also be edited by hand in Notepad. They hold one entry per line, in JSON format (double quotes, and a comma after every entry except the last). If a file has a mistake, the status box says so and that list isn't used until it's fixed.
 
 ## Troubleshooting
 
-| Problem                                   | What to do                                                                                                                                           |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A ward is missing from the table          | Check the ward is in `ward_directory.csv` with the right directorate. Wards not in the directory appear under **Not in directory** in the drop-down. |
-| Specialty is blank                        | The ward code in the CSV doesn't match the report – check spelling and punctuation                                                                   |
-| No CRITICAL MEDS shown                    | Check the status box says the critical medicines list is loaded. Only Hx patients with unreviewed items are checked.                                 |
-| "Cannot read … the lib folder is missing" | The `lib` folder must sit next to `Workload Planner.html`                                                                                            |
-| A ward is reported twice                  | If several copies of the same ward's report are loaded, the most recent is used and a note is shown. Clear out old reports to avoid this.            |
-| Old figures showing                       | Click **Clear reports** and load the folder again                                                                                                    |
-| Paste into email loses formatting         | Paste with Ctrl+V into a new Outlook message (HTML format), not plain text                                                                           |
+| Problem                                              | What to do                                                                                                                                                  |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A ward is missing from the table                     | Check the ward is on the **Ward directory** page with the right directorate. Wards not in the directory appear under **Not in directory** in the drop-down. |
+| Specialty is blank                                   | The ward code on the **Ward directory** page doesn't match the report – check spelling and punctuation                                                      |
+| No CRITICAL MEDS shown                               | Check the status box says the critical medicines list is loaded. Only Hx patients with unreviewed items are checked.                                        |
+| "ward_directory.js is missing" (or critical_meds.js) | The file must sit next to `Workload Planner.html` with exactly that name                                                                                    |
+| "… has a mistake in it"                              | The file was edited by hand and has a missing comma or quote. Fix it, or put back an earlier copy                                                           |
+| Saved changes don't appear for others                | Check the file was saved into the Workload Planner folder with exactly the right name, replacing the old file                                               |
+| "Cannot read … the lib folder is missing"            | The `lib` folder must sit next to `Workload Planner.html`                                                                                                   |
+| A ward is reported twice                             | If several copies of the same ward's report are loaded, the most recent is used and a note is shown. Clear out old reports to avoid this.                   |
+| Old figures showing                                  | Click **Clear reports** and load the folder again                                                                                                           |
+| Paste into email loses formatting                    | Paste with Ctrl+V into a new Outlook message (HTML format), not plain text                                                                                  |
