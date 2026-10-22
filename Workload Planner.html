@@ -603,6 +603,10 @@
         color: #d5281b;
         font-weight: bold;
       }
+      .crit-skip {
+        color: #768692;
+        cursor: help;
+      }
       .hx-req {
         color: #d5281b;
         font-weight: bold;
@@ -2159,9 +2163,11 @@
                   const valid = st && VALID.includes(st.code);
                   const old = valid && w.reportDate - st.date > WEEK_MS;
                   const hrs = hoursIn(p, w);
-                  const status = valid
-                    ? esc(st.code)
-                    : `<span class="warn" title="Not a recognised status &ndash; counted as Hx">${esc(st.code)}*</span>`;
+                  const status = !st
+                    ? ""
+                    : valid
+                      ? esc(st.code)
+                      : `<span class="warn" title="Not a recognised status &ndash; counted as Hx">${esc(st.code)}*</span>`;
                   // Hx patients: flag critical medicines among their unreviewed items
                   const crit = !valid && items ? criticalMeds(items) : [];
                   const flagged = crit.filter((r) => r.hits.length);
@@ -2170,16 +2176,23 @@
                       (s) =>
                         `${rxText(s.item)}\n  not flagged: ${ruleText(s.x)}`,
                     );
+                  const skippedTip = crit
+                    .filter((r) => !r.hits.length)
+                    .flatMap(skipTip);
+                  // only exception-skipped medicines: show a hover-only marker
                   const critHtml = flagged.length
                     ? `<span class="crit-label">CRITICAL MEDS:</span> <span class="crit" title="${esc(
-                        flagged
-                          .flatMap((r) => [
+                        [
+                          ...flagged.flatMap((r) => [
                             ...r.hits.map(rxText),
                             ...skipTip(r),
-                          ])
-                          .join("\n"),
+                          ]),
+                          ...skippedTip,
+                        ].join("\n"),
                       )}">${flagged.map((r) => esc(r.c.name)).join(", ")}</span>`
-                    : "";
+                    : skippedTip.length
+                      ? `<span class="crit-skip" title="${esc(skippedTip.join("\n"))}">&#9432;</span>`
+                      : "";
                   const comment = st ? esc(st.comment) : "";
                   return `<tr class="${old ? "old" : ""}"><td>${esc(p.bed)}</td><td>${esc(p.name)}</td>
           <td class="c">${p.admitted && !isNaN(p.admitted) ? fmtDate(p.admitted) : ""}</td><td class="c">${valid || hrs == null ? "" : Math.floor(hrs)}</td>
@@ -2188,8 +2201,8 @@
               ? `<td class="c">${status}</td><td class="c">${fmtDate(st.date)}</td><td class="c days">${days}</td>`
               : `<td class="c hx-req" colspan="3">Hx required</td>`
           }
-          <td>${comment || critHtml}</td><td class="c">${unrev}</td></tr>${
-            comment && critHtml
+          <td>${comment && !flagged.length ? `${comment} ${critHtml}` : comment || critHtml}</td><td class="c">${unrev}</td></tr>${
+            comment && flagged.length
               ? `<tr class="crit-row"><td colspan="7"></td><td>${critHtml}</td><td></td></tr>`
               : ""
           }`;

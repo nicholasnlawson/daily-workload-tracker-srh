@@ -72,7 +72,7 @@ Expand **Patient details** at the bottom to see each patient's status, last revi
 
 Unreviewed items are matched to patients by hospital number. Any items that can't be matched are listed in red under that ward's table, for example if the patient has moved or been discharged.
 
-For patients who need a history (Hx), any of their unreviewed items that appear on the critical medicines list are shown in the **Comment** column as **CRITICAL MEDS:** followed by the medicine names in red. If the patient already has a comment, the critical medicines go on an extra row underneath. Hover over the names to see the matching review list items. Medicines that matched but were skipped by an exception (see below) are not shown.
+For patients who need a history (Hx), any of their unreviewed items that appear on the critical medicines list are shown in the **Comment** column as **CRITICAL MEDS:** followed by the medicine names in red. If the patient already has a comment, the critical medicines go on an extra row underneath. Hover over the names to see the matching review list items. Medicines that matched but were skipped by an exception (see below) are not listed, but they appear in the hover text with the exception that applied. If a patient only has skipped medicines, a small grey **ⓘ** is shown instead; hover over it to see them.
 
 Patients with no status on the ward list show **Hx required** in bold red across the Status, Last r/v and Days ago columns.
 
