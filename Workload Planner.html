@@ -549,15 +549,32 @@
         cursor: pointer;
         font-weight: bold;
       }
+      .det-title {
+        font-weight: bold;
+      }
+      .det-actions label {
+        margin-left: 16px;
+        font-size: 13px;
+      }
+      .st-filter {
+        margin-left: 16px;
+        font-size: 13px;
+      }
+      .st-filter label {
+        margin-left: 8px;
+      }
       .detail-ward {
-        margin-top: 14px;
+        margin-top: 10px;
       }
       .detail-ward h3 {
         font-size: 14px;
         margin: 0;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 10px;
+      }
+      #details.notes td.comments {
+        padding-bottom: 4em;
       }
       .det-meta {
         font-size: 11px;
@@ -621,7 +638,6 @@
         }
         body[data-print] header,
         body[data-print] main > section:not(#details),
-        body[data-print] summary,
         body[data-print] .no-print,
         body[data-print] .detail-ward:not(.printing) {
           display: none !important;
@@ -637,6 +653,12 @@
         }
         body[data-print] .detail-ward.printing ~ .detail-ward.printing {
           break-before: page;
+        }
+        body[data-print] .detail-ward > summary {
+          list-style: none;
+        }
+        body[data-print] .detail-ward > summary::-webkit-details-marker {
+          display: none;
         }
         table.det thead {
           display: table-header-group;
@@ -694,9 +716,14 @@
           Sets each ward's display name, specialty and directorate, the order of
           the workload table and the ward list for EMR reports. The
           <b>Ward code</b> must match the code printed on the reports exactly
-          (e.g. <b>EAU:1-3</b>). Use the arrows to change the order. Changes
-          take effect for everyone once saved as <b>ward_directory.js</b> in the
-          Workload Planner folder, replacing the old file.
+          (e.g. <b>EAU:1-3</b>). Use the arrows to change the order. Wards split
+          across several reports can be shown as one: give each part the same
+          <b>Part of</b> name (e.g. <b>EAU</b> for EAU-SR, EAU:1-3 and EAU:4-6;
+          capitals and spacing don't matter) and their patients and unreviewed
+          items are combined under that name, in the position of the first part.
+          Leave it blank for a ward that stands alone. Changes take effect for
+          everyone once saved as <b>ward_directory.js</b> in the Workload
+          Planner folder, replacing the old file.
         </p>
         <div class="btns ed-bar">
           <button type="button" class="btn" data-ed-add="dir">Add ward</button>
@@ -706,11 +733,15 @@
           <button type="button" class="btn" data-ed-discard="dir">
             Discard changes
           </button>
+          <button type="button" class="btn" data-ed-folder="dir" hidden>
+            Change save folder&hellip;
+          </button>
           <span class="ed-msg" id="dirMsg"></span>
         </div>
         <div class="ed-errs" id="dirErrs"></div>
         <div class="ed-scroll"><table class="ed" id="dirEdit"></table></div>
         <datalist id="dirDirectorates"></datalist>
+        <datalist id="dirParts"></datalist>
       </section>
 
       <section id="medPage" class="card" data-page="medicines">
@@ -747,6 +778,9 @@
           </button>
           <button type="button" class="btn" data-ed-discard="crit">
             Discard changes
+          </button>
+          <button type="button" class="btn" data-ed-folder="crit" hidden>
+            Change save folder&hellip;
           </button>
           <span class="ed-msg" id="critMsg"></span>
         </div>
@@ -828,17 +862,24 @@
       </section>
 
       <section id="details" class="card" hidden>
-        <details>
-          <summary>Patient details (for checking; not copied)</summary>
-          <div id="detailWrap"></div>
-        </details>
+        <div class="det-title">Patient details (for checking; not copied)</div>
         <div class="det-actions no-print">
           <button id="printAll" class="btn">Print all ward lists</button>
           <span class="legend"
             >Prints the patient details for the wards in the selected
             directorate, one ward per page.</span
           >
+          <label
+            ><input type="checkbox" id="optNotes" /> Space for written
+            notes</label
+          >
         </div>
+        <div class="det-actions no-print">
+          <button id="expandAll" class="btn small">Expand all</button>
+          <button id="collapseAll" class="btn small">Collapse all</button>
+          <span id="stFilter" class="st-filter"></span>
+        </div>
+        <div id="detailWrap"></div>
       </section>
     </main>
 
@@ -1064,7 +1105,8 @@
             if (
               code &&
               /[A-Za-z]/.test(code) &&
-              (afterPageHeader || dirEntry(norm(code)))
+              (afterPageHeader ||
+                state.directory.some((d) => d.ward === norm(code)))
             ) {
               startWard(code);
               afterPageHeader = false;
@@ -1133,7 +1175,7 @@
         // ward_directory.js and critical_meds.js sit next to this page and load
         // as scripts, which works when the page is opened from disk (fetching
         // a .json/.csv file doesn't). Each holds JSON wrapped in one line:
-        //   window.WARD_DIRECTORY = { "wards": [ {ward, display, specialty, directorate}, ... ] };
+        //   window.WARD_DIRECTORY = { "wards": [ {ward, display, specialty, directorate, partOf?}, ... ] };
         //   window.CRITICAL_MEDS = { "medications": [ {name, aliases: [...]}, ... ] };
         const DATA_FILES = {
           dir: {
@@ -1158,6 +1200,7 @@
               display: clean(r.display) || norm(r.ward),
               specialty: clean(r.specialty),
               directorate: clean(r.directorate) || "Unassigned",
+              partOf: clean(r.partOf),
             }))
             .filter((r) => r.ward);
           state.dirFile = label;
@@ -1799,12 +1842,12 @@
             if (w.reportDate && w.reportDate - p.status.date > WEEK_MS)
               s.notRv++;
           }
-          const rv = state.reviews.get(w.code);
+          const rv = combined().reviews.get(w.code);
           s.revMissing = !rv;
           s.unrev = s.unrev48 = s.unrev7 = 0;
           if (rv)
             for (const it of rv.items) {
-              const age = (rv.reportDate || w.reportDate) - it.px;
+              const age = (it.rd || rv.reportDate || w.reportDate) - it.px;
               s.unrev++;
               if (age > 2 * DAY_MS) s.unrev48++;
               if (age > WEEK_MS) s.unrev7++;
@@ -1817,17 +1860,117 @@
         const cellValue = (c, s, dash) =>
           c.rev && s.revMissing ? dash : c.zero ? s[c.key] : s[c.key] || "";
 
-        const dirEntry = (code) => state.directory.find((d) => d.ward === code);
+        // ---------- Combined wards ----------
+        // Wards whose directory entry has "Part of" set are shown as one
+        // combined ward named by that text (matched ignoring case and spacing),
+        // e.g. EAU-SR, EAU:1-3 and EAU:4-6 all "Part of" EAU.
+        const partKey = (s) => clean(s).toUpperCase().replace(/\s+/g, " ");
+        function wardGroups() {
+          const groups = new Map();
+          for (const d of state.directory) {
+            if (!d.partOf) continue;
+            const k = partKey(d.partOf);
+            if (!groups.has(k)) groups.set(k, { name: d.partOf, parts: [] });
+            groups.get(k).parts.push(d);
+          }
+          return groups;
+        }
+        // Code a directory ward is shown under (its combined ward, or itself)
+        const shownCode = (d, groups = wardGroups()) =>
+          d.partOf ? groups.get(partKey(d.partOf)).name : d.ward;
 
-        // Directory wards with no ward list data (closed wards print "No records found.")
-        const closedCodes = () =>
-          state.directory.map((d) => d.ward).filter((c) => !state.wards.has(c));
+        // Ward lists and review lists with the parts of each combined ward merged
+        function combined() {
+          const groups = wardGroups();
+          const nameOf = new Map();
+          for (const g of groups.values())
+            g.parts.forEach((d) => nameOf.set(d.ward, g.name));
+          const later = (a, b) => (!a || (b && b > a) ? b : a);
+          const merge = (src, add) => {
+            const out = new Map();
+            for (const [code, x] of src) {
+              const name = nameOf.get(code);
+              if (!name) {
+                out.set(code, x);
+                continue;
+              }
+              if (!out.has(name))
+                out.set(name, { code: name, parts: [], files: [] });
+              const c = out.get(name);
+              c.parts.push(code);
+              if (!c.files.includes(x.file)) c.files.push(x.file);
+              c.file = c.files.join(", ");
+              c.reportDate = later(c.reportDate, x.reportDate);
+              add(c, x, code);
+            }
+            return out;
+          };
+          const wards = merge(state.wards, (c, w, code) => {
+            w.patients.forEach((p) => (p.part = code));
+            c.patients = [...(c.patients || []), ...w.patients];
+            c.reportedTotal =
+              c.reportedTotal === null || w.reportedTotal == null
+                ? null
+                : (c.reportedTotal || 0) + w.reportedTotal;
+          });
+          // Patients in directory order of their part
+          for (const c of wards.values())
+            if (c.parts) {
+              const order = groups
+                .get(partKey(c.code))
+                .parts.map((d) => d.ward);
+              c.patients.sort(
+                (a, b) => order.indexOf(a.part) - order.indexOf(b.part),
+              );
+            }
+          const reviews = merge(state.reviews, (c, rv) => {
+            rv.items.forEach((it) => (it.rd = rv.reportDate));
+            c.items = [...(c.items || []), ...rv.items];
+          });
+          return { wards, reviews };
+        }
+
+        // Directory entry for a ward code, or a made-up entry for a combined ward
+        // (directorate of its first part; the parts' specialties, each once)
+        function dirEntry(code) {
+          const d = state.directory.find((d) => d.ward === code);
+          if (d) return d;
+          const g = wardGroups().get(partKey(code));
+          if (!g) return undefined;
+          const sp = [
+            ...new Map(
+              g.parts
+                .filter((p) => p.specialty)
+                .map((p) => [partKey(p.specialty), p.specialty]),
+            ).values(),
+          ];
+          return {
+            ward: g.name,
+            display: g.name,
+            specialty: sp.join(", "),
+            directorate: g.parts[0].directorate,
+            parts: g.parts,
+          };
+        }
+
+        // Directory wards (or combined wards) with no ward list data (closed
+        // wards print "No records found.")
+        function closedCodes(view = combined()) {
+          const groups = wardGroups();
+          return [
+            ...new Set(state.directory.map((d) => shownCode(d, groups))),
+          ].filter((c) => !view.wards.has(c));
+        }
 
         function visibleWards() {
           const sel = $("dirSel").value;
-          const codes = [...state.wards.keys(), ...closedCodes()];
+          const view = combined();
+          const groups = wardGroups();
+          const codes = [...view.wards.keys(), ...closedCodes(view)];
           const order = (c) => {
-            const i = state.directory.findIndex((d) => d.ward === c);
+            const i = state.directory.findIndex(
+              (d) => shownCode(d, groups) === c,
+            );
             return i < 0 ? 1e6 : i;
           };
           return codes
@@ -1842,7 +1985,7 @@
                 order(a) - order(b) ||
                 a.localeCompare(b, undefined, { numeric: true }),
             )
-            .map((c) => state.wards.get(c) || { code: c, closed: true });
+            .map((c) => view.wards.get(c) || { code: c, closed: true });
         }
 
         const editOf = (code) =>
@@ -2109,7 +2252,7 @@
         // Link each unreviewed item to a ward list patient: by hospital number,
         // or by bed when there's no hospital number to match (and the bed is unique)
         function matchReviews(w) {
-          const rv = state.reviews.get(w.code);
+          const rv = combined().reviews.get(w.code);
           if (!rv) return null;
           const byPatient = new Map(),
             unmatched = [];
@@ -2120,7 +2263,9 @@
               : [];
             if (!cands.length && (!it.mrn || !wardHasMrns)) {
               const byBed = w.patients.filter(
-                (p) => norm(p.bed) === norm(it.bed),
+                (p) =>
+                  norm(p.bed) === norm(it.bed) &&
+                  (!p.part || p.part === it.ward),
               );
               if (byBed.length === 1) cands = byBed;
             }
@@ -2135,19 +2280,37 @@
           return { rv, byPatient, unmatched };
         }
 
+        // Wards expanded in Patient details (kept open across re-renders)
+        const openWards = new Set();
+        // Status filter for Patient details: recognised codes, Hx required
+        // (no status) and Other (unrecognised status)
+        const ST_FILTERS = [
+          ...VALID.map((c) => [c, c]),
+          ["Hx", "Hx required"],
+          ["Other", "Other"],
+        ];
+        const stShown = new Set(ST_FILTERS.map((f) => f[0]));
+        const stCat = (p) =>
+          !p.status
+            ? "Hx"
+            : VALID.includes(p.status.code)
+              ? p.status.code
+              : "Other";
         function buildDetails() {
           return visibleWards()
             .filter((w) => !w.closed)
             .map((w) => {
-              const rv = state.reviews.get(w.code);
+              const rv = combined().reviews.get(w.code);
               const match = matchReviews(w);
-              const rows = w.patients
+              const shown = w.patients.filter((p) => stShown.has(stCat(p)));
+              const rows = shown
                 .map((p) => {
                   const items = match ? match.byPatient.get(p) || [] : null;
                   const over48 = items
                     ? items.filter(
                         (i) =>
-                          (rv.reportDate || w.reportDate) - i.px > 2 * DAY_MS,
+                          (i.rd || rv.reportDate || w.reportDate) - i.px >
+                          2 * DAY_MS,
                       ).length
                     : 0;
                   const unrev = !items
@@ -2194,6 +2357,7 @@
                       ? `<span class="crit-skip" title="${esc(skippedTip.join("\n"))}">&#9432;</span>`
                       : "";
                   const comment = st ? esc(st.comment) : "";
+                  const critRow = comment && flagged.length;
                   return `<tr class="${old ? "old" : ""}"><td>${esc(p.bed)}</td><td>${esc(p.name)}</td>
           <td class="c">${p.admitted && !isNaN(p.admitted) ? fmtDate(p.admitted) : ""}</td><td class="c">${valid || hrs == null ? "" : Math.floor(hrs)}</td>
           ${
@@ -2201,9 +2365,9 @@
               ? `<td class="c">${status}</td><td class="c">${fmtDate(st.date)}</td><td class="c days">${days}</td>`
               : `<td class="c hx-req" colspan="3">Hx required</td>`
           }
-          <td>${comment && !flagged.length ? `${comment} ${critHtml}` : comment || critHtml}</td><td class="c">${unrev}</td></tr>${
-            comment && flagged.length
-              ? `<tr class="crit-row"><td colspan="7"></td><td>${critHtml}</td><td></td></tr>`
+          <td${critRow ? "" : ' class="comments"'}>${comment && !flagged.length ? `${comment} ${critHtml}` : comment || critHtml}</td><td class="c">${unrev}</td></tr>${
+            critRow
+              ? `<tr class="crit-row"><td colspan="7"></td><td class="comments">${critHtml}</td><td></td></tr>`
               : ""
           }`;
                 })
@@ -2214,6 +2378,15 @@
                 const k = `${it.bed}|${it.mrn}`;
                 groups.set(k, (groups.get(k) || 0) + 1);
               }
+              const partsNote = w.parts
+                ? ` Combined ward: ${d.parts
+                    .map(
+                      (p) =>
+                        esc(p.display) +
+                        (w.parts.includes(p.ward) ? "" : " (no ward list)"),
+                    )
+                    .join(", ")}.`
+                : "";
               const unmatchedNote = groups.size
                 ? `<div class="det-meta warn">Unreviewed items on the review list not matched to a patient on this ward list (patient may have moved or been discharged): ${[
                     ...groups,
@@ -2227,14 +2400,14 @@
               const rvNote = rv
                 ? `review list run ${fmtDateTime(rv.reportDate)} ("${esc(rv.file)}")`
                 : "no review list loaded";
-              return `<div class="detail-ward" data-ward="${esc(w.code)}">
-        <h3>${esc(d ? d.display : w.code)}${d && d.specialty ? " &ndash; " + esc(d.specialty) : ""} &ndash; ${w.patients.length} patients
-          <button class="btn small no-print" data-print="${esc(w.code)}">Print</button></h3>
-        <div class="det-meta">Ward list run ${fmtDateTime(w.reportDate)} ("${esc(w.file)}"); ${rvNote}. * = status not recognised, counted as Hx. Hrs = hours since admission (Hx patients only). Unrev. items = unreviewed items matched by hospital number, with those &gt;48 hrs old in brackets. CRITICAL MEDS = medicines from the critical medicines list found in a Hx patient's unreviewed items.</div>
+              return `<details class="detail-ward" data-ward="${esc(w.code)}"${openWards.has(w.code) ? " open" : ""}>
+        <summary><h3>${esc(d ? d.display : w.code)}${d && d.specialty ? " &ndash; " + esc(d.specialty) : ""} &ndash; ${shown.length === w.patients.length ? "" : `${shown.length} of `}${w.patients.length} patients
+          <button class="btn small no-print" data-print="${esc(w.code)}">Print</button></h3></summary>
+        <div class="det-meta">Ward list run ${fmtDateTime(w.reportDate)} ("${esc(w.file)}"); ${rvNote}.${partsNote} * = status not recognised, counted as Hx. Hrs = hours since admission (Hx patients only). Unrev. items = unreviewed items matched by hospital number, with those &gt;48 hrs old in brackets. CRITICAL MEDS = medicines from the critical medicines list found in a Hx patient's unreviewed items.</div>
         <table class="det">
           <colgroup><col style="width:44px"><col style="width:190px"><col style="width:62px"><col style="width:44px"><col style="width:50px"><col style="width:62px"><col style="width:40px"><col><col style="width:66px"></colgroup>
-          <thead><tr><th>Bed</th><th>Patient</th><th>Admitted</th><th>Hrs</th><th>Status</th><th>Last r/v</th><th>Days ago</th><th>Comment</th><th>Unrev. items (&gt;48 hrs)</th></tr></thead>
-          <tbody>${rows}</tbody></table>${unmatchedNote}</div>`;
+          <thead><tr><th>Bed</th><th>Patient</th><th>Admitted</th><th>Hrs</th><th>Status</th><th>Last r/v</th><th>Days ago</th><th>Comments</th><th>Unrev. items (&gt;48 hrs)</th></tr></thead>
+          <tbody>${rows}</tbody></table>${unmatchedNote}</details>`;
             })
             .join("");
         }
@@ -2282,7 +2455,9 @@
             warns.push(
               "No review list loaded: the Unreviewed items columns will show \u2013.",
             );
-          const closed = closedCodes();
+          const closed = state.directory
+            .map((d) => d.ward)
+            .filter((c) => !state.wards.has(c));
           if (
             (state.wards.size || state.noRecords) &&
             closed.length !== state.noRecords
@@ -2290,14 +2465,16 @@
             warns.push(
               `${closed.length} directory ward(s) have no ward list data and are shown as Closed${closed.length ? ` (${closed.join(", ")})` : ""}, but ${state.noRecords} \u201cNo records found\u201d page(s) were loaded. Check that a ward list was run for every ward.`,
             );
-          for (const w of state.wards.values()) {
-            const s = wardStats(w);
+          for (const w of combined().wards.values()) {
             const match = matchReviews(w);
             if (match && match.unmatched.length)
               warns.push(
                 `${w.code}: ${match.unmatched.length} unreviewed item(s) not matched to a patient on the ward list (see Patient details).`,
               );
-            if (state.reviews.size && s.revMissing)
+          }
+          for (const w of state.wards.values()) {
+            const s = wardStats(w);
+            if (state.reviews.size && !state.reviews.has(w.code))
               warns.push(
                 `${w.code}: no review list loaded (if this ward has no unreviewed items, its review list may not have been printed).`,
               );
@@ -2332,7 +2509,7 @@
             prev = sel.value;
           const dirs = [];
           let unlisted = false;
-          for (const code of state.wards.keys()) {
+          for (const code of combined().wards.keys()) {
             const d = dirEntry(code);
             if (d) {
               if (!dirs.includes(d.directorate)) dirs.push(d.directorate);
@@ -2489,6 +2666,7 @@
               ["display", "Display name"],
               ["specialty", "Specialty"],
               ["directorate", "Directorate"],
+              ["partOf", "Part of (combined ward)"],
             ],
             ordered: true,
           },
@@ -2572,7 +2750,7 @@
                     .map(([f, l, wrap]) =>
                       wrap
                         ? `<td>${growBox(`data-f="${f}"`, r[f], l)}</td>`
-                        : `<td><input data-f="${f}" value="${esc(r[f])}" aria-label="${l}"${f === "directorate" ? ' list="dirDirectorates"' : ""}></td>`,
+                        : `<td><input data-f="${f}" value="${esc(r[f])}" aria-label="${l}"${f === "directorate" ? ' list="dirDirectorates"' : f === "partOf" ? ' list="dirParts"' : ""}></td>`,
                     )
                     .join(
                       "",
@@ -2588,16 +2766,20 @@
           else medFilter();
         }
 
-        // Directorate box suggestions: the directorates already in use
+        // Directorate and Part of box suggestions: the values already in use
         const dirSuggestions = () =>
-          ($("dirDirectorates").innerHTML = [
-            ...new Set(
-              drafts.dir.map((r) => clean(r.directorate)).filter(Boolean),
-            ),
-          ]
-            .sort()
-            .map((d) => `<option value="${esc(d)}">`)
-            .join(""));
+          [
+            ["dirDirectorates", "directorate"],
+            ["dirParts", "partOf"],
+          ].forEach(
+            ([id, f]) =>
+              ($(id).innerHTML = [
+                ...new Set(drafts.dir.map((r) => clean(r[f])).filter(Boolean)),
+              ]
+                .sort()
+                .map((d) => `<option value="${esc(d)}">`)
+                .join("")),
+          );
 
         // Critical medicines search: hide rows whose name, aliases and exception
         // values don't match (and, if ticked, those without exceptions)
@@ -2625,6 +2807,7 @@
             bad = new Set(),
             seen = new Map(),
             items = [];
+          const codes = new Set(drafts.dir.map((r) => norm(r.ward)));
           drafts[kind].forEach((r, i) => {
             const fail = (msg) => {
               errors.push(`Row ${i + 1}: ${msg}`);
@@ -2643,10 +2826,16 @@
                 specialty: clean(r.specialty),
                 directorate: clean(r.directorate) || "Unassigned",
               };
+              const partOf = clean(r.partOf);
+              if (partOf) item.partOf = partOf;
               key = item.ward;
               if (!key) return fail("the ward code is missing.");
               if (/\s/.test(key))
                 return fail(`ward code "${key}" contains a space.`);
+              if (partOf && codes.has(partKey(partOf)))
+                return fail(
+                  `"Part of" name "${partOf}" is the same as a ward code; use a different name.`,
+                );
             } else {
               const name = clean(r.name);
               if (!name) return fail("the medicine name is missing.");
@@ -2714,7 +2903,9 @@
               kind,
               err.name === "AbortError"
                 ? "Not saved (cancelled)."
-                : `Not saved: ${err.message}`,
+                : err.name === "SecurityError"
+                  ? "Not saved: click Save again to choose the Workload Planner folder."
+                  : `Not saved: ${err.message}`,
               "err",
             );
             return;
@@ -2725,32 +2916,86 @@
           edMsg(kind, note.text, note.ok ? "ok" : "warn");
         }
 
-        // Save with a Save dialog where the browser allows it (Edge/Chrome),
-        // otherwise download the file
+        // ---------- Save folder ----------
+        // Where the browser allows it (Edge/Chrome), data files are saved
+        // straight into the Workload Planner folder. The folder is chosen once
+        // (checked to be the folder this page is in) and remembered in the
+        // browser's storage; other browsers download the file instead.
+        const PAGE_FILE =
+          decodeURIComponent(location.pathname.split("/").pop()) ||
+          "Workload Planner.html";
+        const PAGE_DIR = decodeURIComponent(
+          location.pathname.split("/").slice(-2, -1)[0] || "",
+        );
+        function folderStore(op, value) {
+          return new Promise((res, rej) => {
+            const open = indexedDB.open("workloadPlanner", 1);
+            open.onupgradeneeded = () => open.result.createObjectStore("kv");
+            open.onerror = () => rej(open.error);
+            open.onsuccess = () => {
+              const tx = open.result.transaction(
+                "kv",
+                op ? "readwrite" : "readonly",
+              );
+              const req = op
+                ? tx.objectStore("kv").put(value, "folder")
+                : tx.objectStore("kv").get("folder");
+              req.onsuccess = () => res(req.result);
+              req.onerror = () => rej(req.error);
+            };
+          });
+        }
+        // Problem with a folder as the save folder, or "" if it's fine
+        async function folderProblem(dir) {
+          try {
+            await dir.getFileHandle(PAGE_FILE);
+          } catch (_) {
+            return `the folder "${dir.name}" doesn't contain "${PAGE_FILE}". Choose the Workload Planner folder (the one this page was opened from${PAGE_DIR && !/:$/.test(PAGE_DIR) ? `, "${PAGE_DIR}"` : ""}).`;
+          }
+          return PAGE_DIR && !/:$/.test(PAGE_DIR) && dir.name !== PAGE_DIR
+            ? `the folder "${dir.name}" isn't the folder this page was opened from ("${PAGE_DIR}"). Choose that folder.`
+            : "";
+        }
+        async function chooseFolder() {
+          const dir = await showDirectoryPicker({
+            id: "workloadPlanner",
+            mode: "readwrite",
+          });
+          const problem = await folderProblem(dir);
+          if (problem) throw new Error(problem);
+          await folderStore(true, dir).catch(() => {});
+          return dir;
+        }
+        // The remembered folder (asking for permission again if needed), or a
+        // newly chosen one
+        async function saveFolder() {
+          let dir = null;
+          try {
+            dir = await folderStore(false);
+          } catch (_) {}
+          if (dir) {
+            const opts = { mode: "readwrite" };
+            const ok =
+              (await dir.queryPermission(opts)) === "granted" ||
+              (await dir.requestPermission(opts)) === "granted";
+            if (ok && !(await folderProblem(dir))) return dir;
+            // Moved, renamed or permission refused: forget it
+            if (ok) await folderStore(true, null).catch(() => {});
+          }
+          return chooseFolder();
+        }
+
         async function saveFile(name, text) {
-          if (window.showSaveFilePicker) {
-            const h = await showSaveFilePicker({
-              id: "workloadPlanner",
-              suggestedName: name,
-              types: [
-                {
-                  description: "Workload Planner data file",
-                  accept: { "text/javascript": [".js"] },
-                },
-              ],
-            });
+          if (window.showDirectoryPicker) {
+            const dir = await saveFolder();
+            const h = await dir.getFileHandle(name, { create: true });
             const w = await h.createWritable();
             await w.write(text);
             await w.close();
-            return h.name === name
-              ? {
-                  ok: true,
-                  text: `Saved "${name}". Make sure it went into the Workload Planner folder; others see the changes when they next open the planner.`,
-                }
-              : {
-                  ok: false,
-                  text: `Saved as "${h.name}", but the planner only reads "${name}". Save again using that exact name.`,
-                };
+            return {
+              ok: true,
+              text: `Saved "${name}" in the "${dir.name}" folder; others see the changes when they next open the planner.`,
+            };
           }
           const a = document.createElement("a");
           a.href = URL.createObjectURL(
@@ -2803,7 +3048,10 @@
               e.preventDefault();
           });
           table.addEventListener("change", (e) => {
-            if (kind === "dir" && e.target.dataset.f === "directorate")
+            if (
+              kind === "dir" &&
+              ["directorate", "partOf"].includes(e.target.dataset.f)
+            )
               dirSuggestions();
           });
           table.addEventListener("click", (e) => {
@@ -2867,6 +3115,23 @@
             tr.querySelector("input").focus();
           }),
         );
+        document.querySelectorAll("[data-ed-folder]").forEach((b) => {
+          b.hidden = !window.showDirectoryPicker;
+          b.addEventListener("click", async () => {
+            const kind = b.dataset.edFolder;
+            try {
+              const dir = await chooseFolder();
+              edMsg(
+                kind,
+                `Files will be saved in the "${dir.name}" folder.`,
+                "ok",
+              );
+            } catch (err) {
+              if (err.name !== "AbortError")
+                edMsg(kind, `Folder not changed: ${err.message}`, "err");
+            }
+          });
+        });
         document
           .querySelectorAll("[data-ed-save]")
           .forEach((b) =>
@@ -3038,27 +3303,57 @@
 
         // Print patient details: one ward, or every ward in the selected directorate
         function printDetails(code) {
-          const det = $("details").querySelector("details");
-          const wasOpen = det.open;
-          det.open = true;
           document.body.dataset.print = code || "all";
-          document
-            .querySelectorAll(".detail-ward")
-            .forEach((el) =>
-              el.classList.toggle(
-                "printing",
-                !code || el.dataset.ward === code,
-              ),
-            );
+          const wards = [...document.querySelectorAll(".detail-ward")];
+          const wasOpen = wards.map((el) => el.open);
+          wards.forEach((el) => {
+            const p = !code || el.dataset.ward === code;
+            el.classList.toggle("printing", p);
+            if (p) el.open = true;
+          });
           window.print();
-          det.open = wasOpen;
+          wards.forEach((el, i) => (el.open = wasOpen[i]));
           delete document.body.dataset.print;
         }
         $("printAll").addEventListener("click", () => printDetails(null));
         $("detailWrap").addEventListener("click", (e) => {
           const b = e.target.closest("button[data-print]");
-          if (b) printDetails(b.dataset.print);
+          if (!b) return;
+          e.preventDefault();
+          printDetails(b.dataset.print);
         });
+        $("detailWrap").addEventListener(
+          "toggle",
+          (e) => {
+            const code = e.target.dataset.ward;
+            if (code && !document.body.dataset.print)
+              e.target.open ? openWards.add(code) : openWards.delete(code);
+          },
+          true,
+        );
+        $("stFilter").innerHTML =
+          "Show:" +
+          ST_FILTERS.map(
+            ([k, l]) =>
+              `<label><input type="checkbox" data-st="${k}" checked> ${l}</label>`,
+          ).join("");
+        $("stFilter").addEventListener("change", (e) => {
+          const k = e.target.dataset.st;
+          e.target.checked ? stShown.add(k) : stShown.delete(k);
+          $("detailWrap").innerHTML = buildDetails();
+        });
+        const setAllOpen = (open) =>
+          document.querySelectorAll(".detail-ward").forEach((el) => {
+            el.open = open;
+            open
+              ? openWards.add(el.dataset.ward)
+              : openWards.delete(el.dataset.ward);
+          });
+        $("expandAll").addEventListener("click", () => setAllOpen(true));
+        $("collapseAll").addEventListener("click", () => setAllOpen(false));
+        $("optNotes").addEventListener("change", (e) =>
+          $("details").classList.toggle("notes", e.target.checked),
+        );
 
         $("tableWrap").addEventListener("input", (e) => {
           const t = e.target;
