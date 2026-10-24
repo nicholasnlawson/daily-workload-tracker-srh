@@ -20,7 +20,6 @@ window.WARD_DIRECTORY = {
     {"ward":"DGD46","display":"D46","specialty":"COTE","directorate":"Care of the Elderly"},
     {"ward":"DGD47","display":"D47","specialty":"Gynaecology","directorate":"Surgery"},
     {"ward":"DGD48","display":"D48","specialty":"T&O (Elect. & Emerg.)","directorate":"Surgery"},
-    {"ward":"DG06","display":"DG06","specialty":"Test Ward","directorate":"Test Location"},
     {"ward":"DGE50","display":"E50","specialty":"Medicine","directorate":"Medicine"},
     {"ward":"DGE51","display":"E51","specialty":"COTE","directorate":"Care of the Elderly"},
     {"ward":"DGE52","display":"E52","specialty":"COTE","directorate":"Care of the Elderly"},
@@ -49,6 +48,7 @@ window.WARD_DIRECTORY = {
     {"ward":"STWARD8","display":"WARD 8","specialty":"COTE","directorate":"STDH"},
     {"ward":"STSURGIP","display":"SCIP","specialty":"Surgery","directorate":"STDH"},
     {"ward":"STWARD10","display":"WARD 10","specialty":"Respiratory","directorate":"STDH"},
-    {"ward":"STWARD12","display":"WARD 12","specialty":"Contingency","directorate":"STDH"}
+    {"ward":"STWARD12","display":"WARD 12","specialty":"Contingency","directorate":"STDH"},
+    {"ward":"DG06","display":"DG06","specialty":"Test Ward","directorate":"Test Location"}
   ]
 };
