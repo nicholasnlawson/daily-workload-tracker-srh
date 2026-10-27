@@ -1,14 +1,65 @@
 <!doctype html>
+<!--
+  ============================================================================
+  PHARMACY WORKLOAD PLANNER
+  ============================================================================
+  This single file is the entire Pharmacy Workload Planner web page. You can
+  open it directly from a folder on your computer in Microsoft Edge or Google
+  Chrome — no internet connection or special server is needed.
+
+  WHAT THIS TOOL DOES:
+  1. Workload table (main page):
+     Reads daily "Pharmacy - Ward List" and "Review List" reports exported from
+     the hospital's electronic medical record (EMR) system (as PDF or text
+     files). It counts patients by review status and unreviewed prescriptions,
+     and builds a summary table for each hospital directorate that can be
+     copied into an email or saved as a spreadsheet (CSV). It also shows a
+     ward-by-ward patient list underneath for checking and printing, flagging
+     high-risk ("critical") medicines for patients who still need a medicines
+     history (Hx).
+
+  2. Ward list for EMR reports:
+     A helper page with a one-click "Copy next" button so staff can quickly
+     copy each ward code in turn and paste it into the EMR report generator.
+
+  3. Ward directory editor:
+     Lets staff add, remove, reorder, or group wards, and saves the changes
+     to "ward_directory.js" (and "ward_codes.docx") in this folder.
+
+  4. Critical medicines editor:
+     Lets staff edit the list of high-risk medicines (and any exceptions, such
+     as low-dose prophylactic enoxaparin) and saves the changes to
+     "critical_meds.js" in this folder.
+
+  HOW THIS FILE IS ORGANISED:
+  - Stylesheet (CSS, lines ~50-750):
+    Visual styling — colours, layout, tables, and how pages look when printed.
+  - Page layout (HTML, lines ~750-1000):
+    The visible structure of the page — the blue top banner, navigation
+    buttons, and the four pages described above.
+  - Program logic (JavaScript, lines ~1040+):
+    The code that reads PDFs, calculates counts, builds tables, and saves files.
+  ============================================================================
+-->
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <title>Pharmacy Workload Planner</title>
+    <!--
+      ========================================================================
+      STYLESHEET (CSS) — APPEARANCE AND LAYOUT
+      ========================================================================
+      This section controls how the page looks on screen and when printed:
+      colours, fonts, buttons, scrollable tables, and print formatting.
+    -->
     <style>
+      /* --- Main colour scheme (NHS blue accent, pale blue table headers) --- */
       :root {
         --hdr: #dce6f1;
         --accent: #005eb8;
         --border: #9aa5b1;
       }
+      /* --- General page layout, top blue banner, white cards, and buttons --- */
       * {
         box-sizing: border-box;
       }
@@ -108,7 +159,11 @@
         background: #fff;
         color: var(--accent);
       }
-      /* Sections with data-page belong to that page; the rest to the planner */
+      /* --- Page switching ---
+         All four pages ("Workload table", "Ward list for EMR reports",
+         "Ward directory", and "Critical medicines") live in this one file.
+         These rules hide the pages you aren't currently viewing so only the
+         selected page is shown on screen. */
       body:not([data-page="planner"]) main > section:not([data-page]),
       main > section[data-page]:not(.current) {
         display: none !important;
@@ -117,6 +172,9 @@
         margin: 0 0 6px;
         font-size: 17px;
       }
+      /* --- "Ward list for EMR reports" page styles ---
+         Styles the scrollable list of ward codes and colours each ward button
+         blue when it is next to be copied, or green once it has been copied. */
       #wcMsg {
         align-self: center;
         font-size: 13px;
@@ -124,8 +182,8 @@
       #wcSource {
         margin: 10px 0 6px;
       }
-      /* The ward list scrolls inside its own box, sized in JS to fit the window,
-         so the buttons above stay in view */
+      /* The ward list scrolls inside its own box (sized automatically to fit
+         the window) so the "Copy next / Undo / Reset" buttons stay in view. */
       #wcScroll {
         position: relative;
         display: inline-block;
@@ -135,7 +193,7 @@
         border: 1px solid var(--border);
         border-radius: 4px;
       }
-      /* Separate borders so the sticky header row fully covers rows scrolling under it */
+      /* Separate cell borders so the sticky header row cleanly covers rows scrolling underneath */
       table.wc {
         border-collapse: separate;
         border-spacing: 0;
@@ -191,7 +249,10 @@
         border-color: #007f3b;
         color: #00552a;
       }
-      /* Ward directory / critical medicines editors */
+      /* --- "Ward directory" and "Critical medicines" editor styles ---
+         Styles the editable tables where staff can add, edit, reorder, or
+         delete wards and medicines. Newly added rows are tinted yellow (.new)
+         and rows with validation problems are tinted red (.bad). */
       .ed-bar {
         align-items: center;
         margin-bottom: 8px;
@@ -348,10 +409,14 @@
       table.ed .icon:disabled {
         visibility: hidden;
       }
+      /* Yellow dot on the navigation tab when an editor has unsaved changes */
       header nav button.unsaved::after {
         content: " \2022";
         color: #ffb81c;
       }
+      /* --- Status messages, toolbar controls, and column chooser pop-up ---
+         Green (.ok), amber (.warn), and red (.err) colours for feedback messages,
+         plus the pop-up dialog box used to tick/untick which columns to show. */
       #status {
         margin-top: 12px;
         font-size: 13px;
@@ -410,8 +475,10 @@
         margin: 3px 16px 3px 0;
         white-space: nowrap;
       }
-      /* Keep the tables inside the white card: text wraps (with hyphenation) as the
-         window narrows; only in a very narrow window does the card scroll sideways */
+      /* --- Main workload summary table styles ---
+         Keeps the workload and staffing tables inside the white card: text wraps
+         (with hyphenation) as the window narrows, and only in a very narrow
+         window does the card scroll sideways. */
       #tableWrap {
         max-width: 100%;
         overflow-x: auto;
@@ -468,7 +535,10 @@
         width: 24%;
         min-width: 160px;
       }
-      /* Auto-growing text box: a hidden copy of the text sets the size */
+      /* --- Auto-growing text boxes (.grow) ---
+         Standard web text boxes don't automatically expand as you type. This
+         places an invisible copy of the typed text behind the text box so the
+         table cell stretches taller and wider automatically to fit everything. */
       .grow {
         display: grid;
       }
@@ -545,6 +615,9 @@
         font-size: 12px;
         color: #4c6272;
       }
+      /* --- Patient details section (expandable ward lists below the main table) ---
+         Styles the collapsible per-ward patient tables, red highlights for
+         overdue reviews (.old), "Hx required" (.hx-req), and "CRITICAL MEDS" (.crit). */
       details summary {
         cursor: pointer;
         font-weight: bold;
@@ -628,6 +701,11 @@
         color: #d5281b;
         font-weight: bold;
       }
+      /* --- Print layout (@media print) ---
+         When someone clicks "Print" on a ward list (or "Print all ward lists"),
+         these rules format the output for A4 landscape paper, hide all menus,
+         buttons, and other sections of the page, and start each ward on a
+         fresh sheet of paper. */
       @media print {
         @page {
           size: A4 landscape;
@@ -673,7 +751,17 @@
       }
     </style>
   </head>
+  <!--
+    ==========================================================================
+    PAGE STRUCTURE (HTML) — WHAT YOU SEE ON SCREEN
+    ==========================================================================
+    Everything inside <body> is the visible layout of the tool:
+    - <header>: The blue banner at the top with the four navigation buttons.
+    - <main>:   The white content cards for each page. Most sections start out
+                hidden and are shown or filled in by the JavaScript code below.
+  -->
   <body>
+    <!-- Top blue banner and page navigation bar -->
     <header>
       <h1>Pharmacy Workload Planner</h1>
       <p>
@@ -690,6 +778,12 @@
       </nav>
     </header>
     <main>
+      <!--
+        PAGE: WARD LIST FOR EMR REPORTS
+        A helper checklist of all wards in the directory. Staff can click a
+        ward code (or click "Copy next") to copy it to the clipboard, then
+        paste it into the hospital EMR when running daily reports.
+      -->
       <section id="wardPage" class="card" data-page="wards">
         <h2>Ward list for EMR reports</h2>
         <p class="legend">
@@ -710,6 +804,13 @@
         <div id="wcScroll"><table id="wcTable" class="wc"></table></div>
       </section>
 
+      <!--
+        PAGE: WARD DIRECTORY EDITOR
+        Allows staff to view and edit the list of hospital wards (their raw EMR
+        ward code, display name, specialty, directorate, and whether several
+        sub-wards combine into one row). Saving writes "ward_directory.js" and
+        "ward_codes.docx" into the Workload Planner folder.
+      -->
       <section id="dirPage" class="card" data-page="directory">
         <h2>Ward directory</h2>
         <p class="legend">
@@ -744,6 +845,13 @@
         <datalist id="dirParts"></datalist>
       </section>
 
+      <!--
+        PAGE: CRITICAL MEDICINES EDITOR
+        Allows staff to view and edit the list of high-risk ("critical")
+        medicines, their alternative/brand names (aliases), and any exception
+        rules (for example, ignoring low-dose prophylactic enoxaparin). Saving
+        writes "critical_meds.js" into the Workload Planner folder.
+      -->
       <section id="medPage" class="card" data-page="medicines">
         <h2>Critical medicines</h2>
         <p class="legend">
@@ -788,6 +896,12 @@
         <div class="ed-scroll"><table class="ed" id="critEdit"></table></div>
       </section>
 
+      <!--
+        PAGE: WORKLOAD TABLE (MAIN PAGE) — STEP 1: LOAD REPORTS
+        The drag-and-drop box and file picker buttons where staff load the
+        daily Ward List and Review List reports (PDF or text files), plus the
+        status area (#status) that shows loaded files, counts, and any warnings.
+      -->
       <section class="card">
         <div id="drop" class="drop">
           Drag the ward list and review list reports (PDF or text) here, or drag
@@ -814,6 +928,13 @@
         <div id="status"></div>
       </section>
 
+      <!--
+        WORKLOAD TABLE — STEP 2: CONTROLS BAR
+        Appears once reports are loaded. Lets the user pick which hospital
+        directorate to display, toggle the staffing and pharmacist allocation
+        columns, choose which columns are visible, copy the table for pasting
+        into an Outlook email, or save the table as a CSV spreadsheet file.
+      -->
       <section id="controls" class="card" hidden>
         <label
           >Directorate:
@@ -829,6 +950,11 @@
         <span id="copyMsg"></span>
       </section>
 
+      <!--
+        POP-UP DIALOG: COLUMN CHOOSER
+        Opens when the user clicks "Columns...". Lets them tick or untick which
+        columns appear in the workload table; choices are saved on this computer.
+      -->
       <dialog id="colDialog">
         <form method="dialog">
           <h3>Columns to show</h3>
@@ -843,6 +969,11 @@
         </form>
       </dialog>
 
+      <!--
+        WORKLOAD TABLE — STEP 3: SUMMARY TABLE AND KEY
+        Holds the generated directorate workload table (#tableWrap) and a
+        plain-English key explaining what each column heading means.
+      -->
       <section id="output" class="card" hidden>
         <div id="tableWrap"></div>
         <p class="legend">
@@ -862,6 +993,13 @@
         </p>
       </section>
 
+      <!--
+        WORKLOAD TABLE — STEP 4: PATIENT DETAILS (FOR CHECKING AND PRINTING)
+        Shows an expandable list for each ward with every patient's bed, name,
+        admission date/hours, review status, unreviewed item count, and any
+        flagged critical medicines. This section is not copied into emails,
+        and can be filtered by status or printed out (one ward per page).
+      -->
       <section id="details" class="card" hidden>
         <div class="det-title">Patient details (for checking; not copied)</div>
         <div class="det-actions no-print">
@@ -884,10 +1022,24 @@
       </section>
     </main>
 
-    <!-- PDF.js 3.11.174 (Apache 2.0), bundled for offline use. Loading the worker
-         as a script lets it run on the page, which works when opened from disk. -->
-    <!-- Ward directory and critical medicines, edited on their pages in this
-         tool. A file that is missing is noted for the status box. -->
+    <!--
+      ==========================================================================
+      EXTERNAL DATA FILES AND PDF READER LIBRARY
+      ==========================================================================
+      Before the main program runs, the browser loads four supporting files from
+      the same folder as this HTML file:
+      1. ward_directory.js — The list of hospital wards, specialties, and
+         directorates (edited on the "Ward directory" page).
+      2. critical_meds.js  — The list of high-risk medicines and exceptions
+         (edited on the "Critical medicines" page).
+      3. lib/pdf.min.js & lib/pdf.worker.min.js — Mozilla's PDF.js library
+         (version 3.11.174, Apache 2.0 licence), bundled in the "lib" folder so
+         PDFs can be read completely offline on the user's computer without
+         sending any patient data over the internet.
+
+      If ward_directory.js or critical_meds.js is missing, its file name is
+      recorded in window.DATA_MISSING so a helpful error message can be shown.
+    -->
     <script>
       window.DATA_MISSING = [];
     </script>
@@ -901,12 +1053,35 @@
     ></script>
     <script src="lib/pdf.min.js"></script>
     <script src="lib/pdf.worker.min.js"></script>
+
+    <!--
+      ==========================================================================
+      PROGRAM LOGIC (JAVASCRIPT)
+      ==========================================================================
+      Everything inside the script tag below makes the page interactive. It runs
+      solely inside the user's web browser; no data ever leaves the computer.
+    -->
     <script>
       (() => {
         "use strict";
 
+        // =====================================================================
+        // SECTION 1: CONSTANTS, SETTINGS, AND SHARED PAGE STATE
+        // =====================================================================
+        // This section defines the fixed settings used across the tool:
+        // - Which patient status codes count as "recognised" (anything else is
+        //   counted as needing a medicines history, "Hx").
+        // - The pastel background colours used to highlight each pharmacist's
+        //   allocated wards in the AM/PM columns.
+        // - The staffing table fields for Surgery vs all other directorates.
+        // - The central "state" object that holds all loaded reports and edits
+        //   currently in memory while the page is open.
+
+        // Recognised pharmacy review status codes printed on Ward List reports
         const VALID = ["UQ", "Q", "PRI", "TMR", "PRC"];
+        // Number of milliseconds in 7 days (used to spot reviews or prescriptions over 1 week old)
         const WEEK_MS = 7 * 24 * 3600 * 1000;
+        // Pastel colours assigned automatically to pharmacist names in the AM / PM columns
         const PALETTE = [
           "#d5e8d4",
           "#fff2cc",
@@ -919,10 +1094,11 @@
           "#fde3b6",
           "#cfe2c3",
         ];
-        // Staffing section layouts. Directorates listed in SURGERY_DIRECTORATES use the
-        // surgery layout (2 label/value pairs per row); all others, including
-        // "All loaded wards", use the general layout (1 pair per row).
-        // Fields with the same key (e.g. coord) share their value between layouts.
+        // Staffing box layouts shown above the workload table when "Include staffing
+        // & pharmacist allocation" is ticked. Directorates listed in SURGERY_DIRECTORATES
+        // use the two-column "surgery" layout; all others (including "All loaded wards")
+        // use the single-column "general" layout. Fields with the same key (e.g. "coord")
+        // keep their typed text when switching between layouts.
         const SURGERY_DIRECTORATES = ["surgery"];
         const STAFF_LAYOUTS = {
           surgery: {
@@ -952,6 +1128,11 @@
           },
         };
 
+        // Central store of everything currently loaded or typed into the page:
+        // - wards / reviews: patient lists and unreviewed prescription lists read from reports
+        // - directory / critical: the ward directory and critical medicines list
+        // - files / warnings: list of loaded report files and any check messages to display
+        // - edits / staff: numbers and names typed by hand into the table's white boxes
         const state = {
           wards: new Map(),
           reviews: new Map(),
@@ -980,8 +1161,10 @@
             : "general";
         const staffLayout = () => STAFF_LAYOUTS[layoutName()];
 
-        // Column choices are kept per layout (surgery / general) on this computer.
-        // Everything is shown by default, except Boarders outside surgery.
+        // Column visibility preferences (from the "Columns..." button).
+        // Saved in the browser's local storage on this computer, separately for
+        // the Surgery layout and the General layout. Every column is shown by
+        // default except "Boarders" outside Surgery.
         const COL_KEY = "workloadPlanner.columns";
         let colPrefs = {};
         try {
@@ -996,6 +1179,12 @@
           } catch (_) {}
         };
 
+        // Small helper functions used throughout the file:
+        // - $(id): finds an element on the page by its ID
+        // - esc(s): makes text safe to insert into HTML (turns <, >, &, " into codes)
+        // - norm(s): trims spaces and converts text to UPPERCASE for reliable matching
+        // - parseDate / fmtDate / fmtDateTime: converts UK dates (DD/MM/YY) and times
+        //   to and from JavaScript Date objects
         const $ = (id) => document.getElementById(id);
         const esc = (s) =>
           String(s ?? "").replace(
@@ -1024,7 +1213,17 @@
         const fmtDateTime = (d) =>
           d ? fmtDate(d) + " " + d.toTimeString().slice(0, 5) : "";
 
-        // ---------- Report parsing ----------
+        // =====================================================================
+        // SECTION 2: READING "PHARMACY - WARD LIST" REPORTS
+        // =====================================================================
+        // A Ward List report contains one or more wards. For each ward it lists
+        // every patient in a bed, their hospital number (Med Rec Num), admission
+        // date/time, and any pharmacy status lines (e.g. UQ, Q, PRI, TMR, PRC)
+        // with the date/time and pharmacist comment.
+        //
+        // The patterns below (regular expressions, starting with RE_) spot each
+        // kind of line in the report text so parseReport() can build a structured
+        // list of wards and patients.
         const RE_SKIP =
           /Pharmacy - Ward List|NHS Foundation Trust|User:|Status Key:|^\s*UQ\s+-\s+Urgent Queries/;
         const RE_REPORT_DATE =
@@ -1038,21 +1237,27 @@
         const RE_TIME_END = /\s(\d{1,2}:\d{2})\s*$/;
         // Ward codes may include : - / . (e.g. EAU:1-3, EAU-SR)
         const RE_WARD_CODE = /^[A-Za-z0-9][A-Za-z0-9:\/.\-]{1,11}$/;
-        // A line holding only a ward code (ignoring header words). PDFs can split a
-        // code into pieces, so the pieces are joined back together.
+        // Checks if a line holds only a ward code (ignoring column header words).
+        // Because PDFs sometimes split a ward code into separate fragments, the
+        // pieces are joined back together before checking.
         function wardFromLine(line) {
           const t = line.replace(/Admit (Date|Time)|Initial EDD/g, "").trim();
           if (!t || t.split(/\s+/).length > 3) return null;
           const c = t.replace(/\s+/g, "");
           return RE_WARD_CODE.test(c) ? c : null;
         }
-        // Hospital number (ward list "Med Rec Num" / review list "Unit Number"), e.g. X051400000
+        // Hospital number (called "Med Rec Num" on ward lists and "Unit Number" on
+        // review lists, e.g. X051400000). Used to match prescriptions to patients.
         const RE_MRN = /^[A-Za-z]{0,3}\d{5,10}[A-Za-z]?$/;
         const findMrn = (tokens) => {
           const t = tokens.find((x) => RE_MRN.test(x));
           return t ? t.toUpperCase() : "";
         };
 
+        // Reads the text of a Ward List report line by line and returns an array
+        // of ward objects, each containing its code, report date, reported total,
+        // and the list of patients (with their bed, name, hospital number,
+        // admission date/time, and latest pharmacy review status).
         function parseReport(text, fileName) {
           const lines = text.replace(/\r/g, "").split("\n");
           const fromName = (fileName.match(
@@ -1134,6 +1339,7 @@
               }
               if (inHeader || hc) continue;
             }
+            // If a patient has several status lines, keep the most recent one
             if ((m = line.match(RE_STATUS))) {
               if (patient) {
                 const st = {
@@ -1146,6 +1352,7 @@
               }
               continue;
             }
+            // A patient line has their bed, hospital number, name, and admission date
             if ((m = line.match(RE_PATIENT))) {
               if (!ward)
                 startWard(found.length ? "UNKNOWN" : fromName || "UNKNOWN");
@@ -1160,6 +1367,7 @@
               ward.patients.push(patient);
               continue;
             }
+            // The admission time sits at the end of the line immediately below the patient line
             if (patient && !patient.admitTime && (m = line.match(RE_TIME_END)))
               patient.admitTime = m[1];
           }
@@ -1172,12 +1380,17 @@
           return found;
         }
 
-        // ---------- Ward directory and critical medicines data files ----------
-        // ward_directory.js and critical_meds.js sit next to this page and load
-        // as scripts, which works when the page is opened from disk (fetching
-        // a .json/.csv file doesn't). Each holds JSON wrapped in one line:
+        // =====================================================================
+        // SECTION 3: WARD DIRECTORY AND CRITICAL MEDICINES DATA
+        // =====================================================================
+        // "ward_directory.js" and "critical_meds.js" sit in the same folder as
+        // this HTML file and are loaded via <script> tags above. (Loading them
+        // as scripts works when opening the page directly from a folder on disk,
+        // whereas browsers block normal file fetching from disk for security.)
+        //
+        // Each file sets a global variable containing its list:
         //   window.WARD_DIRECTORY = { "wards": [ {ward, display, specialty, directorate, partOf?}, ... ] };
-        //   window.CRITICAL_MEDS = { "medications": [ {name, aliases: [...]}, ... ] };
+        //   window.CRITICAL_MEDS  = { "medications": [ {name, aliases: [...], exceptions?: [...]}, ... ] };
         const DATA_FILES = {
           dir: {
             file: "ward_directory.js",
@@ -1207,8 +1420,9 @@
           state.dirFile = label;
         }
 
-        // Whole words/phrases, any case. A number doesn't match part of a
-        // decimal, so "4" doesn't match "0.4".
+        // Builds a pattern that matches any of the given words or phrases as
+        // whole words (ignoring upper/lower case). It also makes sure a plain
+        // number doesn't accidentally match part of a decimal (so "4" won't match "0.4").
         const wordsRe = (words) =>
           new RegExp(
             `(?<![A-Za-z0-9]|\\d\\.)(?:${words
@@ -1225,17 +1439,29 @@
             .split(",")
             .map(clean);
 
-        // ---------- Critical medicine exceptions ----------
-        // A critical medicine can have exceptions: review list items that match
-        // its name or an alias but should NOT be flagged. Each is
-        // { "rule": key, "value": "..." }. Parts of a review list item:
+        // =====================================================================
+        // SECTION 4: CRITICAL MEDICINE MATCHING AND EXCEPTION RULES
+        // =====================================================================
+        // When a patient has not yet had a medicines history completed (Hx),
+        // their unreviewed prescriptions are checked against the critical
+        // medicines list.
+        //
+        // However, some prescriptions for a critical medicine should NOT be
+        // flagged (for example, low-dose Enoxaparin 40 MG used routinely for
+        // clot prevention rather than full treatment). Each critical medicine
+        // can have "exceptions" — rules that stop a matching prescription from
+        // being flagged as critical.
+        //
+        // Each exception is stored as { "rule": key, "value": "..." } and checks
+        // one of the parts of a review list item:
         //   drug name    - the drug name column (e.g. "Enoxaparin 40 MG/0.4 ML Syringe")
-        //   prescription - drug name, dose, directions and type together
+        //   prescription - drug name, dose, directions, and type combined
         //   dose         - the prescribed dose (e.g. "40 MG", "1-2 TABLET")
-        //   type         - SCH, PRN, ONCE, etc.
+        //   type         - the prescription type code (SCH, PRN, ONCE, etc.)
         const rxText = (i) =>
           [i.med, i.dose, i.directions, i.type].filter(Boolean).join(" ");
-        // Doses compare in a common unit where they can (mg/g/microgram, ml/l)
+        // Conversion table so doses can be compared even if written in different
+        // units (e.g. 500 MICROGRAM vs 0.5 MG, or 1000 ML vs 1 L).
         const UNITS = {
           NG: ["mass", 1e-6],
           NANOGRAM: ["mass", 1e-6],
@@ -1375,7 +1601,9 @@
           state.critFile = label;
         }
 
-        // File text in the same layout as the shipped files: one entry per line
+        // Formats the ward directory or critical medicines list back into the
+        // exact JavaScript file format needed for "ward_directory.js" or
+        // "critical_meds.js" (one JSON entry per line).
         function dataFileText(kind, items) {
           const f = DATA_FILES[kind];
           const page = kind === "dir" ? "Ward directory" : "Critical medicines";
@@ -1389,7 +1617,21 @@
           );
         }
 
-        // ---------- File loading ----------
+        // =====================================================================
+        // SECTION 5: LOADING FILES AND EXTRACTING TEXT FROM PDFs
+        // =====================================================================
+        // Reports can be dropped onto the page as individual files or as an
+        // entire folder, and can be in either PDF (.pdf) or plain text (.txt)
+        // format.
+        //
+        // - filesFromDrop(): unpacks any dragged-and-dropped folders so every
+        //   file inside them is collected.
+        // - pdfPages(): uses the bundled PDF.js library to read each page of a
+        //   PDF and group text fragments into horizontal rows based on their
+        //   (x, y) position on the page.
+        // - textPages() / pagesToText(): converts between row positions and
+        //   fixed-width text lines so both PDF and text reports can be read by
+        //   the same report parsers.
         async function filesFromDrop(dt) {
           const entries = [...dt.items]
             .map((i) => i.webkitGetAsEntry && i.webkitGetAsEntry())
@@ -1516,13 +1758,21 @@
             )
             .join("\n");
 
-        // ---------- Review list parsing ----------
+        // =====================================================================
+        // SECTION 6: READING "REVIEW LIST" REPORTS (UNREVIEWED PRESCRIPTIONS)
+        // =====================================================================
+        // A Review List report lists individual unreviewed prescriptions across
+        // one or more wards. Each prescription row contains a patient's unit
+        // number (hospital number), location ("WARD-BED", e.g. "DG06-22"),
+        // medication name, dose, directions, and prescription date/time ("Px Date")
+        // plus type (e.g. SCH, PRN, ONCE).
         const RE_PX =
           /\b(\d{2}\/\d{2}\/\d{2,4})-(\d{2})(\d{2})(?:\s+([A-Z]{2,5})\b)?/;
         const RE_LOC = /^[A-Za-z0-9][A-Za-z0-9:\/.\-]*-[^\s-]+$/;
-        // Split a location like "DG06-22" or "EAU:4-6-4.1" into ward and bed. Prefer a
-        // known ward code (from loaded ward lists or the directory); otherwise split
-        // at the last hyphen.
+        // Splits a location like "DG06-22" or "EAU:4-6-4.1" into [ward, bed].
+        // Because some ward codes contain hyphens themselves, it first checks
+        // for a known ward code (from loaded ward lists or the ward directory),
+        // and otherwise splits at the final hyphen.
         function splitLoc(s) {
           if (!RE_LOC.test(s)) return null;
           const u = norm(s);
@@ -1539,6 +1789,8 @@
         const isReviewText = (t) =>
           /Location/.test(t) && /Medication/.test(t) && /Px\s+Date/.test(t);
 
+        // Extracts all unreviewed prescription items, the report run date/time,
+        // and the printed "Grand Total" (used to double-check nothing was missed).
         function parseReview(pages, fileName) {
           const fileWard = (fileName.match(
             /^([A-Za-z0-9]+?)[ _-]*review[ _-]*list/i,
@@ -1631,7 +1883,8 @@
           return out;
         }
 
-        // Keep the newest report when the same ward is loaded twice
+        // If the user accidentally loads two reports for the same ward, keep the
+        // one with the newer report timestamp and add a note to the status box.
         function mergeLatest(map, code, entry, label) {
           const prev = map.get(code);
           if (
@@ -1695,9 +1948,11 @@
         const SKIP_EXT = /\.(html?|xlsx?|docx?|png|jpe?g|gif|zip|js|css)$/i;
         const RE_WARDLIST = /Pharmacy - Ward List|Total Patients on Ward/i;
 
-        // Critical medicine names found in a patient's unreviewed items, in list order
-        // For each critical medicine named in the items: the items flagged, and
-        // those skipped because an exception applies (with the exception)
+        // Checks a patient's unreviewed prescriptions against the critical
+        // medicines list. For each critical medicine that matches by drug name
+        // or alias, it separates the prescriptions into "hits" (flagged as
+        // CRITICAL MEDS) and "skipped" (not flagged because an exception rule
+        // applied, along with which rule excluded it).
         const criticalMeds = (items) =>
           state.critical
             .map((c) => {
@@ -1712,6 +1967,10 @@
             })
             .filter((r) => r.hits.length || r.skipped.length);
 
+        // Main entry point when the user drops or selects files/folders.
+        // Skips unrelated files (images, Word docs, etc.), determines whether
+        // each PDF or text file is a Ward List or a Review List, and loads them.
+        // Review Lists are processed after Ward Lists so ward codes are already known.
         async function handleFiles(files) {
           // Review lists are read last so their locations can be matched to known ward codes
           const reviews = [];
@@ -1753,14 +2012,29 @@
           render();
         }
 
-        // ---------- Stats ----------
+        // =====================================================================
+        // SECTION 7: CALCULATING WARD WORKLOAD STATISTICS
+        // =====================================================================
+        // For each ward, wardStats() counts:
+        // - Total patients on the ward ("pts").
+        // - Patients needing a medicines history ("hx"): those with no status
+        //   code or an unrecognised status code, broken down by how long ago
+        //   they were admitted (18-24 hrs, 24-48 hrs, >48 hrs; Total also
+        //   includes <18 hrs).
+        // - Patients with each recognised status: UQ (Urgent Queries),
+        //   Q (Outstanding Queries), PRI (Review Incomplete, plus how many are
+        //   >24 hrs old), TMR (Tech Meds Rec), and PRC (Review Complete).
+        // - Patients whose status has not been updated for >1 week ("notRv").
+        // - Unreviewed prescription items from the Review List ("unrev"), plus
+        //   how many were prescribed >48 hrs and >7 days before the report ran.
         const DAY_MS = 24 * 3600 * 1000;
         const hoursIn = (p, w) =>
           p.admitted && !isNaN(p.admitted) && w.reportDate
             ? (w.reportDate - p.admitted) / 3600e3
             : null;
 
-        // Count columns shown after Pts. Grouped columns share a top header cell.
+        // Defines the statistical columns shown after "Pts." in the workload table.
+        // Columns with the same "group" share a merged top header cell.
         function statCols() {
           const H = "Hx.",
             R = "Review status";
@@ -1861,10 +2135,18 @@
         const cellValue = (c, s, dash) =>
           c.rev && s.revMissing ? dash : c.zero ? s[c.key] : s[c.key] || "";
 
-        // ---------- Combined wards ----------
-        // Wards whose directory entry has "Part of" set are shown as one
-        // combined ward named by that text (matched ignoring case and spacing),
-        // e.g. EAU-SR, EAU:1-3 and EAU:4-6 all "Part of" EAU.
+        // =====================================================================
+        // SECTION 8: COMBINED WARDS, FILTERING BY DIRECTORATE, AND ORDERING
+        // =====================================================================
+        // Some hospital wards are split across several separate EMR reports
+        // (for example, EAU-SR, EAU:1-3, and EAU:4-6). If their entries in the
+        // Ward Directory share the same "Part of" name (e.g. "EAU"), the
+        // functions below merge their patients and unreviewed prescriptions so
+        // they appear as a single combined row in the workload table.
+        //
+        // This section also works out which wards are closed (wards in the
+        // directory that had no patients in the loaded reports) and filters/sorts
+        // the ward list for whichever directorate is currently selected.
         const partKey = (s) => clean(s).toUpperCase().replace(/\s+/g, " ");
         function wardGroups() {
           const groups = new Map();
@@ -1993,6 +2275,9 @@
           state.edits[code] ||
           (state.edits[code] = { medBords: "", am: "", pm: "", comment: "" });
 
+        // Assigns each pharmacist name typed into the AM/PM columns a distinct
+        // pastel colour from PALETTE so it is easy to see at a glance which
+        // wards are covered by the same person.
         function pharmacistColours(wards) {
           const map = new Map();
           for (const w of wards)
@@ -2004,7 +2289,18 @@
           return map;
         }
 
-        // ---------- Table building (shared by screen + email) ----------
+        // =====================================================================
+        // SECTION 9: BUILDING THE WORKLOAD TABLE (SCREEN, EMAIL, AND CSV)
+        // =====================================================================
+        // - buildHTML(email): creates the HTML for the staffing table and main
+        //   directorate workload table. When email=false, it includes editable
+        //   text boxes for screen use; when email=true, it bakes all borders,
+        //   colours, and typed values directly into the table so it pastes
+        //   cleanly into Microsoft Outlook or other email programs.
+        // - buildRows() / buildText() / buildCSV(): converts the same table
+        //   data into plain tab-separated text (fallback for clipboard copy)
+        //   and comma-separated values (for "Save as CSV...", with a UTF-8 mark
+        //   so Microsoft Excel opens it with the right symbols).
         function buildHTML(email) {
           const wards = visibleWards();
           const staff = $("optStaff").checked;
@@ -2288,8 +2584,21 @@
           return `${dirName.replace(/[\\/:*?"<>|]+/g, "-").trim()}_${date}.csv`;
         }
 
-        // Link each unreviewed item to a ward list patient: by hospital number,
-        // or by bed when there's no hospital number to match (and the bed is unique)
+        // =====================================================================
+        // SECTION 10: PATIENT DETAILS SECTION (MATCHING & CRITICAL MEDS)
+        // =====================================================================
+        // Builds the expandable ward-by-ward patient lists shown underneath the
+        // main workload table (for checking and printing).
+        //
+        // - matchReviews(w): links each unreviewed prescription item on the
+        //   Review List to the right patient on the Ward List. It matches by
+        //   hospital number (MRN) first, or falls back to bed number if no
+        //   hospital number is available. Any prescription that can't be matched
+        //   (e.g. a patient who has just moved ward or been discharged) is
+        //   collected in "unmatched" so a warning can be shown.
+        // - buildDetails(): generates the collapsible <details> table for each
+        //   ward, highlighting overdue reviews (>7 days) in red and flagging
+        //   any "CRITICAL MEDS" found in an Hx patient's unreviewed items.
         function matchReviews(w) {
           const rv = combined().reviews.get(w.code);
           if (!rv) return null;
@@ -2451,7 +2760,18 @@
             .join("");
         }
 
-        // ---------- Render ----------
+        // =====================================================================
+        // SECTION 11: UPDATING THE SCREEN (STATUS BOX, DROP-DOWN, AND TABLES)
+        // =====================================================================
+        // - renderStatus(): updates the status box under the file drop zone.
+        //   It confirms whether ward_directory.js and critical_meds.js loaded,
+        //   lists every report file loaded so far, and runs safety checks
+        //   (warning if a report's printed total doesn't match the number of
+        //   patients/items found, if a ward has no review list, if an Hx patient
+        //   has no admission date, or if a ward code isn't in the directory).
+        // - renderDirSelect(): populates the "Directorate:" drop-down menu with
+        //   all directorates present in the loaded reports.
+        // - renderTable(): redraws the workload summary table and patient details.
         function renderStatus() {
           const out = [];
           out.push(
@@ -2569,7 +2889,18 @@
           $("detailWrap").innerHTML = buildDetails();
         }
 
-        // ---------- Ward list for EMR reports ----------
+        // =====================================================================
+        // SECTION 12: "WARD LIST FOR EMR REPORTS" HELPER PAGE & PAGE NAVIGATION
+        // =====================================================================
+        // Powers the second tab ("Ward list for EMR reports"), which helps staff
+        // copy ward codes one by one into the hospital EMR report generator:
+        // - wcDone keeps track of which ward codes have been copied so far.
+        // - wcNextCode() finds the next uncopied ward in directory order.
+        // - wcCopy() copies a ward code to the clipboard, marks it green,
+        //   highlights the next ward in blue, and scrolls the list to keep the
+        //   next ward in view.
+        // - showPage() switches between the four tabs in the top navigation bar.
+
         // Ward codes copied so far, in the order they were copied (for Undo)
         let wcDone = [];
         // Next ward for "Copy next": the first uncopied ward after the last one
@@ -2694,9 +3025,20 @@
           wcFit();
         }
 
-        // ---------- Ward directory / critical medicines editors ----------
-        // Each editor works on a draft copy of the list; Save writes the data
-        // file and then applies the draft to the planner.
+        // =====================================================================
+        // SECTION 13: WARD DIRECTORY AND CRITICAL MEDICINES EDITORS
+        // =====================================================================
+        // Powers the "Ward directory" and "Critical medicines" pages.
+        // - Each editor works on a temporary copy ("drafts") of the list so
+        //   staff can add, edit, reorder, or delete rows freely without
+        //   affecting the planner until they click "Save".
+        // - If there are unsaved changes, a yellow dot appears on the page tab
+        //   and the browser warns before closing the window.
+        // - edValidate() checks the draft before saving (for example, checking
+        //   for blank or duplicate names, spaces in ward codes, or invalid
+        //   exception values) and highlights any problem rows in red.
+        // - edSave() writes the updated list to "ward_directory.js" (plus
+        //   "ward_codes.docx") or "critical_meds.js" and updates the planner.
         const ED = {
           dir: {
             label: "ward",
@@ -2972,10 +3314,18 @@
           edMsg(kind, note.text + extra, warn ? "warn" : "ok");
         }
 
-        // ---------- Ward codes Word file ----------
-        // ward_codes.docx sits next to this page and is rewritten whenever the
-        // ward directory is saved: one ward code per line, a blank line, then
-        // the fixed lines below
+        // =====================================================================
+        // SECTION 14: GENERATING "ward_codes.docx" (WORD DOCUMENT)
+        // =====================================================================
+        // Whenever the Ward Directory is saved, the tool also updates
+        // "ward_codes.docx" in the same folder. That Word document lists one
+        // ward code per line, followed by a blank line and the four prescription
+        // type codes (SCH, PRN, ONE, STA).
+        //
+        // Because a Microsoft Word .docx file is actually a small ZIP archive
+        // containing XML text files, wardCodesDocx() and zipStore() build that
+        // ZIP structure directly in the browser without needing Microsoft Word
+        // or any external library.
         const WARD_CODES_FILE = "ward_codes.docx";
         const WARD_CODES_EXTRA = ["SCH", "PRN", "ONE", "STA"];
         function wardCodesDocx(codes) {
@@ -3073,11 +3423,20 @@
           return out;
         }
 
-        // ---------- Save folder ----------
-        // Where the browser allows it (Edge/Chrome), data files are saved
-        // straight into the Workload Planner folder. The folder is chosen once
-        // (checked to be the folder this page is in) and remembered in the
-        // browser's storage; other browsers download the file instead.
+        // =====================================================================
+        // SECTION 15: SAVING FILES DIRECTLY TO THE WORKLOAD PLANNER FOLDER
+        // =====================================================================
+        // When saving changes to the Ward Directory, Critical Medicines list, or
+        // a CSV file:
+        // - In Microsoft Edge and Google Chrome (which support showDirectoryPicker),
+        //   the tool asks the user once to pick the Workload Planner folder,
+        //   checks that the chosen folder actually contains this HTML file
+        //   (folderProblem), remembers that folder in browser storage
+        //   (folderStore / IndexedDB), and writes the updated files straight
+        //   into the folder so everyone sharing the folder gets the update.
+        // - In other browsers (such as Firefox or Safari), it falls back to
+        //   downloading the file into the user's Downloads folder and prompts
+        //   them to move it into the Workload Planner folder.
         const PAGE_FILE =
           decodeURIComponent(location.pathname.split("/").pop()) ||
           "Workload Planner.html";
@@ -3165,7 +3524,7 @@
           };
         }
 
-        // Why a data file didn't load, for the status messages
+        // Returns a plain-English explanation when a data file failed to load
         function dataProblem(kind) {
           const f = DATA_FILES[kind];
           return DATA_MISSING.includes(f.file)
@@ -3173,6 +3532,9 @@
             : `<b>${f.file}</b> has a mistake in it (check for a missing comma or double quote), or is empty. Fix it in a text editor, or replace it with an earlier copy.`;
         }
 
+        // Connects typing, button clicks (Add, Delete, Move up/down, Add/Remove
+        // exception, Save, Discard, Change folder), and search filtering inside
+        // both the Ward Directory and Critical Medicines editor tables.
         for (const kind of ["dir", "crit"]) {
           const table = $(kind + "Edit");
           table.addEventListener("input", (e) => {
@@ -3319,7 +3681,24 @@
           renderTable();
         }
 
-        // ---------- Events ----------
+        // =====================================================================
+        // SECTION 16: USER INTERACTIONS, BUTTON CLICKS, AND STARTUP
+        // =====================================================================
+        // Connects all remaining buttons, checkboxes, drop-downs, and keyboard
+        // shortcuts on the page to the functions above:
+        // - Drag-and-drop and file/folder picker buttons for loading reports
+        // - Top navigation bar buttons for switching pages
+        // - "Copy next / Undo / Reset" buttons on the Ward List page
+        // - "Columns..." pop-up dialog for showing/hiding table columns
+        // - "Print" and "Expand/Collapse all" buttons and status checkboxes in
+        //   Patient details
+        // - Typing into the staffing, boarders, pharmacist AM/PM, and comment
+        //   boxes (including pressing Enter to jump down to the next ward row)
+        // - "Copy table for email" and "Save as CSV..." buttons
+        // - Initial startup: loads ward_directory.js and critical_meds.js and
+        //   draws the page.
+
+        // --- Drag-and-drop and file selection for reports ---
         const drop = $("drop");
         ["dragenter", "dragover"].forEach((ev) =>
           document.addEventListener(ev, (e) => {
@@ -3390,7 +3769,7 @@
         });
         $("dirSel").addEventListener("change", renderTable);
         $("optStaff").addEventListener("change", renderTable);
-        // Column chooser
+        // --- Column chooser pop-up dialog ("Columns..." button) ---
         function colGroups() {
           const sc = statCols();
           const plain = (s) => s.replace(/<br>/g, " ");
@@ -3456,7 +3835,11 @@
           renderTable();
         });
 
-        // Print patient details: one ward, or every ward in the selected directorate
+        // --- Printing and filtering the Patient details section ---
+        // Prints either a single ward (when its Print button is clicked) or
+        // every ward in the selected directorate ("Print all ward lists"),
+        // temporarily expanding the ward lists being printed and restoring them
+        // afterwards.
         function printDetails(code) {
           document.body.dataset.print = code || "all";
           const wards = [...document.querySelectorAll(".detail-ward")];
@@ -3510,6 +3893,11 @@
           $("details").classList.toggle("notes", e.target.checked),
         );
 
+        // --- Typing into the workload table's white boxes (staffing, boarders, AM/PM, comments) ---
+        // Saves typed text into "state", redraws when a pharmacist name or
+        // boarder count changes (so pharmacist colours/counts and total boarders
+        // update), and lets the user press Enter in a single-line box (such as
+        // Boarders) to move straight down to the next ward's box.
         $("tableWrap").addEventListener("input", (e) => {
           const t = e.target;
           if (t.dataset.staff) state.staff[t.dataset.staff] = t.value;
@@ -3551,6 +3939,10 @@
           if (target) target.focus();
         });
 
+        // --- Copying the table for email and saving as CSV ---
+        // Copies both rich formatted HTML (for pasting into Outlook/Word with
+        // colours and borders intact) and plain tab-separated text (for pasting
+        // into plain-text editors or spreadsheets).
         async function copyRich(html, text) {
           try {
             await navigator.clipboard.write([
@@ -3651,8 +4043,11 @@
           }
         });
 
-        // The data files loaded as scripts before this one; a missing file or a
-        // mistake in one leaves its global unset
+        // --- Initial startup when the page first opens ---
+        // Reads the ward directory and critical medicines lists that were loaded
+        // by the script tags above, clears any leftover browser storage from
+        // older versions of the tool, sets up the two editor tables, and draws
+        // the initial screen.
         const loadData = (kind, set) => {
           const f = DATA_FILES[kind],
             list = window[f.global] && window[f.global][f.key];
