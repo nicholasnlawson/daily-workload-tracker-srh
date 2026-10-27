@@ -12,6 +12,7 @@ Keep these together in the same folder on the shared drive:
 | `lib` folder            | PDF reader used by the tool – **do not delete or move** |
 | `ward_directory.js`     | List of wards with their specialty and directorate      |
 | `critical_meds.js`      | Critical medicines (and their aliases) to flag          |
+| `ward_codes.docx`       | Word list of ward codes, then a blank line and SCH, PRN, ONE, STA – rewritten every time the ward directory is saved, so don't edit it by hand |
 
 The ward directory and critical medicines list load automatically when the page opens. There's no need to select them. Edit them on the **Ward directory** and **Critical medicines** pages of the tool (see below).
 
@@ -28,6 +29,7 @@ Save each day's reports into this folder, or into a subfolder inside it (e.g. `W
    - **Boarders** for each ward (Surgery only, unless switched on under **Columns…**).
    - Optionally tick **Include staffing & pharmacist allocation**. This adds the Co-ordinator and Meds Rec section and the AM/PM pharmacist and Comment columns. Each pharmacist name is coloured automatically.
 7. **Copy and paste.** Click **Copy table for email**, then paste into Outlook with Ctrl+V.
+8. **Save as CSV (optional).** Click **Save as CSV…** to save the table as a CSV file (e.g. for Excel). It is saved in the **output** folder next to this page. The folder is created if it doesn't exist. The file name defaults to `[directorate]_[date].csv`, e.g. `Surgery_2026OCT26.csv`, and can be changed in the save window. The date is the latest report date. In Edge or Chrome, the first time you do this you may be asked to choose the Workload Planner folder. Other browsers download the file instead, and you then move it into **output** yourself.
 
 ### Closed wards
 
@@ -109,7 +111,7 @@ Each review list item has a **drug name** (the drug name column, e.g. "Enoxapari
 - **Dose rules** use the dose column, not the strength in the drug name. A 300 mg/3 ml vial prescribed at 40 mg counts as 40 mg. Doses in mg, g and micrograms are converted to compare, as are ml and litres. A range (e.g. `20-60 MG`) only counts as "at or below" if all of it is. If there's no dose, or its unit can't be compared (e.g. ml against mg), the prescription **is** flagged, to be safe. Leave the unit off (e.g. `40`) to compare the number whatever the unit.
 - Text (.txt) review lists cut the drug name off at 35 characters (e.g. "…M/R Ca" for "M/R Capsule"); PDF review lists show it in full. Check that drug name words still match when text reports are used.
 
-**Saving:** click **Save ward_directory.js…** or **Save critical_meds.js…**. In Edge (or Chrome), the first time you save, a folder window opens: choose the **Workload Planner folder** (the one `Workload Planner.html` is in) and click **Select**, then **Save changes** / **Allow** when Edge asks to let the site edit files. The planner checks it's the right folder (it must contain this page and have the same name as the folder the page was opened from) and refuses any other. After that, saving writes straight into that folder, replacing the old file; Edge may ask once per session to allow editing again. To use a different folder (e.g. if the planner has been moved), click **Change save folder…**. The folder is remembered per person, per computer and browser. In other browsers, the file is downloaded instead; move it from Downloads into the Workload Planner folder, replacing the old file.
+**Saving:** click **Save ward_directory.js…** or **Save critical_meds.js…**. In Edge (or Chrome), the first time you save, a folder window opens: choose the **Workload Planner folder** (the one `Workload Planner.html` is in) and click **Select**, then **Save changes** / **Allow** when Edge asks to let the site edit files. The planner checks it's the right folder (it must contain this page and have the same name as the folder the page was opened from) and refuses any other. After that, saving writes straight into that folder, replacing the old file; Edge may ask once per session to allow editing again. To use a different folder (e.g. if the planner has been moved), click **Change save folder…**. The folder is remembered per person, per computer and browser. In other browsers, the file is downloaded instead; move it from Downloads into the Workload Planner folder, replacing the old file. Saving the ward directory also rewrites `ward_codes.docx` in the same folder (or downloads it too), so it always matches the saved directory.
 
 The changes apply straight away on your screen, and for everyone else the next time they open the planner. Consider keeping a copy of the old file before making big changes.
 

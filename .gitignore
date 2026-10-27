@@ -4,6 +4,10 @@ Ward Reports/Examples/dg06reviewlist.txt
 Ward Reports/Examples/dg06wardlist
 Ward Reports/Examples/dg06wardlist.pdf
 
+# generated CSV files
+output/
+
 # macOS
 .DS_Store
+~$*
 

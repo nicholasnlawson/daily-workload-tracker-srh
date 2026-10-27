@@ -48,7 +48,6 @@ window.WARD_DIRECTORY = {
     {"ward":"STWARD8","display":"WARD 8","specialty":"COTE","directorate":"STDH"},
     {"ward":"STSURGIP","display":"SCIP","specialty":"Surgery","directorate":"STDH"},
     {"ward":"STWARD10","display":"WARD 10","specialty":"Respiratory","directorate":"STDH"},
-    {"ward":"STWARD12","display":"WARD 12","specialty":"Contingency","directorate":"STDH"},
-    {"ward":"DG06","display":"DG06","specialty":"Test Ward","directorate":"Test Location"}
+    {"ward":"STWARD12","display":"WARD 12","specialty":"Contingency","directorate":"STDH"}
   ]
 };
