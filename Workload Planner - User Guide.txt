@@ -1,0 +1,391 @@
+PHARMACY WORKLOAD PLANNER - USER GUIDE
+======================================
+
+The Workload Planner builds the daily directorate workload table from three
+Meditech reports. It runs entirely inside your web browser on your own PC. Nothing
+is uploaded or sent anywhere.
+
+Screenshot markers such as [SCREENSHOT 1: ...] show where a picture belongs.
+
+[SCREENSHOT 1: The Workload Planner page as it first opens]
+
+
+CONTENTS
+--------
+  1. Before you start - what's in the folder
+  2. The three reports you need (always PDF)
+  3. Step 1 - Run the reports in Meditech
+  4. Step 2 - Save the PDFs into the folder
+  5. Step 3 - Open the Workload Planner and load the reports
+  6. Step 4 - Check the status box
+  7. Step 5 - Choose the directorate and fill in the table
+  8. Step 6 - Copy the table into an email
+  9. Step 7 - Patient details, critical medicines and printing
+ 10. Closed wards
+ 11. Keeping the lists up to date
+ 12. Troubleshooting
+
+
+------------------------------------------------------------------------------
+1. BEFORE YOU START - WHAT'S IN THE FOLDER
+------------------------------------------------------------------------------
+
+Keep these together in the same folder on the shared drive. Don't rename or
+move them:
+
+  Workload Planner.html      The tool - this is the file you open.
+  lib (folder)               The PDF reader the tool uses. Do not delete.
+  ward_directory.js          The list of wards, specialties and directorates.
+  critical_meds.js           The critical medicines (and exceptions) to flag.
+  high_risk_conditions.js    High-risk conditions to look for in past
+                             medical history.
+  ward_codes.docx            Word list of ward codes. Rewritten automatically
+                             when the ward directory is saved - don't edit it.
+
+The ward directory, critical medicines and high-risk conditions lists load by
+themselves when the page opens. You never need to select them.
+
+Use Microsoft Edge to open the tool.
+
+[SCREENSHOT 2: The Workload Planner folder in File Explorer]
+
+
+------------------------------------------------------------------------------
+2. THE THREE REPORTS YOU NEED (ALWAYS PDF)
+------------------------------------------------------------------------------
+
+Always save the reports as PDF files. The tool can also read text files, but
+PDFs show drug names in full and give the most reliable results.
+
+Every day, run and save all three of these:
+
+  a) WARD LIST ("Pharmacy Wardlist")
+     Every patient on each ward, with their review status and admission
+     date and time. This gives the main counts in the table (patients, Hx,
+     UQ, Q, PRI, TMR, PRC, and hours since admission).
+
+  b) WARD LIST WITH HISTORY ("Pharmacy Wardlist with History")
+     The same ward list, but with each patient's past medical history
+     printed underneath them. Hx patients' history is checked against the
+     high-risk conditions and critical medicines lists. It has no admission
+     times, so you still need the normal ward list as well.
+
+  c) UNREVIEWED LIST ("Unreviewed med list2")
+     Every unreviewed prescription, with location, drug, dose, directions,
+     prescription date and type. This gives the "Unreviewed items" columns
+     and the CRITICAL MEDS flags.
+
+A single report can cover all your wards; you don't need one file per ward.
+The tool works out which report is which by itself, so the file names don't
+matter.
+
+Note: the "Unreviewed orders summary report" (counts only, one line per
+location) is a different report and isn't used. Use the full unreviewed
+list that lists each prescription.
+
+
+------------------------------------------------------------------------------
+3. STEP 1 - RUN THE REPORTS IN THE EMR
+------------------------------------------------------------------------------
+
+The "Ward list for EMR reports" page lets you paste ward codes and order types
+straight into the EMR report screen.
+
+  1. Open Workload Planner.html and click "Ward list for EMR reports" in the
+     blue bar at the top.
+
+     [SCREENSHOT 3: The Ward list for EMR reports page]
+
+  2. In the EMR, open the report you want to run.
+
+     [SCREENSHOT 4: The EMR report screen where ward codes are entered]
+
+  3. Enter the wards. Either:
+
+       - Click "Copy all". This copies every ward code at once, one per
+         line, then paste it into the EMR's ward box with Ctrl+V. All the
+         wards turn green to show they've been copied.
+
+       or, one ward at a time:
+
+       - Click "Copy next" (the button shows which ward is next), paste into
+         the EMR with Ctrl+V, and repeat. The next ward is highlighted blue;
+         copied wards turn green. You can also click any ward code to copy
+         just that one.
+
+     "Undo" un-marks the last ward copied. "Reset" clears all the marks.
+
+     [SCREENSHOT 5: Copy next / Copy all / Copy order types buttons, with
+      some wards green and the next one blue]
+
+  4. For the unreviewed list, the EMR also asks for order types. Click
+     "Copy order types". This copies SCH, PRN, ONE and STA, one per line,
+     then paste into the order type box with Ctrl+V.
+
+     [SCREENSHOT 6: Order types pasted into the EMR]
+
+     ("Copy all" and "Copy order types" copy the list the same way Microsoft
+     Word does, which is what the EMR needs to accept a whole list in one
+     paste.)
+
+  5. Run the report and choose to output it as a PDF.
+
+     [SCREENSHOT 7: Choosing PDF output in the EMR]
+
+  6. Repeat for each of the three reports: the ward list, the ward list
+     with history, and the unreviewed list.
+
+
+------------------------------------------------------------------------------
+4. STEP 2 - SAVE THE PDFS INTO THE FOLDER
+------------------------------------------------------------------------------
+
+  1. Save each PDF into the Workload Planner folder, or a subfolder inside it
+     (for example "Ward Reports").
+
+  2. Remove or move the previous day's reports first. If two reports for the
+     same ward are loaded, the newest is used and a note is shown. Clearing
+     out old files avoids confusion.
+
+     [SCREENSHOT 8: The three PDFs saved in the Ward Reports folder]
+
+
+------------------------------------------------------------------------------
+5. STEP 3 - OPEN THE WORKLOAD PLANNER AND LOAD THE REPORTS
+------------------------------------------------------------------------------
+
+  1. Click "Workload table" in the blue bar at the top (this is the page that
+     opens first).
+
+  2. Load the three PDFs in one of these ways:
+
+       - Click "Choose folder..." and select the folder the PDFs are in
+         (subfolders are included). Edge may ask you to confirm that you want
+         to upload the folder's files to the page; this is normal, and
+         nothing leaves your PC.
+       - Click "Choose files..." and select the three PDFs.
+       - Drag the three PDFs (or the whole folder) onto the box at the top
+         of the page.
+
+     [SCREENSHOT 9: The drag-and-drop box and Choose folder / Choose files
+      buttons]
+
+  3. Large reports can take a few seconds to read.
+
+  If you need to start again, click "Clear reports" and load the files again.
+
+
+------------------------------------------------------------------------------
+6. STEP 4 - CHECK THE STATUS BOX
+------------------------------------------------------------------------------
+
+Under the load buttons, the status box lists each report it found and the
+wards in it. Check that it shows all three:
+
+  - a "ward list"
+  - a "ward list with history"
+  - a "review list" (the unreviewed list)
+
+Then read any "Check:" warnings. Common ones:
+
+  - A patient total that doesn't match the total printed on the report.
+  - The number of unreviewed items found doesn't match the report's
+    Grand Total.
+  - A ward that isn't in the ward directory.
+  - Wards shown as Closed don't match the "No records found" pages (usually
+    means a ward's report wasn't run).
+  - "No review list loaded" - the unreviewed list is missing.
+
+[SCREENSHOT 10: The status box listing the three reports, with an example
+ Check: warning]
+
+
+------------------------------------------------------------------------------
+7. STEP 5 - CHOOSE THE DIRECTORATE AND FILL IN THE TABLE
+------------------------------------------------------------------------------
+
+  1. Choose your directorate from the "Directorate" drop-down.
+
+  2. Fill in the white boxes by hand where needed:
+       - Boarders for each ward (Surgery only, unless switched on under
+         "Columns...").
+       - Optionally tick "Include staffing & pharmacist allocation". This adds
+         the Co-ordinator / Meds Rec boxes and the AM / PM pharmacist and
+         Comment columns. Each pharmacist's name is coloured automatically.
+       - Press Enter in a box to jump down to the same box on the next ward.
+
+  3. "Columns..." lets you choose which columns are shown (and copied).
+     Choices are remembered on that computer.
+
+  Anything you type is NOT saved. Copy the table into your email before
+  closing or refreshing the page.
+
+[SCREENSHOT 11: The controls bar - Directorate drop-down, staffing tickbox,
+ Columns..., Copy table for email, Save as CSV...]
+
+[SCREENSHOT 12: A completed workload table for one directorate]
+
+What the columns mean:
+
+  Pts.                   Patients on the ward list.
+  Hx. Total              Patients with no status (history needed).
+                         Unrecognised statuses are counted here too.
+  Hx. 18-24 / 24-48 /    Hx patients by time since admission, measured to
+  >48 hrs                when the ward list was run. Total also includes
+                         those admitted less than 18 hrs ago.
+  UQ, Q, PRI, TMR, PRC   Patients by status (UQ = Urgent Queries,
+                         Q = Outstanding Queries, PRI = Review Incomplete,
+                         TMR = Tech Meds Rec, PRC = Review Complete).
+  PRI >24 hrs            PRI not updated for more than 24 hrs.
+  Not r/v >1 week        Patients with a status not reviewed for 7+ days.
+  Unreviewed items       Items on the unreviewed list: Total, and those
+  Total / >48 hrs /      prescribed more than 48 hrs / 7 days ago.
+  >7 days                "-" means no unreviewed list was loaded for that
+                         ward.
+
+
+------------------------------------------------------------------------------
+8. STEP 6 - COPY THE TABLE INTO AN EMAIL (AND SAVE AS CSV)
+------------------------------------------------------------------------------
+
+  1. Click "Copy table for email".
+  2. Open a new Outlook email and paste with Ctrl+V. The colours and borders
+     are kept.
+
+  [SCREENSHOT 13: The table pasted into an Outlook email]
+
+  Optional: click "Save as CSV..." to save the table for Excel. It goes in
+  the "output" folder next to the tool, named for example
+  "Surgery_2026OCT29.csv". The first time, Edge may ask you to choose the
+  Workload Planner folder.
+
+
+------------------------------------------------------------------------------
+9. STEP 7 - PATIENT DETAILS, CRITICAL MEDICINES AND PRINTING
+------------------------------------------------------------------------------
+
+"Patient details" at the bottom of the page lists every ward in the chosen
+directorate. It is for checking and printing; it is NOT copied into the
+email.
+
+  - Click a ward to expand it. Each patient's bed, status, last review,
+    hours since admission (Hx patients) and number of unreviewed items are
+    shown.
+  - "Expand all" / "Collapse all" open or close every ward.
+  - The "Show" tickboxes filter by status, e.g. only "Hx required".
+  - "Print" next to a ward prints that ward; "Print all ward lists" prints
+    every ward in the directorate, one per page. Printing uses the same
+    filter, so you can print only the patients you need.
+  - Tick "Space for written notes" to leave room for handwritten notes.
+
+  [SCREENSHOT 14: An expanded ward in Patient details]
+
+Flags for Hx patients (shown in the Comments column):
+
+  CRITICAL MEDS (red)
+    An unreviewed prescription is on the critical medicines list. Hover over
+    the name to see the prescription. Exceptions are applied first - for
+    example, Enoxaparin at 40 MG or less is not flagged. A grey (i) means a
+    medicine matched but was skipped by an exception; hover to see why.
+
+  HIGH-RISK CONDITIONS (purple)
+    A condition from the high-risk conditions list was found in the past
+    medical history (from the ward list with history). Hover to see the
+    history line. A name ending in "?" was matched allowing for a spelling
+    mistake, so check it.
+
+  Unreviewed items that can't be matched to a patient on the ward list (for
+  example, the patient has moved or been discharged) are listed in red under
+  that ward.
+
+  [SCREENSHOT 15: A patient with CRITICAL MEDS and HIGH-RISK CONDITIONS
+   flags, with the hover text showing]
+
+
+------------------------------------------------------------------------------
+10. CLOSED WARDS
+------------------------------------------------------------------------------
+
+A closed ward's ward list prints a page that says only "No records found."
+Any ward in the directory with no ward list data shows in the table as
+"Closed" (in red). Its pharmacist and comment boxes can still be filled in.
+Closed wards are not included in the totals.
+
+If the number of Closed wards doesn't match the number of "No records found"
+pages, a Check: warning appears. This usually means a ward's report wasn't
+run or saved.
+
+[SCREENSHOT 16: A Closed ward in the workload table]
+
+
+------------------------------------------------------------------------------
+11. KEEPING THE LISTS UP TO DATE
+------------------------------------------------------------------------------
+
+Use the buttons in the blue bar at the top:
+
+  Ward directory
+    Each ward's code (must match the report exactly, e.g. EAU:1-3), display
+    name, specialty and directorate, and the order wards appear in. "Part of
+    (combined ward)" joins wards that are run as separate reports, such as
+    the EAU parts, into one row.
+
+  Critical medicines
+    Each medicine's name, aliases (other names such as brands) and
+    exceptions (e.g. "Dose is at or below 40 MG" for Enoxaparin).
+
+  High-risk conditions
+    Each condition's name, aliases and exceptions (e.g. Epilepsy with
+    "History line contains: family history").
+
+  To save changes, click the "Save ... .js" button on that page. The first
+  time, choose the Workload Planner folder and allow Edge to edit files.
+  Changes apply for everyone the next time they open the planner. Keep a
+  copy of the old file before making big changes.
+
+  Saving the ward directory also updates ward_codes.docx and the list on the
+  "Ward list for EMR reports" page.
+
+[SCREENSHOT 17: The Critical medicines page with an exception added]
+
+
+------------------------------------------------------------------------------
+12. TROUBLESHOOTING
+------------------------------------------------------------------------------
+
+  A report isn't listed in the status box
+    Check it was saved as a PDF into the folder you loaded. Re-run it if it
+    may be incomplete.
+
+  "No review list loaded" / Unreviewed items show "-"
+    The unreviewed list wasn't loaded, or doesn't include that ward. Check
+    the order types (SCH, PRN, ONE, STA) and wards were entered when running
+    it.
+
+  No HIGH-RISK CONDITIONS shown
+    Check the status box lists a "ward list with history". Only Hx patients
+    are checked.
+
+  No CRITICAL MEDS shown
+    Check the status box says the critical medicines list is loaded. Only Hx
+    patients with unreviewed items (or matching history) are checked.
+
+  A ward is missing from the table
+    Check it's on the Ward directory page with the right directorate. Wards
+    not in the directory appear under "Not in directory" in the drop-down.
+
+  Pasting a list into the EMR only pastes one line
+    Use "Copy all" or "Copy order types" (not Copy next), or copy from
+    ward_codes.docx in Word.
+
+  "Cannot read ... the lib folder is missing"
+    The lib folder must be in the same folder as Workload Planner.html.
+
+  "ward_directory.js is missing" (or another list)
+    The file must sit next to Workload Planner.html with exactly that name.
+
+  Old figures are showing
+    Click "Clear reports" and load the folder again.
+
+  The email loses its formatting
+    Paste with Ctrl+V into a new Outlook email in HTML format.
