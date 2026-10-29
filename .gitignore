@@ -6,9 +6,6 @@ Ward Reports/Examples/dg06wardlist.pdf
 Ward Reports/Examples/wardlistwithhx.pdf
 Ward Reports/Examples/wardlistwithhx.txt
 
-# debug logs (may contain patient information)
-debugging*.docx
-
 # generated CSV files
 output/
 
