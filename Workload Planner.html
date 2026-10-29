@@ -809,12 +809,20 @@
         <p class="legend">
           Click a ward code to copy it, or click <b>Copy next</b> to copy the
           wards one at a time in order, then paste into the EMR report generator
-          (Ctrl+V). The next ward to copy is highlighted blue; copied wards turn
-          green. The list comes from the <b>Ward directory</b> page.
+          (Ctrl+V). <b>Copy all</b> copies every ward code at once, one per
+          line, and <b>Copy order types</b> copies SCH, PRN, ONE and STA, one
+          per line (both copy in the same way as Microsoft Word, so the EMR
+          accepts the whole list). The next ward to copy is highlighted blue;
+          copied wards turn green. The list comes from the
+          <b>Ward directory</b> page.
         </p>
         <div class="btns">
           <button type="button" id="wcNext" class="btn primary">
             Copy next
+          </button>
+          <button type="button" id="wcAll" class="btn">Copy all</button>
+          <button type="button" id="wcOrders" class="btn">
+            Copy order types
           </button>
           <button type="button" id="wcUndo" class="btn">Undo</button>
           <button type="button" id="wcReset" class="btn">Reset</button>
@@ -3303,6 +3311,7 @@
               ? "All wards copied"
               : "Copy next";
           $("wcNext").disabled = !next;
+          $("wcAll").disabled = !n;
           $("wcUndo").disabled = $("wcReset").disabled = !wcDone.length;
           wcFit();
         }
@@ -3332,6 +3341,35 @@
           msg.textContent = ok
             ? `Copied ${code}. Paste into the EMR (Ctrl+V).`
             : `Copy failed for ${code}. Select the ward code and press Ctrl+C.`;
+          wcScrollToNext();
+        }
+
+        // Order types for EMR reports ("Copy order types" button)
+        const ORDER_TYPES = ["SCH", "PRN", "ONE", "STA"];
+
+        // Copies a list one item per line in the same way Microsoft Word does:
+        // plain text with every line (including the last) ending in a Windows
+        // line break (\r\n), plus Word-style HTML with one paragraph per line.
+        // The EMR only accepts pasted lists copied this way.
+        function copyWordList(lines) {
+          const text = lines.map((l) => `${l}\r\n`).join("");
+          const html =
+            '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><meta name="ProgId" content="Word.Document"><meta name="Generator" content="Microsoft Word 15"></head><body lang="EN-GB">' +
+            lines.map((l) => `<p class="MsoNormal">${esc(l)}</p>`).join("") +
+            "</body></html>";
+          return copyRich(html, text);
+        }
+
+        async function wcCopyList(lines, label, markDone) {
+          const ok = await copyWordList(lines);
+          if (ok && markDone)
+            lines.forEach((c) => wcDone.includes(c) || wcDone.push(c));
+          renderWardPage();
+          const msg = $("wcMsg");
+          msg.className = ok ? "ok" : "err";
+          msg.textContent = ok
+            ? `Copied ${label}. Paste into the EMR (Ctrl+V).`
+            : `Copy failed for ${label}.`;
           wcScrollToNext();
         }
 
@@ -4089,7 +4127,8 @@
         // shortcuts on the page to the functions above:
         // - Drag-and-drop and file/folder picker buttons for loading reports
         // - Top navigation bar buttons for switching pages
-        // - "Copy next / Undo / Reset" buttons on the Ward List page
+        // - "Copy next / Copy all / Copy order types / Undo / Reset" buttons on
+        //   the Ward List page
         // - "Columns..." pop-up dialog for showing/hiding table columns
         // - "Print" and "Expand/Collapse all" buttons and status checkboxes in
         //   Patient details
@@ -4158,6 +4197,14 @@
           const next = wcNextCode();
           if (next) wcCopy(next);
         });
+        $("wcAll").addEventListener("click", () => {
+          const codes = state.directory.map((d) => d.ward);
+          if (codes.length)
+            wcCopyList(codes, `all ${codes.length} ward codes`, true);
+        });
+        $("wcOrders").addEventListener("click", () =>
+          wcCopyList(ORDER_TYPES, `order types (${ORDER_TYPES.join(", ")})`),
+        );
         $("wcUndo").addEventListener("click", () => {
           const code = wcDone.pop();
           renderWardPage();

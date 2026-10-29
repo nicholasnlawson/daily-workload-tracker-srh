@@ -52,6 +52,7 @@ Click **Ward list for EMR reports** at the top of the page to see every ward in 
 
 - **Click a ward code** to copy it, then paste into the EMR with Ctrl+V. Only the code itself copies; the other columns don't.
 - **Copy next** copies the wards one at a time in order. The button shows which ward is next.
+- **Copy all** copies every ward code at once, one per line, and marks them all as copied. **Copy order types** copies SCH, PRN, ONE and STA, one per line. Both copy the list the same way Microsoft Word does, so the EMR accepts the whole list when pasted.
 - The next ward to copy is highlighted **blue**. Copied wards turn **green**.
 - A long list scrolls inside its own box, which follows the blue ward, so the buttons stay at the top of the screen.
 - **Undo** un-marks the last ward copied. **Reset** clears all the marks.
