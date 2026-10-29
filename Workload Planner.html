@@ -16,7 +16,8 @@
      copied into an email or saved as a spreadsheet (CSV). It also shows a
      ward-by-ward patient list underneath for checking and printing, flagging
      high-risk ("critical") medicines for patients who still need a medicines
-     history (Hx).
+     history (Hx) and, when a "ward list with history" is loaded, high-risk
+     conditions in those patients' past medical history.
 
   2. Ward list for EMR reports:
      A helper page with a one-click "Copy next" button so staff can quickly
@@ -30,6 +31,11 @@
      Lets staff edit the list of high-risk medicines (and any exceptions, such
      as low-dose prophylactic enoxaparin) and saves the changes to
      "critical_meds.js" in this folder.
+
+  5. High-risk conditions editor:
+     Lets staff edit the list of high-risk conditions (and their aliases and
+     exceptions) looked for in past medical history, and saves the changes to
+     "high_risk_conditions.js" in this folder.
 
   HOW THIS FILE IS ORGANISED:
   - Stylesheet (CSS, lines ~50-750):
@@ -697,6 +703,17 @@
         color: #768692;
         cursor: help;
       }
+      .cond-label {
+        font-weight: bold;
+      }
+      .cond {
+        color: #7c2855;
+        font-weight: bold;
+      }
+      .cond.unsure {
+        text-decoration: underline dotted;
+        cursor: help;
+      }
       .hx-req {
         color: #d5281b;
         font-weight: bold;
@@ -775,6 +792,9 @@
         </button>
         <button type="button" data-page="directory">Ward directory</button>
         <button type="button" data-page="medicines">Critical medicines</button>
+        <button type="button" data-page="conditions">
+          High-risk conditions
+        </button>
       </nav>
     </header>
     <main>
@@ -894,6 +914,64 @@
         </div>
         <div class="ed-errs" id="critErrs"></div>
         <div class="ed-scroll"><table class="ed" id="critEdit"></table></div>
+      </section>
+
+      <!--
+        PAGE: HIGH-RISK CONDITIONS EDITOR
+        Allows staff to view and edit the list of high-risk conditions looked
+        for in the past medical history printed on a "ward list with history",
+        their alternative names and abbreviations (aliases), and any exception
+        rules. Saving writes "high_risk_conditions.js" into the Workload
+        Planner folder.
+      -->
+      <section id="condPage" class="card" data-page="conditions">
+        <h2>High-risk conditions</h2>
+        <p class="legend">
+          Conditions flagged as <b>HIGH-RISK CONDITIONS</b> for Hx patients when
+          a <b>ward list with history</b> is loaded. Each line of the patient's
+          past medical history is checked for the name and aliases (other
+          names, abbreviations, or medicines that point to the condition).
+          Separate aliases with commas. Matching ignores capitals, punctuation,
+          apostrophes and plural "s" (<i>Parkinson's</i> = <i>parkinsons</i>),
+          and allows for one typing mistake in words of 6 or more letters (two
+          for 9 or more) if the first letter is right; those matches are shown
+          with a <b>?</b> so they can be checked. Short words, abbreviations and
+          numbers must match exactly, so avoid aliases that are also everyday
+          words or have another meaning (e.g. <i>MS</i>, <i>PD</i>,
+          <i>MG</i>). <b>Exceptions</b> stop a condition being flagged when the
+          history line it was found on contains (or doesn't contain) certain
+          words, e.g. Epilepsy with <i>History line contains</i>
+          <b>family history</b>. The list is sorted A&ndash;Z when saved.
+          Changes take effect for everyone once saved as
+          <b>high_risk_conditions.js</b> in the Workload Planner folder,
+          replacing the old file.
+        </p>
+        <div class="btns ed-bar">
+          <input
+            type="search"
+            id="condSearch"
+            placeholder="Search conditions and aliases"
+          />
+          <label class="legend"
+            ><input type="checkbox" id="condOnlyExc" /> Only conditions with
+            exceptions</label
+          >
+          <button type="button" class="btn" data-ed-add="cond">
+            Add condition
+          </button>
+          <button type="button" class="btn primary" data-ed-save="cond">
+            Save high_risk_conditions.js&hellip;
+          </button>
+          <button type="button" class="btn" data-ed-discard="cond">
+            Discard changes
+          </button>
+          <button type="button" class="btn" data-ed-folder="cond" hidden>
+            Change save folder&hellip;
+          </button>
+          <span class="ed-msg" id="condMsg"></span>
+        </div>
+        <div class="ed-errs" id="condErrs"></div>
+        <div class="ed-scroll"><table class="ed" id="condEdit"></table></div>
       </section>
 
       <!--
@@ -1051,6 +1129,10 @@
       src="critical_meds.js"
       onerror="DATA_MISSING.push('critical_meds.js')"
     ></script>
+    <script
+      src="high_risk_conditions.js"
+      onerror="DATA_MISSING.push('high_risk_conditions.js')"
+    ></script>
     <script src="lib/pdf.min.js"></script>
     <script src="lib/pdf.worker.min.js"></script>
 
@@ -1140,10 +1222,14 @@
           dirFile: null,
           critical: [],
           critFile: null,
+          conditions: [],
+          condFile: null,
+          hxWards: new Map(),
           files: [],
           warnings: [],
           edits: {},
           noRecords: 0,
+          hxNoRecords: 0,
           staff: Object.fromEntries(
             Object.values(STAFF_LAYOUTS)
               .flatMap((l) => l.fields)
@@ -1254,11 +1340,22 @@
           return t ? t.toUpperCase() : "";
         };
 
+        // A "ward list with history" is a variant of the Ward List that prints
+        // each patient's past medical history underneath them, starting at the
+        // very left edge of the page (every other patient line is indented).
+        // It has an "Admit Date" column but no "Admit Time".
+        const isHxWardList = (text) =>
+          /Admit\s+Date/.test(text) && !/Admit\s+Time/.test(text);
+        const RE_HX_END = /^\[\s*End\s*\]$/i;
+        const RE_NO_RECORDS = /No records found/i;
+
         // Reads the text of a Ward List report line by line and returns an array
         // of ward objects, each containing its code, report date, reported total,
         // and the list of patients (with their bed, name, hospital number,
-        // admission date/time, and latest pharmacy review status).
+        // admission date/time, latest pharmacy review status and, for a ward
+        // list with history, their past medical history lines).
         function parseReport(text, fileName) {
+          const withHx = isHxWardList(text);
           const lines = text.replace(/\r/g, "").split("\n");
           const fromName = (fileName.match(
             /^([A-Za-z0-9]+?)[ _-]*ward[ _-]*list/i,
@@ -1280,6 +1377,7 @@
                 patients: [],
                 reportedTotal: null,
                 file: fileName,
+                withHx,
               };
               found.push(ward);
             }
@@ -1305,13 +1403,15 @@
 
             let m;
             // A new ward starts on a new page with its code alone on the first line
-            // after the page header, e.g. " DGD41" or " EAU:1-3"
+            // after the page header, e.g. " DGD41" or " EAU:1-3". (In a ward list
+            // with history, a patient's history can carry on at the top of the
+            // next page, so there only directory ward codes count.)
             const code =
               !inHeader && /^\s{0,3}\S/.test(line) && wardFromLine(line);
             if (
               code &&
               /[A-Za-z]/.test(code) &&
-              (afterPageHeader ||
+              ((afterPageHeader && !withHx) ||
                 state.directory.some((d) => d.ward === norm(code)))
             ) {
               startWard(code);
@@ -1363,8 +1463,16 @@
                 status: null,
                 admitDate: m[3],
                 admitTime: null,
+                ...(withHx ? { history: [] } : {}),
               };
               ward.patients.push(patient);
+              continue;
+            }
+            // Past medical history lines start at the left edge of the page
+            if (withHx && /^\S/.test(line)) {
+              const h = line.replace(/[\s\x00-\x1f]+/g, " ").trim();
+              if (patient && !RE_HX_END.test(h) && !RE_NO_RECORDS.test(h))
+                patient.history.push(h);
               continue;
             }
             // The admission time sits at the end of the line immediately below the patient line
@@ -1391,18 +1499,28 @@
         // Each file sets a global variable containing its list:
         //   window.WARD_DIRECTORY = { "wards": [ {ward, display, specialty, directorate, partOf?}, ... ] };
         //   window.CRITICAL_MEDS  = { "medications": [ {name, aliases: [...], exceptions?: [...]}, ... ] };
+        //   window.HIGH_RISK_CONDITIONS = { "conditions": [ {name, aliases: [...], exceptions?: [...]}, ... ] };
         const DATA_FILES = {
           dir: {
             file: "ward_directory.js",
             global: "WARD_DIRECTORY",
             key: "wards",
             title: "Ward directory",
+            page: "Ward directory",
           },
           crit: {
             file: "critical_meds.js",
             global: "CRITICAL_MEDS",
             key: "medications",
             title: "Critical medicines list",
+            page: "Critical medicines",
+          },
+          cond: {
+            file: "high_risk_conditions.js",
+            global: "HIGH_RISK_CONDITIONS",
+            key: "conditions",
+            title: "High-risk conditions list",
+            page: "High-risk conditions",
           },
         };
         const clean = (s) => String(s ?? "").trim();
@@ -1562,13 +1680,14 @@
             },
           },
         };
-        const ruleText = (x) =>
-          `${CRIT_RULES[x.rule].label.toLowerCase()} ${x.value}`;
+        const ruleText = (x, rules = CRIT_RULES) =>
+          `${rules[x.rule].label.toLowerCase()} ${x.value}`;
 
-        // Names and aliases are matched as whole words (any case) in the drug name
-        function setCritical(list, label) {
-          state.critProblems = [];
-          state.critical = (list || [])
+        // Reads a critical medicines or high-risk conditions list: each entry's
+        // name, aliases and exceptions (compiled into tests using the given
+        // rules). Exceptions that can't be understood are listed in problems.
+        const compileList = (list, rules, problems) =>
+          (list || [])
             .map((m) => (typeof m === "string" ? { name: m } : m || {}))
             .map((m) => {
               const name = clean(m.name);
@@ -1577,11 +1696,11 @@
               const exceptions = [],
                 tests = [];
               for (const x of m.exceptions || []) {
-                const rule = CRIT_RULES[x && x.rule];
+                const rule = rules[x && x.rule];
                 const value = clean(x && x.value);
                 const test = rule && rule.compile(value);
                 if (!test) {
-                  state.critProblems.push(
+                  problems.push(
                     `${name}: exception ${JSON.stringify(x)} not understood, so ignored.`,
                   );
                   continue;
@@ -1589,27 +1708,159 @@
                 exceptions.push({ rule: x.rule, value });
                 tests.push({ x: exceptions[exceptions.length - 1], test });
               }
-              return {
-                name,
-                aliases,
-                exceptions,
-                tests,
-                re: wordsRe([name, ...aliases]),
-              };
+              return { name, aliases, exceptions, tests };
             })
             .filter(Boolean);
+
+        // Names and aliases are matched as whole words (any case) in the drug name
+        function setCritical(list, label) {
+          state.critProblems = [];
+          state.critical = compileList(
+            list,
+            CRIT_RULES,
+            state.critProblems,
+          ).map((c) => ({ ...c, re: wordsRe([c.name, ...c.aliases]) }));
           state.critFile = label;
         }
+
+        // =====================================================================
+        // SECTION 4B: HIGH-RISK CONDITION MATCHING (PAST MEDICAL HISTORY)
+        // =====================================================================
+        // When a "ward list with history" is loaded, each Hx patient's past
+        // medical history lines are checked against the high-risk conditions
+        // list. History is typed by hand, so names and aliases are compared
+        // word by word:
+        // - Case, punctuation and apostrophes are ignored, and a plural "s" is
+        //   dropped from longer words, so "Parkinson's", "parkinsons" and
+        //   "PARKINSON" all read as "parkinson".
+        // - Words of 6 or more letters may have one typing mistake (a missing,
+        //   extra, wrong or swapped letter), or two for words of 9 or more
+        //   letters, as long as the first letter is right. Shorter words,
+        //   abbreviations and anything containing a number must match exactly
+        //   (so "type 1" never matches "type 2"). Matches that needed this
+        //   allowance are shown with a "?" so they can be checked.
+        // Exceptions work like those for critical medicines, but check the
+        // history line the condition was found on.
+        const condWords = (s) =>
+          String(s ?? "")
+            .toLowerCase()
+            .replace(/['\u2018\u2019`]/g, "")
+            .split(/[^a-z0-9]+/)
+            .filter(Boolean)
+            .map((w) => (w.length > 4 && /[^s]s$/.test(w) ? w.slice(0, -1) : w));
+        const typoLimit = (w) =>
+          /\d/.test(w) ? 0 : w.length >= 9 ? 2 : w.length >= 6 ? 1 : 0;
+        // Number of single-letter edits (insert, delete, change, or swap two
+        // neighbouring letters) needed to turn one word into the other; stops
+        // counting once it is over max
+        function editDistance(a, b, max) {
+          if (Math.abs(a.length - b.length) > max) return max + 1;
+          let prev2 = [],
+            prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+          for (let i = 1; i <= a.length; i++) {
+            const cur = [i];
+            for (let j = 1; j <= b.length; j++) {
+              cur[j] = Math.min(
+                prev[j] + 1,
+                cur[j - 1] + 1,
+                prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+              );
+              if (
+                i > 1 &&
+                j > 1 &&
+                a[i - 1] === b[j - 2] &&
+                a[i - 2] === b[j - 1]
+              )
+                cur[j] = Math.min(cur[j], prev2[j - 2] + 1);
+            }
+            if (Math.min(...cur) > max) return max + 1;
+            [prev2, prev] = [prev, cur];
+          }
+          return prev[b.length];
+        }
+        // 0 = same word, 1 = within the typing-mistake allowance, -1 = no match
+        const wordMatch = (term, word) => {
+          if (term === word) return 0;
+          const max = typoLimit(term);
+          return max &&
+            term[0] === word[0] &&
+            editDistance(term, word, max) <= max
+            ? 1
+            : -1;
+        };
+        // Looks for a name or alias (as a list of words) among a history
+        // line's words. Returns null, or { fuzzy, text } where text is the
+        // words found (an exact match is preferred over a fuzzy one).
+        function findTerm(term, words) {
+          let best = null;
+          for (let i = 0; i + term.length <= words.length; i++) {
+            const m = term.map((t, k) => wordMatch(t, words[i + k]));
+            if (m.includes(-1)) continue;
+            const found = {
+              fuzzy: m.includes(1),
+              text: words.slice(i, i + term.length).join(" "),
+            };
+            if (!found.fuzzy) return found;
+            best ||= found;
+          }
+          return best;
+        }
+        const COND_RULES = {
+          lineHas: {
+            label: "History line contains",
+            ...wordRule((line) => line, true),
+          },
+          lineLacks: {
+            label: "History line does not contain",
+            ...wordRule((line) => line, false),
+          },
+        };
+        function setConditions(list, label) {
+          state.condProblems = [];
+          state.conditions = compileList(
+            list,
+            COND_RULES,
+            state.condProblems,
+          ).map((c) => ({
+            ...c,
+            terms: [c.name, ...c.aliases]
+              .map(condWords)
+              .filter((t) => t.length),
+          }));
+          state.condFile = label;
+        }
+        // Checks a patient's history lines against the high-risk conditions
+        // list. For each condition found, "hits" are the lines it was found on
+        // ({ line, fuzzy, text }) and "skipped" the lines where an exception
+        // applied ({ line, x }).
+        const highRiskConditions = (lines) => {
+          const split = lines.map((line) => ({ line, words: condWords(line) }));
+          return state.conditions
+            .map((c) => {
+              const hits = [],
+                skipped = [];
+              for (const { line, words } of split) {
+                const found = c.terms
+                  .map((t) => findTerm(t, words))
+                  .filter(Boolean);
+                if (!found.length) continue;
+                const t = c.tests.find((t) => t.test(line));
+                if (t) skipped.push({ line, x: t.x });
+                else hits.push({ line, ...(found.find((f) => !f.fuzzy) || found[0]) });
+              }
+              return { c, hits, skipped };
+            })
+            .filter((r) => r.hits.length || r.skipped.length);
+        };
 
         // Formats the ward directory or critical medicines list back into the
         // exact JavaScript file format needed for "ward_directory.js" or
         // "critical_meds.js" (one JSON entry per line).
         function dataFileText(kind, items) {
           const f = DATA_FILES[kind];
-          const page = kind === "dir" ? "Ward directory" : "Critical medicines";
           return (
             `// ${f.title} for the Pharmacy Workload Planner.\n` +
-            `// Edit it on the "${page}" page of Workload Planner.html. If editing by hand,\n` +
+            `// Edit it on the "${f.page}" page of Workload Planner.html. If editing by hand,\n` +
             `// keep the JSON format: double quotes, and a comma after every entry but the last.\n` +
             `window.${f.global} = {\n  "${f.key}": [\n` +
             items.map((i) => "    " + JSON.stringify(i)).join(",\n") +
@@ -1905,20 +2156,40 @@
           map.set(code, entry);
         }
 
+        // Ward lists with history are kept separately (state.hxWards) so their
+        // history can be matched to patients by hospital number. Plain ward
+        // lists have admission times, so they are used for the counts when both
+        // kinds are loaded for a ward; a ward list with history is only used for
+        // the counts when it is the only ward list for that ward.
         function addWardList(text, name) {
           const wards = parseReport(text, name);
+          const withHx = isHxWardList(text);
           // Closed wards print a page with only "No records found." and no ward code
           const noRecords = (text.match(/No records found/gi) || []).length;
-          state.noRecords += noRecords;
+          state[withHx ? "hxNoRecords" : "noRecords"] += noRecords;
           state.files.push({
             name,
             wards: wards.map((w) => w.code),
-            kind: "ward list",
+            kind: withHx ? "ward list with history" : "ward list",
             noRecords,
           });
-          for (const w of wards)
-            mergeLatest(state.wards, w.code, w, "ward list");
+          for (const w of wards) {
+            const prev = state.wards.get(w.code);
+            if (!withHx) {
+              if (prev && prev.withHx) state.wards.set(w.code, w);
+              else mergeLatest(state.wards, w.code, w, "ward list");
+              continue;
+            }
+            mergeLatest(state.hxWards, w.code, w, "ward list with history");
+            if (!prev || prev.withHx)
+              state.wards.set(w.code, state.hxWards.get(w.code));
+          }
         }
+        // "No records found" pages: from plain ward lists if any were loaded
+        const noRecordPages = () =>
+          state.files.some((f) => f.kind === "ward list")
+            ? state.noRecords
+            : state.hxNoRecords;
 
         function addReviewList(pages, f) {
           const r = parseReview(pages, f.name);
@@ -2644,7 +2915,26 @@
             : VALID.includes(p.status.code)
               ? p.status.code
               : "Other";
+        // Past medical history for a patient: from their own ward list if it
+        // was a ward list with history, otherwise from any loaded ward list
+        // with history, matched by hospital number (or, with no hospital
+        // number, by ward, bed and name). null if none was found.
+        function historyFinder() {
+          const byMrn = new Map(),
+            byBed = new Map();
+          const bedKey = (code, p) => `${code}|${norm(p.bed)}|${norm(p.name)}`;
+          for (const w of state.hxWards.values())
+            for (const p of w.patients) {
+              if (p.mrn) byMrn.set(p.mrn, p.history);
+              byBed.set(bedKey(w.code, p), p.history);
+            }
+          return (p, code) =>
+            p.history ||
+            (p.mrn ? byMrn.get(p.mrn) : byBed.get(bedKey(code, p))) ||
+            null;
+        }
         function buildDetails() {
+          const historyOf = historyFinder();
           return visibleWards()
             .filter((w) => !w.closed)
             .map((w) => {
@@ -2679,33 +2969,82 @@
                     : valid
                       ? esc(st.code)
                       : `<span class="warn" title="Not a recognised status &ndash; counted as Hx">${esc(st.code)}*</span>`;
-                  // Hx patients: flag critical medicines among their unreviewed items
-                  const crit = !valid && items ? criticalMeds(items) : [];
+                  const hist = valid ? null : historyOf(p, p.part || w.code);
+                  // Hx patients: flag critical medicines among their unreviewed
+                  // items and in their past medical history. Each history line
+                  // is checked like a drug name: whole words only, with no
+                  // allowance for misspellings, and the exceptions still apply
+                  // (so e.g. "Clenil inhaler" isn't flagged as beclometasone).
+                  const hxItems = (hist || []).map((line) => ({
+                    med: line,
+                    dose: "",
+                    directions: "",
+                    type: "",
+                    hx: true,
+                  }));
+                  const crit = valid
+                    ? []
+                    : criticalMeds([...(items || []), ...hxItems]);
                   const flagged = crit.filter((r) => r.hits.length);
+                  const tipText = (i) =>
+                    i.hx ? `Past medical history: ${i.med}` : rxText(i);
                   const skipTip = (r) =>
                     r.skipped.map(
                       (s) =>
-                        `${rxText(s.item)}\n  not flagged: ${ruleText(s.x)}`,
+                        `${tipText(s.item)}\n  not flagged: ${ruleText(s.x)}`,
                     );
                   const skippedTip = crit
                     .filter((r) => !r.hits.length)
                     .flatMap(skipTip);
-                  // only exception-skipped medicines: show a hover-only marker
                   const critHtml = flagged.length
                     ? `<span class="crit-label">CRITICAL MEDS:</span> <span class="crit" title="${esc(
                         [
                           ...flagged.flatMap((r) => [
-                            ...r.hits.map(rxText),
+                            ...r.hits.map(tipText),
                             ...skipTip(r),
                           ]),
                           ...skippedTip,
                         ].join("\n"),
                       )}">${flagged.map((r) => esc(r.c.name)).join(", ")}</span>`
-                    : skippedTip.length
-                      ? `<span class="crit-skip" title="${esc(skippedTip.join("\n"))}">&#9432;</span>`
-                      : "";
+                    : "";
+                  // Hx patients: flag high-risk conditions in their past medical history
+                  const conds = hist ? highRiskConditions(hist) : [];
+                  const condFlagged = conds.filter((r) => r.hits.length);
+                  const condTip = (r) => [
+                    ...r.hits.map((h) =>
+                      h.fuzzy
+                        ? `${h.line}\n  "${h.text}" taken as a misspelling; check`
+                        : h.line,
+                    ),
+                    ...r.skipped.map(
+                      (s) =>
+                        `${s.line}\n  not flagged: ${ruleText(s.x, COND_RULES)}`,
+                    ),
+                  ];
+                  const condSkipped = conds
+                    .filter((r) => !r.hits.length)
+                    .flatMap(condTip);
+                  const condHtml = condFlagged.length
+                    ? `<span class="cond-label"${condSkipped.length ? ` title="${esc(condSkipped.join("\n"))}"` : ""}>HIGH-RISK CONDITIONS:</span> ${condFlagged
+                        .map((r) => {
+                          const unsure = r.hits.every((h) => h.fuzzy);
+                          return `<span class="cond${unsure ? " unsure" : ""}" title="${esc(condTip(r).join("\n"))}">${esc(r.c.name)}${unsure ? "?" : ""}</span>`;
+                        })
+                        .join(", ")}`
+                    : "";
+                  // only exception-skipped medicines or conditions: show a hover-only marker
+                  const skipOnly = [
+                    ...(flagged.length ? [] : skippedTip),
+                    ...(condFlagged.length ? [] : condSkipped),
+                  ];
+                  const hasFlag = flagged.length || condFlagged.length;
+                  const flagHtml =
+                    [critHtml, condHtml].filter(Boolean).join("<br>") +
+                    (skipOnly.length
+                      ? `${hasFlag ? " " : ""}<span class="crit-skip" title="${esc(skipOnly.join("\n"))}">&#9432;</span>`
+                      : "");
                   const comment = st ? esc(st.comment) : "";
-                  const critRow = comment && flagged.length;
+                  const critRow = comment && hasFlag;
                   return `<tr class="${old ? "old" : ""}"><td>${esc(p.bed)}</td><td>${esc(p.name)}</td>
           <td class="c">${p.admitted && !isNaN(p.admitted) ? fmtDate(p.admitted) : ""}</td><td class="c">${valid || hrs == null ? "" : Math.floor(hrs)}</td>
           ${
@@ -2713,9 +3052,9 @@
               ? `<td class="c">${status}</td><td class="c">${fmtDate(st.date)}</td><td class="c days">${days}</td>`
               : `<td class="c hx-req" colspan="3">Hx required</td>`
           }
-          <td${critRow ? "" : ' class="comments"'}>${comment && !flagged.length ? `${comment} ${critHtml}` : comment || critHtml}</td><td class="c">${unrev}</td></tr>${
+          <td${critRow ? "" : ' class="comments"'}>${comment && !hasFlag ? `${comment} ${flagHtml}` : comment || flagHtml}</td><td class="c">${unrev}</td></tr>${
             critRow
-              ? `<tr class="crit-row"><td colspan="7"></td><td class="comments">${critHtml}</td><td></td></tr>`
+              ? `<tr class="crit-row"><td colspan="7"></td><td class="comments">${flagHtml}</td><td></td></tr>`
               : ""
           }`;
                 })
@@ -2748,10 +3087,27 @@
               const rvNote = rv
                 ? `review list run ${fmtDateTime(rv.reportDate)} ("${esc(rv.file)}")`
                 : "no review list loaded";
+              // Only mentioned once a ward list with history has been loaded
+              const hxLists = [
+                ...new Set(
+                  (w.parts || [w.code])
+                    .map((c) => state.hxWards.get(c))
+                    .filter(Boolean),
+                ),
+              ];
+              const hxNote = !state.hxWards.size
+                ? ""
+                : hxLists.length
+                  ? `; past medical history from ${hxLists.map((h) => `ward list with history run ${fmtDateTime(h.reportDate)} ("${esc(h.file)}")`).join(", ")}`
+                  : "; no ward list with history loaded for this ward";
+              const hxKey = state.hxWards.size
+                ? " CRITICAL MEDS also include critical medicines named in a Hx patient's past medical history (exact names and aliases only)." +
+                  " HIGH-RISK CONDITIONS = conditions from the high-risk conditions list found in a Hx patient's past medical history (? = only found allowing for a misspelling; hover to check)."
+                : "";
               return `<details class="detail-ward" data-ward="${esc(w.code)}"${openWards.has(w.code) ? " open" : ""}>
         <summary><h3>${esc(d ? d.display : w.code)}${d && d.specialty ? " &ndash; " + esc(d.specialty) : ""} &ndash; ${shown.length === w.patients.length ? "" : `${shown.length} of `}${w.patients.length} patients
           <button class="btn small no-print" data-print="${esc(w.code)}">Print</button></h3></summary>
-        <div class="det-meta">Ward list run ${fmtDateTime(w.reportDate)} ("${esc(w.file)}"); ${rvNote}.${partsNote} * = status not recognised, counted as Hx. Hrs = hours since admission (Hx patients only). Unrev. items = unreviewed items matched by hospital number, with those &gt;48 hrs old in brackets. CRITICAL MEDS = medicines from the critical medicines list found in a Hx patient's unreviewed items.</div>
+        <div class="det-meta">Ward list run ${fmtDateTime(w.reportDate)} ("${esc(w.file)}"); ${rvNote}${hxNote}.${partsNote} * = status not recognised, counted as Hx. Hrs = hours since admission (Hx patients only). Unrev. items = unreviewed items matched by hospital number, with those &gt;48 hrs old in brackets. CRITICAL MEDS = medicines from the critical medicines list found in a Hx patient's unreviewed items.${hxKey}</div>
         <table class="det">
           <colgroup><col style="width:44px"><col style="width:190px"><col style="width:62px"><col style="width:44px"><col style="width:50px"><col style="width:62px"><col style="width:40px"><col><col style="width:66px"></colgroup>
           <thead><tr><th>Bed</th><th>Patient</th><th>Admitted</th><th>Hrs</th><th>Status</th><th>Last r/v</th><th>Days ago</th><th>Comments</th><th>Unrev. items (&gt;48 hrs)</th></tr></thead>
@@ -2784,6 +3140,11 @@
               ? `<div class="ok">Critical medicines: "${esc(state.critFile)}" (${state.critical.length} medicines)</div>`
               : `<div class="err">No critical medicines list loaded. ${dataProblem("crit")} Critical medicines won't be flagged.</div>`,
           );
+          out.push(
+            state.condFile
+              ? `<div class="ok">High-risk conditions: "${esc(state.condFile)}" (${state.conditions.length} conditions)</div>`
+              : `<div class="err">No high-risk conditions list loaded. ${dataProblem("cond")} High-risk conditions won't be flagged.</div>`,
+          );
           if (state.files.length) {
             out.push(
               "<div>Reports loaded:</div><ul>" +
@@ -2809,6 +3170,9 @@
           const warns = [
             ...state.warnings,
             ...(state.critProblems || []).map((p) => `critical_meds.js: ${p}`),
+            ...(state.condProblems || []).map(
+              (p) => `high_risk_conditions.js: ${p}`,
+            ),
           ];
           if (state.wards.size && !state.reviews.size)
             warns.push(
@@ -2817,12 +3181,10 @@
           const closed = state.directory
             .map((d) => d.ward)
             .filter((c) => !state.wards.has(c));
-          if (
-            (state.wards.size || state.noRecords) &&
-            closed.length !== state.noRecords
-          )
+          const noRecords = noRecordPages();
+          if ((state.wards.size || noRecords) && closed.length !== noRecords)
             warns.push(
-              `${closed.length} directory ward(s) have no ward list data and are shown as Closed${closed.length ? ` (${closed.join(", ")})` : ""}, but ${state.noRecords} \u201cNo records found\u201d page(s) were loaded. Check that a ward list was run for every ward.`,
+              `${closed.length} directory ward(s) have no ward list data and are shown as Closed${closed.length ? ` (${closed.join(", ")})` : ""}, but ${noRecords} \u201cNo records found\u201d page(s) were loaded. Check that a ward list was run for every ward.`,
             );
           for (const w of combined().wards.values()) {
             const match = matchReviews(w);
@@ -2836,6 +3198,10 @@
             if (state.reviews.size && !state.reviews.has(w.code))
               warns.push(
                 `${w.code}: no review list loaded (if this ward has no unreviewed items, its review list may not have been printed).`,
+              );
+            if (w.withHx)
+              warns.push(
+                `${w.code}: only a ward list with history was loaded. It has no admission times, so Hx hours are counted from midnight on the admission date; load the normal ward list too for exact times.`,
               );
             if (w.reportedTotal != null && w.reportedTotal !== s.pts)
               warns.push(
@@ -3000,7 +3366,13 @@
           $("wcMsg").textContent = text;
         }
 
-        const PAGES = ["planner", "wards", "directory", "medicines"];
+        const PAGES = [
+          "planner",
+          "wards",
+          "directory",
+          "medicines",
+          "conditions",
+        ];
         function showPage(page) {
           document.body.dataset.page = page;
           document
@@ -3039,9 +3411,13 @@
         //   exception values) and highlights any problem rows in red.
         // - edSave() writes the updated list to "ward_directory.js" (plus
         //   "ward_codes.docx") or "critical_meds.js" and updates the planner.
+        // The critical medicines and high-risk conditions editors work the same
+        // way; "rules" are the exception types offered, "list" the loaded list,
+        // and "search"/"onlyExc" the ids of the search box and checkbox.
         const ED = {
           dir: {
             label: "ward",
+            page: "directory",
             fields: [
               ["ward", "Ward code"],
               ["display", "Display name"],
@@ -3050,33 +3426,52 @@
               ["partOf", "Part of (combined ward)"],
             ],
             ordered: true,
+            set: setDirectory,
           },
           crit: {
             label: "medicine",
+            page: "medicines",
             fields: [
-              ["name", "Medicine"],
+              ["name", "Medicine", true],
               ["aliases", "Aliases (separate with commas)", true],
             ],
-            exceptions: true,
+            rules: CRIT_RULES,
+            list: () => state.critical,
+            set: setCritical,
+            search: "medSearch",
+            onlyExc: "medOnlyExc",
+          },
+          cond: {
+            label: "condition",
+            page: "conditions",
+            fields: [
+              ["name", "Condition", true],
+              ["aliases", "Aliases (separate with commas)", true],
+            ],
+            rules: COND_RULES,
+            list: () => state.conditions,
+            set: setConditions,
+            search: "condSearch",
+            onlyExc: "condOnlyExc",
           },
         };
         // Text box that wraps onto more lines as the text grows (see .grow)
         const growBox = (attrs, val, label) =>
           `<div class="grow" data-val="${esc(val)}"><textarea rows="1" ${attrs} aria-label="${label}">${esc(val)}</textarea></div>`;
         // Exceptions cell: one rule drop-down and value box per exception
-        const exceptionCell = (r) =>
+        const exceptionCell = (r, rules) =>
           `<td class="exc">${(r.exceptions || [])
             .map(
               (x, j) =>
                 `<div class="xrow"><select data-x="${j}" data-xf="rule" aria-label="Exception rule">${Object.entries(
-                  CRIT_RULES,
+                  rules,
                 )
                   .map(
                     ([k, v]) =>
                       `<option value="${k}"${k === x.rule ? " selected" : ""}>${v.label}</option>`,
                   )
                   .join("")}</select>${growBox(
-                  `data-x="${j}" data-xf="value" placeholder="${esc(CRIT_RULES[x.rule].placeholder)}"`,
+                  `data-x="${j}" data-xf="value" placeholder="${esc(rules[x.rule].placeholder)}"`,
                   x.value,
                   "Exception value",
                 )}<button type="button" class="icon del" data-act="xdel" data-x="${j}" title="Remove this exception">&times;</button></div>`,
@@ -3084,16 +3479,14 @@
             .join(
               "",
             )}<button type="button" class="link" data-act="xadd">+ Add exception</button></td>`;
-        const drafts = { dir: [], crit: [] };
-        const dirty = { dir: false, crit: false };
+        const drafts = { dir: [], crit: [], cond: [] };
+        const dirty = { dir: false, crit: false, cond: false };
         const splitAliases = (s) => String(s).split(",").map(clean);
 
         function edSetDirty(kind, on) {
           dirty[kind] = on;
           document
-            .querySelector(
-              `header nav button[data-page="${kind === "dir" ? "directory" : "medicines"}"]`,
-            )
+            .querySelector(`header nav button[data-page="${ED[kind].page}"]`)
             .classList.toggle("unsaved", on);
           if (on) edMsg(kind, "Unsaved changes.", "warn");
         }
@@ -3108,7 +3501,7 @@
           drafts[kind] =
             kind === "dir"
               ? state.directory.map((d) => ({ ...d }))
-              : state.critical.map((c) => ({
+              : ED[kind].list().map((c) => ({
                   name: c.name,
                   aliases: c.aliases.join(", "),
                   exceptions: c.exceptions.map((x) => ({ ...x })),
@@ -3119,11 +3512,11 @@
         }
 
         function edRender(kind, bad = new Set()) {
-          const { fields, ordered, label, exceptions } = ED[kind];
+          const { fields, ordered, label, rules } = ED[kind];
           const rows = drafts[kind];
           const last = rows.length - 1;
           $(kind + "Edit").innerHTML =
-            `<thead><tr><th></th>${fields.map(([f, l]) => `<th class="c-${f}">${l}</th>`).join("")}${exceptions ? '<th class="c-exc">Exceptions (not flagged when&hellip;)</th>' : ""}<th></th></tr></thead><tbody>` +
+            `<thead><tr><th></th>${fields.map(([f, l]) => `<th class="c-${f}">${l}</th>`).join("")}${rules ? '<th class="c-exc">Exceptions (not flagged when&hellip;)</th>' : ""}<th></th></tr></thead><tbody>` +
             rows
               .map(
                 (r, i) =>
@@ -3135,7 +3528,7 @@
                     )
                     .join(
                       "",
-                    )}${exceptions ? exceptionCell(r) : ""}<td class="act">${
+                    )}${rules ? exceptionCell(r, rules) : ""}<td class="act">${
                     ordered
                       ? `<button type="button" class="icon" data-act="up" title="Move up"${i ? "" : " disabled"}>&uarr;</button><button type="button" class="icon" data-act="down" title="Move down"${i < last ? "" : " disabled"}>&darr;</button>`
                       : ""
@@ -3144,7 +3537,7 @@
               .join("") +
             "</tbody>";
           if (kind === "dir") dirSuggestions();
-          else medFilter();
+          else listFilter(kind);
         }
 
         // Directorate and Part of box suggestions: the values already in use
@@ -3162,15 +3555,16 @@
                 .join("")),
           );
 
-        // Critical medicines search: hide rows whose name, aliases and exception
-        // values don't match (and, if ticked, those without exceptions)
-        function medFilter() {
-          const q = $("medSearch").value.trim().toLowerCase();
-          const onlyExc = $("medOnlyExc").checked;
-          $("critEdit")
+        // Critical medicines / high-risk conditions search: hide rows whose
+        // name, aliases and exception values don't match (and, if ticked, those
+        // without exceptions)
+        function listFilter(kind) {
+          const q = $(ED[kind].search).value.trim().toLowerCase();
+          const onlyExc = $(ED[kind].onlyExc).checked;
+          $(kind + "Edit")
             .querySelectorAll("tbody tr")
             .forEach((tr) => {
-              const r = drafts.crit[tr.dataset.i];
+              const r = drafts[kind][tr.dataset.i];
               const x = r.exceptions || [];
               tr.hidden =
                 !r._new &&
@@ -3219,11 +3613,11 @@
                 );
             } else {
               const name = clean(r.name);
-              if (!name) return fail("the medicine name is missing.");
+              if (!name) return fail(`the ${ED[kind].label} name is missing.`);
               const lower = new Set([name.toLowerCase()]);
               const exceptions = [];
               for (const x of r.exceptions || []) {
-                const rule = CRIT_RULES[x.rule];
+                const rule = ED[kind].rules[x.rule];
                 const value =
                   rule.kind === "type"
                     ? clean(x.value).toUpperCase()
@@ -3257,7 +3651,7 @@
             seen.set(key, i);
             items.push(item);
           });
-          if (kind === "crit")
+          if (kind !== "dir")
             items.sort((a, b) =>
               a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
             );
@@ -3291,7 +3685,7 @@
             );
             return;
           }
-          (kind === "dir" ? setDirectory : setCritical)(items, f.file);
+          ED[kind].set(items, f.file);
           edReset(kind);
           render();
           let warn = !note.ok,
@@ -3534,8 +3928,8 @@
 
         // Connects typing, button clicks (Add, Delete, Move up/down, Add/Remove
         // exception, Save, Discard, Change folder), and search filtering inside
-        // both the Ward Directory and Critical Medicines editor tables.
-        for (const kind of ["dir", "crit"]) {
+        // the Ward Directory, Critical Medicines and High-risk Conditions editor tables.
+        for (const kind of Object.keys(ED)) {
           const table = $(kind + "Edit");
           table.addEventListener("input", (e) => {
             const tr = e.target.closest("tr[data-i]");
@@ -3553,7 +3947,7 @@
               if (xf === "rule")
                 e.target.parentNode.querySelector(
                   '[data-xf="value"]',
-                ).placeholder = CRIT_RULES[e.target.value].placeholder;
+                ).placeholder = ED[kind].rules[e.target.value].placeholder;
             }
             if (e.target.parentNode.classList.contains("grow"))
               e.target.parentNode.dataset.val = e.target.value;
@@ -3579,7 +3973,10 @@
             const r = rows[i];
             if (b.dataset.act === "xadd" || b.dataset.act === "xdel") {
               if (b.dataset.act === "xadd")
-                (r.exceptions ||= []).push({ rule: "nameHas", value: "" });
+                (r.exceptions ||= []).push({
+                  rule: Object.keys(ED[kind].rules)[0],
+                  value: "",
+                });
               else r.exceptions.splice(Number(b.dataset.x), 1);
               edSetDirty(kind, true);
               edRender(kind);
@@ -3619,17 +4016,17 @@
               ED[kind].fields.map(([f]) => [f, ""]),
             );
             row._new = true;
-            // New wards go at the end (order matters); new medicines at the top
-            // (the list is sorted when saved)
+            // New wards go at the end (order matters); new medicines and
+            // conditions at the top (the list is sorted when saved)
             if (kind === "dir") drafts.dir.push(row);
-            else drafts.crit.unshift(row);
+            else drafts[kind].unshift(row);
             edSetDirty(kind, true);
             edRender(kind);
             const tr = $(kind + "Edit").querySelector(
               `tr[data-i="${kind === "dir" ? drafts.dir.length - 1 : 0}"]`,
             );
             tr.scrollIntoView({ block: "nearest" });
-            tr.querySelector("input").focus();
+            tr.querySelector("input, textarea").focus();
           }),
         );
         document.querySelectorAll("[data-ed-folder]").forEach((b) => {
@@ -3662,16 +4059,20 @@
             edMsg(kind, "Changes discarded.");
           }),
         );
-        $("medSearch").addEventListener("input", medFilter);
-        $("medOnlyExc").addEventListener("change", medFilter);
+        for (const kind of ["crit", "cond"]) {
+          $(ED[kind].search).addEventListener("input", () => listFilter(kind));
+          $(ED[kind].onlyExc).addEventListener("change", () =>
+            listFilter(kind),
+          );
+        }
         addEventListener("beforeunload", (e) => {
-          if (dirty.dir || dirty.crit) e.preventDefault();
+          if (Object.values(dirty).some(Boolean)) e.preventDefault();
         });
 
         function render() {
           renderStatus();
           renderWardPage();
-          const has = state.wards.size > 0 || state.noRecords > 0;
+          const has = state.wards.size > 0 || noRecordPages() > 0;
           $("controls").hidden =
             $("output").hidden =
             $("details").hidden =
@@ -3729,10 +4130,12 @@
           Object.assign(state, {
             wards: new Map(),
             reviews: new Map(),
+            hxWards: new Map(),
             files: [],
             warnings: [],
             edits: {},
             noRecords: 0,
+            hxNoRecords: 0,
           });
           render();
         });
@@ -4044,24 +4447,24 @@
         });
 
         // --- Initial startup when the page first opens ---
-        // Reads the ward directory and critical medicines lists that were loaded
-        // by the script tags above, clears any leftover browser storage from
-        // older versions of the tool, sets up the two editor tables, and draws
-        // the initial screen.
-        const loadData = (kind, set) => {
+        // Reads the ward directory, critical medicines and high-risk conditions
+        // lists that were loaded by the script tags above, clears any leftover
+        // browser storage from older versions of the tool, sets up the three
+        // editor tables, and draws the initial screen.
+        const loadData = (kind) => {
           const f = DATA_FILES[kind],
             list = window[f.global] && window[f.global][f.key];
-          if (Array.isArray(list)) set(list, f.file);
+          if (Array.isArray(list)) ED[kind].set(list, f.file);
         };
-        loadData("dir", setDirectory);
-        loadData("crit", setCritical);
         // Saved copies from older versions, which stored the lists in the browser
         try {
           localStorage.removeItem("workloadPlanner.wardDirectory");
           localStorage.removeItem("workloadPlanner.criticalMeds");
         } catch (_) {}
-        edReset("dir");
-        edReset("crit");
+        for (const kind of Object.keys(ED)) {
+          loadData(kind);
+          edReset(kind);
+        }
         render();
       })();
     </script>

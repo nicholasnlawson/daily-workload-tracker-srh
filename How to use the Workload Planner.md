@@ -12,15 +12,16 @@ Keep these together in the same folder on the shared drive:
 | `lib` folder            | PDF reader used by the tool – **do not delete or move** |
 | `ward_directory.js`     | List of wards with their specialty and directorate      |
 | `critical_meds.js`      | Critical medicines (and their aliases) to flag          |
+| `high_risk_conditions.js` | High-risk conditions (and their aliases) to look for in past medical history |
 | `ward_codes.docx`       | Word list of ward codes, then a blank line and SCH, PRN, ONE, STA – rewritten every time the ward directory is saved, so don't edit it by hand |
 
-The ward directory and critical medicines list load automatically when the page opens. There's no need to select them. Edit them on the **Ward directory** and **Critical medicines** pages of the tool (see below).
+The ward directory, critical medicines list and high-risk conditions list load automatically when the page opens. There's no need to select them. Edit them on the **Ward directory**, **Critical medicines** and **High-risk conditions** pages of the tool (see below).
 
 Save each day's reports into this folder, or into a subfolder inside it (e.g. `Ward Reports`).
 
 ## Daily use
 
-1. **Save the reports.** Run the Ward List and Review List reports and save them into the folder. Either can be **PDF or text**, and a report can cover one ward or several.
+1. **Save the reports.** Run the Ward List and Review List reports and save them into the folder. Either can be **PDF or text**, and a report can cover one ward or several. Optionally, also run the **ward list with history** (see below).
 2. **Open `Workload Planner.html`**, in Microsoft Edge.
 3. **Load the files.** Click **Choose folder…** and select the Workload Planner folder; subfolders are included. You can also drag the files, or the whole folder, onto the page. Your browser may ask you to confirm that you want to share the folder's files with the page; this is normal.
 4. **Check the status box.** It lists the reports it found. Read any **Check:** warnings, such as patient totals that don't match the report or wards missing from the directory.
@@ -38,6 +39,12 @@ A closed ward's Ward List report prints a page that says only **No records found
 The status box shows how many "No records found" pages each report contains. If the number of wards shown as Closed doesn't match the number of "No records found" pages, a **Check:** warning lists the closed wards. This usually means a ward's report was not run or not saved.
 
 > Anything typed into the page is **not saved**. Copy the table into your email before closing or refreshing the page.
+
+### Ward list with history (optional)
+
+The ward list with history is a version of the Ward List that prints each patient's past medical history underneath them. Load it along with the other reports and the planner recognises it by itself (the status box calls it a "ward list with history"). Hx patients' history is then checked against the high-risk conditions list (see **Patient details** below).
+
+It has an admission date but no admission time, so load the **normal ward list as well**. When both are loaded for a ward, the normal one is used for all the counts and the history is matched to patients by hospital number. If only the ward list with history is loaded for a ward, it's used for the counts too, but Hx hours are counted from midnight on the admission date, and a **Check:** warning says so. Patients admitted after the ward list with history was run have no history to check.
 
 ## Ward list for EMR reports
 
@@ -79,17 +86,30 @@ Unreviewed items are matched to patients by hospital number. Any items that can'
 
 For patients who need a history (Hx), any of their unreviewed items that appear on the critical medicines list are shown in the **Comments** column as **CRITICAL MEDS:** followed by the medicine names in red. If the patient already has a comment, the critical medicines go on an extra row underneath. Hover over the names to see the matching review list items. Medicines that matched but were skipped by an exception (see below) are not listed, but they appear in the hover text with the exception that applied. If a patient only has skipped medicines, a small grey **ⓘ** is shown instead; hover over it to see them.
 
+When a ward list with history is loaded, Hx patients' past medical history is also checked against the high-risk conditions list. Any conditions found are shown in the same place as **HIGH-RISK CONDITIONS:** followed by the condition names in purple, under any critical medicines. Hover over a name to see the history line it was found on. A name ending in **?** (dotted underline) was only found by allowing for a spelling mistake (e.g. "Epilespy"). The hover text shows the word that was read as a misspelling, so check it. Conditions skipped by an exception appear in the hover text (or the grey **ⓘ**), like skipped medicines.
+
+Hx patients' past medical history is also checked against the **critical medicines** list. Any found are added to **CRITICAL MEDS**, and the hover text starts "Past medical history:" so you can tell them apart from review list items. This works even if no review list is loaded. Here, medicine names and aliases must be spelt correctly: there's no allowance for misspellings. Each history line is treated like a drug name, so the medicine's exceptions still apply. For example, "Clenil inhaler" isn't flagged as beclometasone, but rules about dose or prescription type never apply to history.
+
 Patients with no status on the ward list show **Hx required** in bold red across the Status, Last r/v and Days ago columns.
 
-## Updating the ward directory and critical medicines
+## Updating the ward directory, critical medicines and high-risk conditions
 
-The **Ward directory** and **Critical medicines** pages (buttons at the top of the tool) let anyone edit the lists:
+The **Ward directory**, **Critical medicines** and **High-risk conditions** pages (buttons at the top of the tool) let anyone edit the lists:
 
 - **Ward directory** – each ward's **Ward code** (must match the code printed on the reports exactly, e.g. `EAU:1-3`), **Display name** (shown in the table), **Specialty** and **Directorate**. The workload table and the ward list for EMR reports follow this order; use the ↑ ↓ arrows to change it. **Add ward** adds a row at the bottom. The Directorate box suggests the directorates already in use. Keep the spelling the same so wards are grouped together.
   - **Part of (combined ward)** – for a ward that is split across several reports, e.g. EAU-SR, EAU:1-3 and EAU:4-6. Type the same name (e.g. `EAU`) in each part's box; capitals and extra spaces don't matter, and the box suggests names already in use. The parts are then shown as one ward with that name in the workload table and Patient details, at the position of the first part, using its directorate. Its specialty is the parts' specialties separated by commas, each listed once (e.g. all three EAU parts are "EAU", so it shows just "EAU"). In Patient details, beds show their number only, and the note under the heading lists the parts, marking any with no ward list loaded. The combined ward only shows as **Closed** if none of its parts has a ward list. Leave the box blank for wards that stand alone. The name can't be the same as a ward code. The ward list for EMR reports still lists each part separately, as the reports are run per part.
 - **Critical medicines** – each medicine's **name** (shown as CRITICAL MEDS) and its **aliases** (other names, such as brand names), separated by commas. Use the search box to find a medicine or alias. **Add medicine** adds a row at the top. The list is sorted A–Z when saved. Names and aliases are matched as whole words, in any case, anywhere in the review list drug name. For example, `Insulin` matches "Insulin Aspart" but not "Insulinx". Medicines can also have **exceptions** (see below).
+- **High-risk conditions** – each condition's **name** (shown as HIGH-RISK CONDITIONS) and its **aliases** (other names, abbreviations, and medicines that point to the condition, e.g. `donepezil` for Dementia), separated by commas. It works like the critical medicines page: search box, **Add condition** (adds a row at the top), sorted A–Z when saved, and **exceptions** (see below). Keep one condition per row so the flag says exactly what was found. Matching differs from critical medicines because history is typed by hand:
+  - Capitals, punctuation, apostrophes and plural "s" are ignored, so `Parkinson` matches "Parkinson's", "parkinsons" and "PARKINSON'S DISEASE".
+  - Words of **6 or more letters** can have one typing mistake (a missing, extra, wrong or swapped letter), or two for words of 9 or more letters, as long as the first letter is right. These matches show a **?**.
+  - Shorter words, abbreviations and anything with a number must match exactly, so `type 1 diabetes` never matches "Type 2 diabetes".
+  - Avoid aliases that are everyday words or have another meaning. For example `MS` (multiple sclerosis or mitral stenosis), `PD` (Parkinson's or peritoneal dialysis), `MG` (also milligrams), `LD`, `ASD`, `AIDS` ("hearing aids"), `fit` ("fit and well") and `ALL` aren't in the list for this reason. Give the full name instead.
 - **×** deletes a row. Rows with problems (a missing name or code, or a duplicate) turn red when you save, and nothing is saved until they're fixed.
 - A dot next to the page button means there are unsaved changes. **Discard changes** goes back to the saved list.
+
+### High-risk condition exceptions
+
+These work like critical medicine exceptions but check the **history line** the condition was found on. **History line contains** stops the condition being flagged if that line contains any of the words, e.g. Epilepsy with `family history, FHx`, Sickle cell disease with `trait, carrier`, or Strong opioid use with `allergy, intolerance`. **History line does not contain** stops it being flagged unless the line contains one of the words.
 
 ### Critical medicine exceptions
 
@@ -111,7 +131,7 @@ Each review list item has a **drug name** (the drug name column, e.g. "Enoxapari
 - **Dose rules** use the dose column, not the strength in the drug name. A 300 mg/3 ml vial prescribed at 40 mg counts as 40 mg. Doses in mg, g and micrograms are converted to compare, as are ml and litres. A range (e.g. `20-60 MG`) only counts as "at or below" if all of it is. If there's no dose, or its unit can't be compared (e.g. ml against mg), the prescription **is** flagged, to be safe. Leave the unit off (e.g. `40`) to compare the number whatever the unit.
 - Text (.txt) review lists cut the drug name off at 35 characters (e.g. "…M/R Ca" for "M/R Capsule"); PDF review lists show it in full. Check that drug name words still match when text reports are used.
 
-**Saving:** click **Save ward_directory.js…** or **Save critical_meds.js…**. In Edge (or Chrome), the first time you save, a folder window opens: choose the **Workload Planner folder** (the one `Workload Planner.html` is in) and click **Select**, then **Save changes** / **Allow** when Edge asks to let the site edit files. The planner checks it's the right folder (it must contain this page and have the same name as the folder the page was opened from) and refuses any other. After that, saving writes straight into that folder, replacing the old file; Edge may ask once per session to allow editing again. To use a different folder (e.g. if the planner has been moved), click **Change save folder…**. The folder is remembered per person, per computer and browser. In other browsers, the file is downloaded instead; move it from Downloads into the Workload Planner folder, replacing the old file. Saving the ward directory also rewrites `ward_codes.docx` in the same folder (or downloads it too), so it always matches the saved directory.
+**Saving:** click **Save ward_directory.js…**, **Save critical_meds.js…** or **Save high_risk_conditions.js…**. In Edge (or Chrome), the first time you save, a folder window opens: choose the **Workload Planner folder** (the one `Workload Planner.html` is in) and click **Select**, then **Save changes** / **Allow** when Edge asks to let the site edit files. The planner checks it's the right folder (it must contain this page and have the same name as the folder the page was opened from) and refuses any other. After that, saving writes straight into that folder, replacing the old file; Edge may ask once per session to allow editing again. To use a different folder (e.g. if the planner has been moved), click **Change save folder…**. The folder is remembered per person, per computer and browser. In other browsers, the file is downloaded instead; move it from Downloads into the Workload Planner folder, replacing the old file. Saving the ward directory also rewrites `ward_codes.docx` in the same folder (or downloads it too), so it always matches the saved directory.
 
 The changes apply straight away on your screen, and for everyone else the next time they open the planner. Consider keeping a copy of the old file before making big changes.
 
@@ -124,6 +144,7 @@ The files can also be edited by hand in Notepad. They hold one entry per line, i
 | A ward is missing from the table                     | Check the ward is on the **Ward directory** page with the right directorate. Wards not in the directory appear under **Not in directory** in the drop-down. |
 | Specialty is blank                                   | The ward code on the **Ward directory** page doesn't match the report – check spelling and punctuation                                                      |
 | No CRITICAL MEDS shown                               | Check the status box says the critical medicines list is loaded. Only Hx patients with unreviewed items are checked.                                        |
+| No HIGH-RISK CONDITIONS shown                        | Check the status box lists a "ward list with history" for that ward and says the high-risk conditions list is loaded. Only Hx patients are checked.           |
 | "ward_directory.js is missing" (or critical_meds.js) | The file must sit next to `Workload Planner.html` with exactly that name                                                                                    |
 | "… has a mistake in it"                              | The file was edited by hand and has a missing comma or quote. Fix it, or put back an earlier copy                                                           |
 | Saved changes don't appear for others                | Check the file was saved into the Workload Planner folder with exactly the right name, replacing the old file                                               |
