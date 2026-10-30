@@ -19,9 +19,9 @@
      history (Hx) and, when a "ward list with history" is loaded, high-risk
      conditions in those patients' past medical history.
 
-  2. Ward list for EMR reports:
-     A helper page with a one-click "Copy next" button so staff can quickly
-     copy each ward code in turn and paste it into the EMR report generator.
+  2. Copy ward codes / order types for reports (buttons on the main page):
+     Copy every ward code, or the order types, to the clipboard in one go so
+     staff can paste them straight into the EMR report generator.
 
   3. Ward directory editor:
      Lets staff add, remove, reorder, or group wards, and saves the changes
@@ -120,6 +120,14 @@
         flex-wrap: wrap;
         margin-top: 12px;
       }
+      /* "Copy ward codes / order types" row above the report drop box */
+      .emr-bar {
+        align-items: center;
+        margin: 0 0 12px;
+      }
+      #emrMsg {
+        font-size: 13px;
+      }
       .btn {
         display: inline-block;
         padding: 7px 14px;
@@ -166,8 +174,9 @@
         color: var(--accent);
       }
       /* --- Page switching ---
-         All four pages ("Workload table", "Ward list for EMR reports",
-         "Ward directory", and "Critical medicines") live in this one file.
+         All the pages ("Workload table", "Ward directory", "Critical
+         medicines", "High-risk conditions" and "Surgeon mnemonics") live in
+         this one file.
          These rules hide the pages you aren't currently viewing so only the
          selected page is shown on screen. */
       body:not([data-page="planner"]) main > section:not([data-page]),
@@ -177,83 +186,6 @@
       main > section[data-page] h2 {
         margin: 0 0 6px;
         font-size: 17px;
-      }
-      /* --- "Ward list for EMR reports" page styles ---
-         Styles the scrollable list of ward codes and colours each ward button
-         blue when it is next to be copied, or green once it has been copied. */
-      #wcMsg {
-        align-self: center;
-        font-size: 13px;
-      }
-      #wcSource {
-        margin: 10px 0 6px;
-      }
-      /* The ward list scrolls inside its own box (sized automatically to fit
-         the window) so the "Copy next / Undo / Reset" buttons stay in view. */
-      #wcScroll {
-        position: relative;
-        display: inline-block;
-        max-width: 100%;
-        max-height: 60vh;
-        overflow: auto;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-      }
-      /* Separate cell borders so the sticky header row cleanly covers rows scrolling underneath */
-      table.wc {
-        border-collapse: separate;
-        border-spacing: 0;
-        font-size: 13px;
-      }
-      table.wc thead th {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-      }
-      table.wc th,
-      table.wc td {
-        border: solid #ccc;
-        border-width: 0 1px 1px 0;
-        padding: 3px 10px;
-        text-align: left;
-      }
-      table.wc tr > :last-child {
-        border-right: 0;
-      }
-      table.wc tbody tr:last-child td {
-        border-bottom: 0;
-      }
-      table.wc th {
-        background: var(--hdr);
-      }
-      table.wc td.n {
-        color: #4c6272;
-        text-align: right;
-      }
-      .wcode {
-        font: inherit;
-        font-weight: bold;
-        min-width: 90px;
-        padding: 3px 8px;
-        border: 2px solid transparent;
-        border-radius: 4px;
-        background: #f2f4f7;
-        color: #212b32;
-        cursor: pointer;
-        text-align: left;
-      }
-      .wcode:hover {
-        border-color: var(--border);
-      }
-      .wcode.next {
-        background: #cfe0f5;
-        border-color: var(--accent);
-        color: #003d78;
-      }
-      .wcode.done {
-        background: #cdebd8;
-        border-color: #007f3b;
-        color: #00552a;
       }
       /* --- "Ward directory" and "Critical medicines" editor styles ---
          Styles the editable tables where staff can add, edit, reorder, or
@@ -448,6 +380,15 @@
       #status ul {
         margin: 4px 0;
         padding-left: 20px;
+      }
+      #logs > summary {
+        font-size: 14px;
+      }
+      #logs > summary span {
+        font-weight: bold;
+      }
+      .logs-body {
+        margin: 6px 0 0 18px;
       }
       .ok {
         color: #007f3b;
@@ -810,9 +751,6 @@
       </p>
       <nav>
         <button type="button" data-page="planner">Workload table</button>
-        <button type="button" data-page="wards">
-          Ward list for EMR reports
-        </button>
         <button type="button" data-page="directory">Ward directory</button>
         <button type="button" data-page="medicines">Critical medicines</button>
         <button type="button" data-page="conditions">
@@ -822,40 +760,6 @@
       </nav>
     </header>
     <main>
-      <!--
-        PAGE: WARD LIST FOR EMR REPORTS
-        A helper checklist of all wards in the directory. Staff can click a
-        ward code (or click "Copy next") to copy it to the clipboard, then
-        paste it into the hospital EMR when running daily reports.
-      -->
-      <section id="wardPage" class="card" data-page="wards">
-        <h2>Ward list for EMR reports</h2>
-        <p class="legend">
-          Click a ward code to copy it, or click <b>Copy next</b> to copy the
-          wards one at a time in order, then paste into the EMR report generator
-          (Ctrl+V). <b>Copy all</b> copies every ward code at once, one per
-          line, and <b>Copy order types</b> copies SCH, PRN, ONE and STA, one
-          per line (both copy in the same way as Microsoft Word, so the EMR
-          accepts the whole list). The next ward to copy is highlighted blue;
-          copied wards turn green. The list comes from the
-          <b>Ward directory</b> page.
-        </p>
-        <div class="btns">
-          <button type="button" id="wcNext" class="btn primary">
-            Copy next
-          </button>
-          <button type="button" id="wcAll" class="btn">Copy all</button>
-          <button type="button" id="wcOrders" class="btn">
-            Copy order types
-          </button>
-          <button type="button" id="wcUndo" class="btn">Undo</button>
-          <button type="button" id="wcReset" class="btn">Reset</button>
-          <span id="wcMsg"></span>
-        </div>
-        <div id="wcSource" class="legend"></div>
-        <div id="wcScroll"><table id="wcTable" class="wc"></table></div>
-      </section>
-
       <!--
         PAGE: WARD DIRECTORY EDITOR
         Allows staff to view and edit the list of hospital wards (their raw EMR
@@ -867,7 +771,7 @@
         <h2>Ward directory</h2>
         <p class="legend">
           Sets each ward's display name, specialty and directorate, the order of
-          the workload table and the ward list for EMR reports. The
+          the workload table and the ward codes copied for EMR reports. The
           <b>Ward code</b> must match the code printed on the reports exactly
           (e.g. <b>EAU:1-3</b>). Use the arrows to change the order. Wards split
           across several reports can be shown as one: give each part the same
@@ -1060,9 +964,28 @@
         status area (#status) that shows loaded files, counts, and any warnings.
       -->
       <section class="card">
+        <!--
+          Copy buttons for running the reports in the EMR: every ward code from
+          the Ward directory, one per line, or the order types (SCH, PRN, ONE,
+          STA). Both copy in the same way as Microsoft Word so the EMR accepts
+          the whole list in one paste.
+        -->
+        <div class="btns emr-bar">
+          <button type="button" id="copyWards" class="btn">
+            Copy ward codes for reports
+          </button>
+          <button type="button" id="copyOrders" class="btn">
+            Copy order types
+          </button>
+          <span class="legend"
+            >Paste into the EMR report generator with Ctrl+V: all ward codes
+            from the Ward directory, or the order types (SCH, PRN, ONE,
+            STA).</span
+          >
+          <span id="emrMsg"></span>
+        </div>
         <div id="drop" class="drop">
-          Drag the ward list and review list reports (PDF or text) here, or drag
-          the whole folder.
+          Drag the ward list and review list report files (PDF or text) here.
         </div>
         <div class="btns">
           <label class="btn primary"
@@ -2024,41 +1947,16 @@
         // =====================================================================
         // SECTION 5: LOADING FILES AND EXTRACTING TEXT FROM PDFs
         // =====================================================================
-        // Reports can be dropped onto the page as individual files or as an
-        // entire folder, and can be in either PDF (.pdf) or plain text (.txt)
-        // format.
+        // Reports can be dropped onto the page as files (or selected via the
+        // folder / file picker buttons) in either PDF (.pdf) or plain text
+        // (.txt) format.
         //
-        // - filesFromDrop(): unpacks any dragged-and-dropped folders so every
-        //   file inside them is collected.
         // - pdfPages(): uses the bundled PDF.js library to read each page of a
         //   PDF and group text fragments into horizontal rows based on their
         //   (x, y) position on the page.
         // - textPages() / pagesToText(): converts between row positions and
         //   fixed-width text lines so both PDF and text reports can be read by
         //   the same report parsers.
-        async function filesFromDrop(dt) {
-          const entries = [...dt.items]
-            .map((i) => i.webkitGetAsEntry && i.webkitGetAsEntry())
-            .filter(Boolean);
-          if (!entries.length) return [...dt.files];
-          const out = [];
-          const walk = async (e) => {
-            if (e.isFile)
-              out.push(await new Promise((res, rej) => e.file(res, rej)));
-            else if (e.isDirectory) {
-              const reader = e.createReader();
-              let batch;
-              do {
-                batch = await new Promise((res, rej) =>
-                  reader.readEntries(res, rej),
-                );
-                for (const x of batch) await walk(x);
-              } while (batch.length);
-            }
-          };
-          for (const e of entries) await walk(e);
-          return out;
-        }
 
         // ---------- PDF / text page handling ----------
         // Both report types can arrive as PDF or text. Each page becomes a list of
@@ -2492,7 +2390,8 @@
         // Review Lists are processed after Ward Lists so ward codes are already known.
         async function handleFiles(files) {
           // Review lists are read last so their locations can be matched to known ward codes
-          const reviews = [];
+          const reviews = [],
+            unknown = [];
           for (const f of files) {
             if (
               f.name.startsWith(".") ||
@@ -2520,13 +2419,28 @@
               if (RE_WARDLIST.test(plain))
                 addWardList(pagesToText(pages), f.name);
               else if (isReviewText(plain)) reviews.push([pages, f]);
+              else unknown.push(f.name);
               continue;
             }
             if (/\.(csv|json)$/i.test(f.name)) continue;
-            const text = await f.text();
+            let text;
+            try {
+              text = await f.text();
+            } catch (_) {
+              // A dropped folder can arrive as an unreadable "file"
+              state.warnings.push(
+                `Could not read "${f.name}". If it is a folder, use "Choose folder..." or drag the files inside it instead.`,
+              );
+              continue;
+            }
             if (RE_WARDLIST.test(text)) addWardList(text, f.name);
             else if (isReviewText(text)) reviews.push([textPages(text), f]);
+            else if (/\.txt$/i.test(f.name)) unknown.push(f.name);
           }
+          if (unknown.length)
+            state.warnings.push(
+              `Ignored ${unknown.map((n) => `"${n}"`).join(", ")}: not a Pharmacy Ward List or Review List report.`,
+            );
           reviews.forEach(([pages, f]) => addReviewList(pages, f));
           render();
         }
@@ -3563,8 +3477,36 @@
                 warns.map((x) => `<li>${esc(x)}</li>`).join("") +
                 "</ul>",
             );
-          $("status").innerHTML = out.join("");
+          // Everything goes in a collapsed "Logs" list; a missing or broken
+          // data file is also shown outside it so it can't be missed
+          const errs = out.filter((x) => x.startsWith('<div class="err">'));
+          const n = state.files.length;
+          const summary = [
+            `${n} report${n === 1 ? "" : "s"} loaded`,
+            ...(warns.length
+              ? [
+                  `<span class="warn">${warns.length} check${warns.length === 1 ? "" : "s"}</span>`,
+                ]
+              : []),
+            ...(errs.length
+              ? [
+                  `<span class="err">${errs.length} list${errs.length === 1 ? "" : "s"} not loaded</span>`,
+                ]
+              : []),
+          ].join(", ");
+          $("status").innerHTML =
+            errs.join("") +
+            `<details id="logs"${logsOpen ? " open" : ""}><summary>Logs &ndash; ${summary}</summary><div class="logs-body">${out.join("")}</div></details>`;
         }
+        // Whether the Logs list is expanded (kept open across re-renders)
+        let logsOpen = false;
+        $("status").addEventListener(
+          "toggle",
+          (e) => {
+            if (e.target.id === "logs") logsOpen = e.target.open;
+          },
+          true,
+        );
 
         function renderDirSelect() {
           const sel = $("dirSel"),
@@ -3593,85 +3535,12 @@
         }
 
         // =====================================================================
-        // SECTION 12: "WARD LIST FOR EMR REPORTS" HELPER PAGE & PAGE NAVIGATION
+        // SECTION 12: COPYING WARD CODES / ORDER TYPES FOR EMR REPORTS & PAGE NAVIGATION
         // =====================================================================
-        // Powers the second tab ("Ward list for EMR reports"), which helps staff
-        // copy ward codes one by one into the hospital EMR report generator:
-        // - wcDone keeps track of which ward codes have been copied so far.
-        // - wcNextCode() finds the next uncopied ward in directory order.
-        // - wcCopy() copies a ward code to the clipboard, marks it green,
-        //   highlights the next ward in blue, and scrolls the list to keep the
-        //   next ward in view.
-        // - showPage() switches between the four tabs in the top navigation bar.
-
-        // Ward codes copied so far, in the order they were copied (for Undo)
-        let wcDone = [];
-        // Next ward for "Copy next": the first uncopied ward after the last one
-        // copied, otherwise the first uncopied ward in the list
-        function wcNextCode() {
-          const codes = state.directory.map((d) => d.ward);
-          const from = codes.indexOf(wcDone[wcDone.length - 1]) + 1;
-          const free = (c) => !wcDone.includes(c);
-          return codes.slice(from).find(free) ?? codes.find(free) ?? null;
-        }
-
-        function renderWardPage() {
-          wcDone = wcDone.filter((c) => dirEntry(c));
-          const next = wcNextCode();
-          const n = state.directory.length;
-          $("wcSource").innerHTML = state.dirFile
-            ? `${n} wards from "${esc(state.dirFile)}"; ${wcDone.length} copied.`
-            : `<span class="err">No ward directory loaded. ${dataProblem("dir")}</span>`;
-          $("wcTable").innerHTML = n
-            ? `<thead><tr><th></th><th>Ward</th><th>Display Name</th><th>Specialty</th><th>Directorate</th></tr></thead><tbody>${state.directory
-                .map((d, i) => {
-                  const cls = wcDone.includes(d.ward)
-                    ? "done"
-                    : d.ward === next
-                      ? "next"
-                      : "";
-                  return `<tr><td class="n">${i + 1}</td><td><button type="button" class="wcode ${cls}" data-code="${esc(d.ward)}" title="Click to copy">${esc(d.ward)}</button></td><td>${esc(d.display)}</td><td>${esc(d.specialty)}</td><td>${esc(d.directorate)}</td></tr>`;
-                })
-                .join("")}</tbody>`
-            : "";
-          $("wcNext").textContent = next
-            ? `Copy next (${next})`
-            : n
-              ? "All wards copied"
-              : "Copy next";
-          $("wcNext").disabled = !next;
-          $("wcAll").disabled = !n;
-          $("wcUndo").disabled = $("wcReset").disabled = !wcDone.length;
-          wcFit();
-        }
-
-        async function copyText(text) {
-          try {
-            await navigator.clipboard.writeText(text);
-            return true;
-          } catch (_) {
-            const ta = document.createElement("textarea");
-            ta.value = text;
-            ta.style.cssText = "position:fixed;left:-9999px;top:0;";
-            document.body.appendChild(ta);
-            ta.select();
-            const ok = document.execCommand("copy");
-            ta.remove();
-            return ok;
-          }
-        }
-
-        async function wcCopy(code) {
-          const ok = await copyText(code);
-          if (ok && !wcDone.includes(code)) wcDone.push(code);
-          renderWardPage();
-          const msg = $("wcMsg");
-          msg.className = ok ? "ok" : "err";
-          msg.textContent = ok
-            ? `Copied ${code}. Paste into the EMR (Ctrl+V).`
-            : `Copy failed for ${code}. Select the ward code and press Ctrl+C.`;
-          wcScrollToNext();
-        }
+        // The two buttons above the report drop box copy the full list of ward
+        // codes (from the Ward directory) or the order types to the clipboard
+        // for pasting into the hospital EMR report generator.
+        // showPage() switches between the tabs in the top navigation bar.
 
         // Order types for EMR reports ("Copy order types" button)
         const ORDER_TYPES = ["SCH", "PRN", "ONE", "STA"];
@@ -3689,53 +3558,23 @@
           return copyRich(html, text);
         }
 
-        async function wcCopyList(lines, label, markDone) {
+        async function emrCopyList(lines, label) {
+          const msg = $("emrMsg");
+          if (!lines.length) {
+            msg.className = "err";
+            msg.textContent = `Nothing to copy: ${label}.`;
+            return;
+          }
           const ok = await copyWordList(lines);
-          if (ok && markDone)
-            lines.forEach((c) => wcDone.includes(c) || wcDone.push(c));
-          renderWardPage();
-          const msg = $("wcMsg");
           msg.className = ok ? "ok" : "err";
           msg.textContent = ok
             ? `Copied ${label}. Paste into the EMR (Ctrl+V).`
             : `Copy failed for ${label}.`;
-          wcScrollToNext();
-        }
-
-        // Fit the ward list box between its top and the bottom of the window
-        function wcFit() {
-          const box = $("wcScroll");
-          if (!box.offsetParent) return;
-          const top = box.getBoundingClientRect().top + scrollY;
-          box.style.maxHeight = `${Math.max(200, innerHeight - top - 80)}px`;
-        }
-
-        // Scroll only the ward list box (not the page) so the next ward is in
-        // view, with a couple of rows after it showing
-        function wcScrollToNext() {
-          const box = $("wcScroll");
-          const row = box.querySelector(".wcode.next")?.closest("tr");
-          if (!row) return;
-          const head = box.querySelector("thead").offsetHeight;
-          const ahead = row.offsetHeight * 2;
-          if (row.offsetTop - head < box.scrollTop)
-            box.scrollTop = row.offsetTop - head;
-          else if (
-            row.offsetTop + row.offsetHeight + ahead >
-            box.scrollTop + box.clientHeight
-          )
-            box.scrollTop =
-              row.offsetTop + row.offsetHeight + ahead - box.clientHeight;
-        }
-
-        function wcSetMsg(text) {
-          $("wcMsg").className = "";
-          $("wcMsg").textContent = text;
+          setTimeout(() => (msg.textContent = ""), 6000);
         }
 
         const PAGES = [
           "planner",
-          "wards",
           "directory",
           "medicines",
           "conditions",
@@ -3762,7 +3601,6 @@
               ? location.pathname + location.search
               : "#" + page,
           );
-          wcFit();
         }
 
         // =====================================================================
@@ -4513,7 +4351,6 @@
 
         function render() {
           renderStatus();
-          renderWardPage();
           const has = state.wards.size > 0 || noRecordPages() > 0;
           $("controls").hidden =
             $("output").hidden =
@@ -4531,8 +4368,7 @@
         // shortcuts on the page to the functions above:
         // - Drag-and-drop and file/folder picker buttons for loading reports
         // - Top navigation bar buttons for switching pages
-        // - "Copy next / Copy all / Copy order types / Undo / Reset" buttons on
-        //   the Ward List page
+        // - "Copy ward codes for reports" and "Copy order types" buttons
         // - "Columns..." pop-up dialog for showing/hiding table columns
         // - "Print" and "Expand/Collapse all" buttons and status checkboxes in
         //   Patient details
@@ -4544,22 +4380,35 @@
 
         // --- Drag-and-drop and file selection for reports ---
         const drop = $("drop");
+        // Dropping anywhere on the page loads the files. The browser only
+        // allows a drop if dragover is cancelled and marked as a copy.
         ["dragenter", "dragover"].forEach((ev) =>
           document.addEventListener(ev, (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
             drop.classList.add("over");
           }),
         );
-        ["dragleave", "drop"].forEach((ev) =>
-          document.addEventListener(ev, (e) => {
-            e.preventDefault();
-            if (ev === "drop" || e.target === drop)
-              drop.classList.remove("over");
-          }),
-        );
-        document.addEventListener("drop", async (e) =>
-          handleFiles(await filesFromDrop(e.dataTransfer)),
-        );
+        document.addEventListener("dragleave", (e) => {
+          e.preventDefault();
+          if (e.target === drop || e.relatedTarget === null)
+            drop.classList.remove("over");
+        });
+        document.addEventListener("drop", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          drop.classList.remove("over");
+          const files = [...((e.dataTransfer && e.dataTransfer.files) || [])];
+          if (!files.length) {
+            state.warnings.push(
+              'Nothing was loaded from the drop. Drag the PDF or text report files themselves, or use "Choose folder..." / "Choose files...".',
+            );
+            render();
+            return;
+          }
+          handleFiles(files);
+        });
         $("pickFolder").addEventListener("change", (e) => {
           handleFiles([...e.target.files]);
           e.target.value = "";
@@ -4592,35 +4441,18 @@
             ? location.hash.slice(1)
             : "planner",
         );
-        addEventListener("resize", wcFit);
-        $("wcTable").addEventListener("click", (e) => {
-          const b = e.target.closest("button[data-code]");
-          if (b) wcCopy(b.dataset.code);
-        });
-        $("wcNext").addEventListener("click", () => {
-          const next = wcNextCode();
-          if (next) wcCopy(next);
-        });
-        $("wcAll").addEventListener("click", () => {
+        $("copyWards").addEventListener("click", () => {
           const codes = state.directory.map((d) => d.ward);
-          if (codes.length)
-            wcCopyList(codes, `all ${codes.length} ward codes`, true);
+          emrCopyList(
+            codes,
+            codes.length
+              ? `all ${codes.length} ward codes`
+              : "no ward directory loaded",
+          );
         });
-        $("wcOrders").addEventListener("click", () =>
-          wcCopyList(ORDER_TYPES, `order types (${ORDER_TYPES.join(", ")})`),
+        $("copyOrders").addEventListener("click", () =>
+          emrCopyList(ORDER_TYPES, `order types (${ORDER_TYPES.join(", ")})`),
         );
-        $("wcUndo").addEventListener("click", () => {
-          const code = wcDone.pop();
-          renderWardPage();
-          wcScrollToNext();
-          if (code) wcSetMsg(`Undone: ${code} is no longer marked as copied.`);
-        });
-        $("wcReset").addEventListener("click", () => {
-          wcDone = [];
-          renderWardPage();
-          wcScrollToNext();
-          wcSetMsg("Reset: no wards marked as copied.");
-        });
         $("dirSel").addEventListener("change", renderTable);
         $("optStaff").addEventListener("change", renderTable);
         // --- Column chooser pop-up dialog ("Columns..." button) ---

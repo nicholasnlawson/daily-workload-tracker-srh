@@ -91,35 +91,23 @@ list that lists each prescription.
 3. STEP 1 - RUN THE REPORTS IN THE EMR
 ------------------------------------------------------------------------------
 
-The "Ward list for EMR reports" page lets you paste ward codes and order types
-straight into the EMR report screen.
+Two buttons at the top of the Workload table page let you paste ward codes
+and order types straight into the EMR report screen.
 
-  1. Open Workload Planner.html and click "Ward list for EMR reports" in the
-     blue bar at the top.
+  1. Open Workload Planner.html. The buttons are above the report drop box.
 
-     [SCREENSHOT 3: The Ward list for EMR reports page]
+     [SCREENSHOT 3: The Copy ward codes for reports / Copy order types
+      buttons]
 
   2. In the EMR, open the report you want to run.
 
      [SCREENSHOT 4: The EMR report screen where ward codes are entered]
 
-  3. Enter the wards. Either:
+  3. Click "Copy ward codes for reports". This copies every ward code from
+     the Ward directory at once, one per line. Paste it into the EMR's ward
+     box with Ctrl+V.
 
-       - Click "Copy all". This copies every ward code at once, one per
-         line, then paste it into the EMR's ward box with Ctrl+V. All the
-         wards turn green to show they've been copied.
-
-       or, one ward at a time:
-
-       - Click "Copy next" (the button shows which ward is next), paste into
-         the EMR with Ctrl+V, and repeat. The next ward is highlighted blue;
-         copied wards turn green. You can also click any ward code to copy
-         just that one.
-
-     "Undo" un-marks the last ward copied. "Reset" clears all the marks.
-
-     [SCREENSHOT 5: Copy next / Copy all / Copy order types buttons, with
-      some wards green and the next one blue]
+     [SCREENSHOT 5: Ward codes pasted into the EMR]
 
   4. For the unreviewed list, the EMR also asks for order types. Click
      "Copy order types". This copies SCH, PRN, ONE and STA, one per line,
@@ -127,9 +115,8 @@ straight into the EMR report screen.
 
      [SCREENSHOT 6: Order types pasted into the EMR]
 
-     ("Copy all" and "Copy order types" copy the list the same way Microsoft
-     Word does, which is what the EMR needs to accept a whole list in one
-     paste.)
+     (Both buttons copy the list the same way Microsoft Word does, which is
+     what the EMR needs to accept a whole list in one paste.)
 
   5. Run the report and choose to output it as a PDF.
 
@@ -167,8 +154,7 @@ straight into the EMR report screen.
          to upload the folder's files to the page; this is normal, and
          nothing leaves your PC.
        - Click "Choose files..." and select the three PDFs.
-       - Drag the three PDFs (or the whole folder) onto the box at the top
-         of the page.
+       - Drag the three PDFs onto the box at the top of the page.
 
      [SCREENSHOT 9: The drag-and-drop box and Choose folder / Choose files
       buttons]
@@ -362,8 +348,8 @@ Use the buttons in the blue bar at the top:
   Changes apply for everyone the next time they open the planner. Keep a
   copy of the old file before making big changes.
 
-  Saving the ward directory also updates ward_codes.docx and the list on the
-  "Ward list for EMR reports" page.
+  Saving the ward directory also updates ward_codes.docx and the ward codes
+  copied by "Copy ward codes for reports".
 
 [SCREENSHOT 17: The Critical medicines page with an exception added]
 
@@ -399,8 +385,12 @@ Use the buttons in the blue bar at the top:
     not in the directory appear under "Not in directory" in the drop-down.
 
   Pasting a list into the EMR only pastes one line
-    Use "Copy all" or "Copy order types" (not Copy next), or copy from
+    Use "Copy ward codes for reports" or "Copy order types", or copy from
     ward_codes.docx in Word.
+
+  Dragging files onto the page does nothing
+    Drag the PDF files themselves (not the folder) from File Explorer, or
+    use "Choose folder..." / "Choose files..." instead.
 
   "Cannot read ... the lib folder is missing"
     The lib folder must be in the same folder as Workload Planner.html.
