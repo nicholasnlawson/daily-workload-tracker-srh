@@ -300,6 +300,19 @@
         padding: 5px 6px;
         border-bottom: 1px solid #ccc;
       }
+      /* Click-to-sort column headings (Surgeon mnemonics) */
+      table.ed thead th.sortable {
+        cursor: pointer;
+        user-select: none;
+      }
+      table.ed thead th.sortable:hover {
+        text-decoration: underline;
+      }
+      table.ed thead th.sortable .arrow {
+        color: #4c6272;
+        font-size: 11px;
+        margin-left: 4px;
+      }
       table.ed td {
         border-bottom: 1px solid #e3e6ea;
         padding: 2px 4px;
@@ -314,6 +327,11 @@
       }
       table.ed th.c-aliases {
         width: 44%;
+      }
+      /* Surgeon mnemonics: name, specialty and mnemonic columns */
+      #surgEdit th.c-name,
+      #surgEdit th.c-specialty {
+        width: 40%;
       }
       /* Wrapping boxes look like the single-line ones; the hidden copy that
          sizes them needs the same padding and border */
@@ -718,6 +736,11 @@
         color: #d5281b;
         font-weight: bold;
       }
+      .boarder {
+        color: #005eb8;
+        font-weight: bold;
+        white-space: nowrap;
+      }
       /* --- Print layout (@media print) ---
          When someone clicks "Print" on a ward list (or "Print all ward lists"),
          these rules format the output for A4 landscape paper, hide all menus,
@@ -795,6 +818,7 @@
         <button type="button" data-page="conditions">
           High-risk conditions
         </button>
+        <button type="button" data-page="surgeons">Surgeon mnemonics</button>
       </nav>
     </header>
     <main>
@@ -982,6 +1006,54 @@
       </section>
 
       <!--
+        PAGE: SURGEON MNEMONICS EDITOR
+        Allows staff to view and edit the list of surgeons, their specialty and
+        the mnemonic printed in the Consultant column of the ward list. On
+        Surgery wards, patients whose consultant mnemonic is not on this list
+        are counted as medical boarders. Saving writes "surgeon_mnemonics.js"
+        into the Workload Planner folder.
+      -->
+      <section id="surgPage" class="card" data-page="surgeons">
+        <h2>Surgeon mnemonics</h2>
+        <p class="legend">
+          Surgeons and the <b>mnemonic</b> printed in the Consultant column of
+          the ward list (e.g. <b>JATJ</b> for Mr Jignesh Jatania). On wards in
+          the <b>Surgery</b> directorate, any patient whose consultant mnemonic
+          is not on this list is counted as a <b>medical boarder</b>, and their
+          bed is listed in the <b>Boarders</b> column. Mnemonics must match the
+          ward list exactly (capitals don't matter). Click a column heading
+          to sort the list by it (names sort without Mr, Miss, Dr etc.; click
+          again to reverse). The saved file is always sorted by specialty,
+          then name. Changes take effect for everyone
+          once saved as <b>surgeon_mnemonics.js</b> in the Workload Planner
+          folder, replacing the old file.
+        </p>
+        <div class="btns ed-bar">
+          <input
+            type="search"
+            id="surgSearch"
+            placeholder="Search surgeons, specialties and mnemonics"
+          />
+          <button type="button" class="btn" data-ed-add="surg">
+            Add surgeon
+          </button>
+          <button type="button" class="btn primary" data-ed-save="surg">
+            Save surgeon_mnemonics.js&hellip;
+          </button>
+          <button type="button" class="btn" data-ed-discard="surg">
+            Discard changes
+          </button>
+          <button type="button" class="btn" data-ed-folder="surg" hidden>
+            Change save folder&hellip;
+          </button>
+          <span class="ed-msg" id="surgMsg"></span>
+        </div>
+        <div class="ed-errs" id="surgErrs"></div>
+        <div class="ed-scroll"><table class="ed" id="surgEdit"></table></div>
+        <datalist id="surgSpecialties"></datalist>
+      </section>
+
+      <!--
         PAGE: WORKLOAD TABLE (MAIN PAGE) — STEP 1: LOAD REPORTS
         The drag-and-drop box and file picker buttons where staff load the
         daily Ward List and Review List reports (PDF or text files), plus the
@@ -1073,8 +1145,11 @@
           the report date. <b>Unreviewed items</b> come from the review list
           PDF: Total, and those prescribed more than 48 hrs / 7 days before the
           review list was run (&gt;48 hrs includes the &gt;7 days items);
-          &ndash; means no review list was loaded for that ward. Boarders and
-          the white boxes are typed in by hand.
+          &ndash; means no review list was loaded for that ward. On Surgery
+          wards, <b>Boarders</b> lists the beds of medical boarders (patients
+          whose consultant mnemonic isn't on the <b>Surgeon mnemonics</b>
+          list), and its Total is the number of boarders; it can be changed by
+          hand. The other white boxes are typed in by hand.
         </p>
       </section>
 
@@ -1117,6 +1192,9 @@
          directorates (edited on the "Ward directory" page).
       2. critical_meds.js  — The list of high-risk medicines and exceptions
          (edited on the "Critical medicines" page).
+         high_risk_conditions.js and surgeon_mnemonics.js are loaded the same
+         way (edited on the "High-risk conditions" and "Surgeon mnemonics"
+         pages).
       3. lib/pdf.min.js & lib/pdf.worker.min.js — Mozilla's PDF.js library
          (version 3.11.174, Apache 2.0 licence), bundled in the "lib" folder so
          PDFs can be read completely offline on the user's computer without
@@ -1139,6 +1217,10 @@
     <script
       src="high_risk_conditions.js"
       onerror="DATA_MISSING.push('high_risk_conditions.js')"
+    ></script>
+    <script
+      src="surgeon_mnemonics.js"
+      onerror="DATA_MISSING.push('surgeon_mnemonics.js')"
     ></script>
     <script src="lib/pdf.min.js"></script>
     <script src="lib/pdf.worker.min.js"></script>
@@ -1231,6 +1313,9 @@
           critFile: null,
           conditions: [],
           condFile: null,
+          surgeons: [],
+          surgMnemonics: new Set(),
+          surgFile: null,
           hxWards: new Map(),
           files: [],
           warnings: [],
@@ -1346,6 +1431,12 @@
           const t = tokens.find((x) => RE_MRN.test(x));
           return t ? t.toUpperCase() : "";
         };
+        // Consultant mnemonic (e.g. JOIK, ITD.MP): at least two letters, so it
+        // can't be the sex (M/F) or an age (e.g. 2m, 24d)
+        const isMnemonic = (s) =>
+          /[A-Za-z].*[A-Za-z]/.test(s) &&
+          !RE_MRN.test(s) &&
+          !/^\d{1,2}:\d{2}$/.test(s);
 
         // A "ward list with history" is a variant of the Ward List that prints
         // each patient's past medical history underneath them, starting at the
@@ -1371,7 +1462,8 @@
             ward = null,
             patient = null,
             inHeader = false,
-            afterPageHeader = false;
+            afterPageHeader = false,
+            consCol = null;
           const found = [];
 
           const startWard = (code) => {
@@ -1463,6 +1555,17 @@
             if ((m = line.match(RE_PATIENT))) {
               if (!ward)
                 startWard(found.length ? "UNKNOWN" : fromName || "UNKNOWN");
+              // The consultant mnemonic is the last item before the admission
+              // date. If it's missing there, it may be printed on the line below
+              // (to the right of where the sex/age column ends)
+              const before = line.slice(0, line.lastIndexOf(m[3])).trimEnd();
+              const last = before.match(/\S+$/);
+              const cons =
+                last &&
+                last.index >= line.indexOf(m[2]) + m[2].length &&
+                isMnemonic(last[0])
+                  ? norm(last[0])
+                  : "";
               patient = {
                 bed: m[1],
                 mrn: findMrn(line.trim().split(/\s+/).slice(1)),
@@ -1470,10 +1573,24 @@
                 status: null,
                 admitDate: m[3],
                 admitTime: null,
+                consultant: cons,
                 ...(withHx ? { history: [] } : {}),
               };
+              consCol = cons ? null : before.length;
               ward.patients.push(patient);
               continue;
+            }
+            if (
+              patient &&
+              consCol != null &&
+              line.trim() &&
+              !(withHx && /^\S/.test(line))
+            ) {
+              const t = [...line.matchAll(/\S+/g)].find(
+                (x) => x.index >= consCol && isMnemonic(x[0]),
+              );
+              if (t) patient.consultant = norm(t[0]);
+              consCol = null;
             }
             // Past medical history lines start at the left edge of the page
             if (withHx && /^\S/.test(line)) {
@@ -1507,6 +1624,7 @@
         //   window.WARD_DIRECTORY = { "wards": [ {ward, display, specialty, directorate, partOf?}, ... ] };
         //   window.CRITICAL_MEDS  = { "medications": [ {name, aliases: [...], exceptions?: [...]}, ... ] };
         //   window.HIGH_RISK_CONDITIONS = { "conditions": [ {name, aliases: [...], exceptions?: [...]}, ... ] };
+        //   window.SURGEON_MNEMONICS = { "surgeons": [ {name, specialty, mnemonic}, ... ] };
         const DATA_FILES = {
           dir: {
             file: "ward_directory.js",
@@ -1529,8 +1647,30 @@
             title: "High-risk conditions list",
             page: "High-risk conditions",
           },
+          surg: {
+            file: "surgeon_mnemonics.js",
+            global: "SURGEON_MNEMONICS",
+            key: "surgeons",
+            title: "Surgeon mnemonics list",
+            page: "Surgeon mnemonics",
+          },
         };
         const clean = (s) => String(s ?? "").trim();
+
+        // Surgeons and the mnemonic shown in the ward list's Consultant column.
+        // On Surgery wards, a patient whose consultant mnemonic isn't on this
+        // list is a medical boarder.
+        function setSurgeons(list, label) {
+          state.surgeons = (list || [])
+            .map((r) => ({
+              name: clean(r.name),
+              specialty: clean(r.specialty),
+              mnemonic: norm(r.mnemonic),
+            }))
+            .filter((r) => r.mnemonic);
+          state.surgMnemonics = new Set(state.surgeons.map((r) => r.mnemonic));
+          state.surgFile = label;
+        }
 
         function setDirectory(list, label) {
           state.directory = (list || [])
@@ -2271,6 +2411,28 @@
               state.wards.set(w.code, state.hxWards.get(w.code));
           }
         }
+        // A review list or ward list with history is only used for a ward if it
+        // was run within an hour of that ward's ward list; otherwise the ward's
+        // numbers come from its ward list alone. (Checked when used, so files
+        // can be loaded in any order.)
+        const MAX_REPORT_GAP_MS = 3600 * 1000;
+        const isStale = (code, entry) => {
+          const w = state.wards.get(code);
+          return !!(
+            w &&
+            w !== entry &&
+            w.reportDate &&
+            entry.reportDate &&
+            Math.abs(w.reportDate - entry.reportDate) > MAX_REPORT_GAP_MS
+          );
+        };
+        const fresh = (map) =>
+          new Map([...map].filter(([code, x]) => !isStale(code, x)));
+        const staleIn = (map, codes) =>
+          codes.filter((c) => map.has(c) && isStale(c, map.get(c)));
+        const staleWarning = (code, entry, label, effect) =>
+          `${code}: ${label} "${entry.file}" (run ${fmtDateTime(entry.reportDate)}) ignored: not within 1 hr of the ward list "${state.wards.get(code).file}" (run ${fmtDateTime(state.wards.get(code).reportDate)}); ${effect}.`;
+
         // "No records found" pages: from plain ward lists if any were loaded
         const noRecordPages = () =>
           state.files.some((f) => f.kind === "ward list")
@@ -2563,7 +2725,7 @@
                 (a, b) => order.indexOf(a.part) - order.indexOf(b.part),
               );
             }
-          const reviews = merge(state.reviews, (c, rv) => {
+          const reviews = merge(fresh(state.reviews), (c, rv) => {
             rv.items.forEach((it) => (it.rd = rv.reportDate));
             c.items = [...(c.items || []), ...rv.items];
           });
@@ -2628,9 +2790,47 @@
             .map((c) => view.wards.get(c) || { code: c, closed: true });
         }
 
+        // medBords is null until typed in, so the Boarders box shows the
+        // medical boarders found automatically (see boarderText)
         const editOf = (code) =>
           state.edits[code] ||
-          (state.edits[code] = { medBords: "", am: "", pm: "", comment: "" });
+          (state.edits[code] = { medBords: null, am: "", pm: "", comment: "" });
+
+        // Medical boarders: on wards in a Surgery directorate (once the surgeon
+        // mnemonics list is loaded), patients whose consultant mnemonic isn't
+        // on the list. Patients with no consultant found aren't counted.
+        const isSurgicalWard = (code) => {
+          const d = dirEntry(code);
+          return (
+            !!d &&
+            SURGERY_DIRECTORATES.includes(d.directorate.trim().toLowerCase())
+          );
+        };
+        const findsBoarders = (w) =>
+          !w.closed && state.surgMnemonics.size > 0 && isSurgicalWard(w.code);
+        const medicalBoarders = (w) =>
+          findsBoarders(w)
+            ? w.patients.filter(
+                (p) => p.consultant && !state.surgMnemonics.has(p.consultant),
+              )
+            : [];
+        // Boarders box: the typed text, or else the medical boarders' beds
+        const boarderText = (w) =>
+          editOf(w.code).medBords ??
+          medicalBoarders(w)
+            .map((p) => p.bed)
+            .join(", ");
+        // Number of boarders: the beds listed on wards where they are found
+        // automatically, otherwise the number typed in
+        const boarderCount = (w) => {
+          if (w.closed) return 0;
+          const v = boarderText(w);
+          return findsBoarders(w)
+            ? v.split(/[\s,;]+/).filter(Boolean).length
+            : parseInt(v, 10) || 0;
+        };
+        const boarderWidth = (v) =>
+          Math.min(30, Math.max(3, String(v).length + 1)) + "ch";
 
         // Assigns each pharmacist name typed into the AM/PM columns a distinct
         // pastel colour from PALETTE so it is easy to see at a glance which
@@ -2677,10 +2877,10 @@
             : "";
           const td = (extra = "") => (email ? ` style="${B}${extra}"` : "");
           const blank0 = (n) => (n ? n : "");
-          const inp = (code, key, val, cls = "") =>
+          const inp = (code, key, val, cls = "", attrs = "") =>
             email
               ? esc(val)
-              : `<input data-ward="${esc(code)}" data-key="${key}" value="${esc(val)}" class="${cls}" size="1">`;
+              : `<input data-ward="${esc(code)}" data-key="${key}" value="${esc(val)}" class="${cls}" size="1"${attrs}>`;
           // Pharmacist and comment boxes grow with their text (wider, then onto
           // more lines); Enter starts a new line
           const grow = (code, key, val) =>
@@ -2802,8 +3002,15 @@
                     `<td class="num"${email ? td("text-align:center;" + colColor(c)) : colColor(c) ? ` style="${colColor(c)}"` : ""}>${cellValue(c, s, "&ndash;")}</td>`,
                 )
                 .join("");
-              if (show.mb)
-                html += `<td class="edit num"${td("text-align:center;")}>${inp(w.code, "medBords", e.medBords)}</td>`;
+              if (show.mb) {
+                // Wide enough for the list of beds; hover shows each
+                // boarder's consultant
+                const v = boarderText(w);
+                const tip = medicalBoarders(w)
+                  .map((p) => `Bed ${p.bed}: ${p.consultant}`)
+                  .join("\n");
+                html += `<td class="edit num"${td("text-align:center;")}>${inp(w.code, "medBords", v, "", ` style="width:${boarderWidth(v)}"${tip ? ` title="Medical boarders (consultant not on the Surgeon mnemonics list):\n${esc(tip)}"` : ""}`)}</td>`;
+              }
             }
             if (show.pharm) {
               const cs = (k) => (email ? td(bg(k)) : ` style="${bg(k)}"`);
@@ -2828,10 +3035,7 @@
                   `<td${TBc(colColor(c))}>${cellValue(c, totals, "&ndash;")}</td>`,
               )
               .join("");
-            const mb = wards.reduce(
-              (a, w) => a + (parseInt(editOf(w.code).medBords, 10) || 0),
-              0,
-            );
+            const mb = wards.reduce((a, w) => a + boarderCount(w), 0);
             if (show.mb) html += `<td${TB}>${blank0(mb)}</td>`;
             const sc = (show.pharm ? 2 : 0) + (show.comment ? 1 : 0);
             if (sc) html += `<td${TB} colspan="${sc}"></td>`;
@@ -2882,7 +3086,7 @@
               ? [
                   ...(pts ? [s.pts] : []),
                   ...cols.map((c) => cellValue(c, s, "-")),
-                  ...(mb ? [e.medBords] : []),
+                  ...(mb ? [boarderText(w)] : []),
                 ]
               : [
                   ...(pts ? [""] : []),
@@ -3009,7 +3213,7 @@
           const byMrn = new Map(),
             byBed = new Map();
           const bedKey = (code, p) => `${code}|${norm(p.bed)}|${norm(p.name)}`;
-          for (const w of state.hxWards.values())
+          for (const w of fresh(state.hxWards).values())
             for (const p of w.patients) {
               if (p.mrn) byMrn.set(p.mrn, p.history);
               byBed.set(bedKey(w.code, p), p.history);
@@ -3027,6 +3231,7 @@
               const rv = combined().reviews.get(w.code);
               const match = matchReviews(w);
               const shown = w.patients.filter((p) => stShown.has(stCat(p)));
+              const bords = new Set(medicalBoarders(w));
               const rows = shown
                 .map((p) => {
                   const items = match ? match.byPatient.get(p) || [] : null;
@@ -3131,7 +3336,10 @@
                       : "");
                   const comment = st ? esc(st.comment) : "";
                   const critRow = comment && hasFlag;
-                  return `<tr class="${old ? "old" : ""}"><td>${esc(p.bed)}</td><td>${esc(p.name)}</td>
+                  const boarder = bords.has(p)
+                    ? ` <span class="boarder" title="Consultant ${esc(p.consultant)} is not on the Surgeon mnemonics list">Medical boarder (${esc(p.consultant)})</span>`
+                    : "";
+                  return `<tr class="${old ? "old" : ""}"><td>${esc(p.bed)}</td><td>${esc(p.name)}${boarder}</td>
           <td class="c">${p.admitted && !isNaN(p.admitted) ? fmtDate(p.admitted) : ""}</td><td class="c">${valid || hrs == null ? "" : Math.floor(hrs)}</td>
           ${
             st
@@ -3170,22 +3378,33 @@
                     })
                     .join("; ")}</div>`
                 : "";
-              const rvNote = rv
-                ? `review list run ${fmtDateTime(rv.reportDate)} ("${esc(rv.file)}")`
-                : "no review list loaded";
+              const codes = w.parts || [w.code];
+              const staleRv = staleIn(state.reviews, codes);
+              const staleHx = staleIn(state.hxWards, codes);
+              const rvNote =
+                (rv
+                  ? `review list run ${fmtDateTime(rv.reportDate)} ("${esc(rv.file)}")`
+                  : "no review list loaded") +
+                (staleRv.length
+                  ? ` <span class="err">(review list for ${esc(staleRv.join(", "))} ignored: not run within 1 hr of the ward list)</span>`
+                  : "");
               // Only mentioned once a ward list with history has been loaded
+              const freshHx = fresh(state.hxWards);
               const hxLists = [
-                ...new Set(
-                  (w.parts || [w.code])
-                    .map((c) => state.hxWards.get(c))
-                    .filter(Boolean),
-                ),
+                ...new Set(codes.map((c) => freshHx.get(c)).filter(Boolean)),
               ];
-              const hxNote = !state.hxWards.size
-                ? ""
-                : hxLists.length
-                  ? `; past medical history from ${hxLists.map((h) => `ward list with history run ${fmtDateTime(h.reportDate)} ("${esc(h.file)}")`).join(", ")}`
-                  : "; no ward list with history loaded for this ward";
+              const hxNote =
+                (!state.hxWards.size
+                  ? ""
+                  : hxLists.length
+                    ? `; past medical history from ${hxLists.map((h) => `ward list with history run ${fmtDateTime(h.reportDate)} ("${esc(h.file)}")`).join(", ")}`
+                    : "; no ward list with history loaded for this ward") +
+                (staleHx.length
+                  ? ` <span class="err">(ward list with history for ${esc(staleHx.join(", "))} ignored: not run within 1 hr of the ward list)</span>`
+                  : "");
+              const boarderKey = findsBoarders(w)
+                ? " Medical boarder = consultant mnemonic (in brackets) not on the Surgeon mnemonics list."
+                : "";
               const hxKey = state.hxWards.size
                 ? " CRITICAL MEDS also include critical medicines named in a Hx patient's past medical history (exact names and aliases only)." +
                   " HIGH-RISK CONDITIONS = conditions from the high-risk conditions list found in a Hx patient's past medical history (? = only found allowing for a misspelling; hover to check)."
@@ -3193,7 +3412,7 @@
               return `<details class="detail-ward" data-ward="${esc(w.code)}"${openWards.has(w.code) ? " open" : ""}>
         <summary><h3>${esc(d ? d.display : w.code)}${d && d.specialty ? " &ndash; " + esc(d.specialty) : ""} &ndash; ${shown.length === w.patients.length ? "" : `${shown.length} of `}${w.patients.length} patients
           <button class="btn small no-print" data-print="${esc(w.code)}">Print</button></h3></summary>
-        <div class="det-meta">Ward list run ${fmtDateTime(w.reportDate)} ("${esc(w.file)}"); ${rvNote}${hxNote}.${partsNote} * = status not recognised, counted as Hx. Hrs = hours since admission (Hx patients only). Unrev. items = unreviewed items matched by hospital number, with those &gt;48 hrs old in brackets. CRITICAL MEDS = medicines from the critical medicines list found in a Hx patient's unreviewed items.${hxKey}</div>
+        <div class="det-meta">Ward list run ${fmtDateTime(w.reportDate)} ("${esc(w.file)}"); ${rvNote}${hxNote}.${partsNote} * = status not recognised, counted as Hx. Hrs = hours since admission (Hx patients only). Unrev. items = unreviewed items matched by hospital number, with those &gt;48 hrs old in brackets. CRITICAL MEDS = medicines from the critical medicines list found in a Hx patient's unreviewed items.${hxKey}${boarderKey}</div>
         <table class="det">
           <colgroup><col style="width:44px"><col style="width:190px"><col style="width:62px"><col style="width:44px"><col style="width:50px"><col style="width:62px"><col style="width:40px"><col><col style="width:66px"></colgroup>
           <thead><tr><th>Bed</th><th>Patient</th><th>Admitted</th><th>Hrs</th><th>Status</th><th>Last r/v</th><th>Days ago</th><th>Comments</th><th>Unrev. items (&gt;48 hrs)</th></tr></thead>
@@ -3230,6 +3449,11 @@
             state.condFile
               ? `<div class="ok">High-risk conditions: "${esc(state.condFile)}" (${state.conditions.length} conditions)</div>`
               : `<div class="err">No high-risk conditions list loaded. ${dataProblem("cond")} High-risk conditions won't be flagged.</div>`,
+          );
+          out.push(
+            state.surgFile
+              ? `<div class="ok">Surgeon mnemonics: "${esc(state.surgFile)}" (${state.surgeons.length} surgeons)</div>`
+              : `<div class="err">No surgeon mnemonics list loaded. ${dataProblem("surg")} Medical boarders on Surgery wards won't be found.</div>`,
           );
           if (state.files.length) {
             out.push(
@@ -3281,9 +3505,29 @@
           }
           for (const w of state.wards.values()) {
             const s = wardStats(w);
-            if (state.reviews.size && !state.reviews.has(w.code))
+            const rv = state.reviews.get(w.code);
+            if (rv && isStale(w.code, rv))
+              warns.push(
+                staleWarning(
+                  w.code,
+                  rv,
+                  "review list",
+                  "the Unreviewed items columns will show \u2013",
+                ),
+              );
+            else if (state.reviews.size && !rv)
               warns.push(
                 `${w.code}: no review list loaded (if this ward has no unreviewed items, its review list may not have been printed).`,
+              );
+            const hx = state.hxWards.get(w.code);
+            if (hx && isStale(w.code, hx))
+              warns.push(
+                staleWarning(
+                  w.code,
+                  hx,
+                  "ward list with history",
+                  "past medical history, and the critical medicines and high-risk conditions found in it, will not be shown",
+                ),
               );
             if (w.withHx)
               warns.push(
@@ -3300,6 +3544,13 @@
             if (s.noAdmit.length)
               warns.push(
                 `${w.code}: admission date not found for Hx bed(s) ${s.noAdmit.join(", ")}; not included in the Hx time columns.`,
+              );
+            const noCons = findsBoarders(w)
+              ? w.patients.filter((p) => !p.consultant).map((p) => p.bed)
+              : [];
+            if (noCons.length)
+              warns.push(
+                `${w.code}: consultant not found for bed(s) ${noCons.join(", ")}; not checked for medical boarders.`,
               );
             if (state.dirFile && !dirEntry(w.code))
               warns.push(
@@ -3488,6 +3739,7 @@
           "directory",
           "medicines",
           "conditions",
+          "surgeons",
         ];
         function showPage(page) {
           document.body.dataset.page = page;
@@ -3543,6 +3795,7 @@
             ],
             ordered: true,
             set: setDirectory,
+            lists: { directorate: "dirDirectorates", partOf: "dirParts" },
           },
           crit: {
             label: "medicine",
@@ -3570,7 +3823,40 @@
             search: "condSearch",
             onlyExc: "condOnlyExc",
           },
+          surg: {
+            label: "surgeon",
+            page: "surgeons",
+            fields: [
+              ["name", "Surgeon"],
+              ["specialty", "Specialty"],
+              ["mnemonic", "Mnemonic"],
+            ],
+            list: () => state.surgeons,
+            set: setSurgeons,
+            search: "surgSearch",
+            lists: { specialty: "surgSpecialties" },
+            sortable: true,
+          },
         };
+        // Column sort chosen by clicking a heading on the Surgeon mnemonics
+        // page ({ f, desc }); the display order only, not saved
+        const edSort = { surg: null };
+        // Names sort without their title (Mr, Mr., Miss / Mrs, Dr, ...)
+        const RE_TITLE =
+          /^(?:(?:mr|mrs|miss|ms|mx|dr|prof|professor|sir|dame|lady)\.?\s*(?:\/\s*)?)+/i;
+        const sortKey = (f, v) =>
+          f === "name" ? clean(v).replace(RE_TITLE, "") : clean(v);
+        function edApplySort(kind) {
+          const s = edSort[kind];
+          if (!s) return;
+          drafts[kind].sort(
+            (a, b) =>
+              (s.desc ? -1 : 1) *
+              sortKey(s.f, a[s.f]).localeCompare(sortKey(s.f, b[s.f]), "en", {
+                sensitivity: "base",
+              }),
+          );
+        }
         // Text box that wraps onto more lines as the text grows (see .grow)
         const growBox = (attrs, val, label) =>
           `<div class="grow" data-val="${esc(val)}"><textarea rows="1" ${attrs} aria-label="${label}">${esc(val)}</textarea></div>`;
@@ -3595,8 +3881,8 @@
             .join(
               "",
             )}<button type="button" class="link" data-act="xadd">+ Add exception</button></td>`;
-        const drafts = { dir: [], crit: [], cond: [] };
-        const dirty = { dir: false, crit: false, cond: false };
+        const drafts = { dir: [], crit: [], cond: [], surg: [] };
+        const dirty = { dir: false, crit: false, cond: false, surg: false };
         const splitAliases = (s) => String(s).split(",").map(clean);
 
         function edSetDirty(kind, on) {
@@ -3617,22 +3903,31 @@
           drafts[kind] =
             kind === "dir"
               ? state.directory.map((d) => ({ ...d }))
-              : ED[kind].list().map((c) => ({
-                  name: c.name,
-                  aliases: c.aliases.join(", "),
-                  exceptions: c.exceptions.map((x) => ({ ...x })),
-                }));
+              : kind === "surg"
+                ? state.surgeons.map((s) => ({ ...s }))
+                : ED[kind].list().map((c) => ({
+                    name: c.name,
+                    aliases: c.aliases.join(", "),
+                    exceptions: c.exceptions.map((x) => ({ ...x })),
+                  }));
+          edApplySort(kind);
           edSetDirty(kind, false);
           $(kind + "Errs").innerHTML = "";
           edRender(kind);
         }
 
         function edRender(kind, bad = new Set()) {
-          const { fields, ordered, label, rules } = ED[kind];
+          const { fields, ordered, label, rules, lists = {}, sortable } =
+            ED[kind];
           const rows = drafts[kind];
           const last = rows.length - 1;
+          const s = edSort[kind];
+          const th = (f, l) =>
+            sortable
+              ? `<th class="c-${f} sortable" data-sort="${f}" title="Click to sort by ${l.toLowerCase()}">${l}<span class="arrow">${s && s.f === f ? (s.desc ? "&#9660;" : "&#9650;") : "&#8597;"}</span></th>`
+              : `<th class="c-${f}">${l}</th>`;
           $(kind + "Edit").innerHTML =
-            `<thead><tr><th></th>${fields.map(([f, l]) => `<th class="c-${f}">${l}</th>`).join("")}${rules ? '<th class="c-exc">Exceptions (not flagged when&hellip;)</th>' : ""}<th></th></tr></thead><tbody>` +
+            `<thead><tr><th></th>${fields.map(([f, l]) => th(f, l)).join("")}${rules ? '<th class="c-exc">Exceptions (not flagged when&hellip;)</th>' : ""}<th></th></tr></thead><tbody>` +
             rows
               .map(
                 (r, i) =>
@@ -3640,7 +3935,7 @@
                     .map(([f, l, wrap]) =>
                       wrap
                         ? `<td>${growBox(`data-f="${f}"`, r[f], l)}</td>`
-                        : `<td><input data-f="${f}" value="${esc(r[f])}" aria-label="${l}"${f === "directorate" ? ' list="dirDirectorates"' : f === "partOf" ? ' list="dirParts"' : ""}></td>`,
+                        : `<td><input data-f="${f}" value="${esc(r[f])}" aria-label="${l}"${lists[f] ? ` list="${lists[f]}"` : ""}></td>`,
                     )
                     .join(
                       "",
@@ -3652,31 +3947,32 @@
               )
               .join("") +
             "</tbody>";
-          if (kind === "dir") dirSuggestions();
-          else listFilter(kind);
+          edSuggestions(kind);
+          if (kind !== "dir") listFilter(kind);
         }
 
-        // Directorate and Part of box suggestions: the values already in use
-        const dirSuggestions = () =>
-          [
-            ["dirDirectorates", "directorate"],
-            ["dirParts", "partOf"],
-          ].forEach(
-            ([id, f]) =>
+        // Box suggestions (e.g. directorate, Part of, surgeon specialty): the
+        // values already in use
+        const edSuggestions = (kind) =>
+          Object.entries(ED[kind].lists || {}).forEach(
+            ([f, id]) =>
               ($(id).innerHTML = [
-                ...new Set(drafts.dir.map((r) => clean(r[f])).filter(Boolean)),
+                ...new Set(
+                  drafts[kind].map((r) => clean(r[f])).filter(Boolean),
+                ),
               ]
                 .sort()
                 .map((d) => `<option value="${esc(d)}">`)
                 .join("")),
           );
 
-        // Critical medicines / high-risk conditions search: hide rows whose
-        // name, aliases and exception values don't match (and, if ticked, those
-        // without exceptions)
+        // Critical medicines / high-risk conditions / surgeon mnemonics
+        // search: hide rows whose text (name, aliases, exception values,
+        // specialty, mnemonic) doesn't match (and, if ticked, those without
+        // exceptions)
         function listFilter(kind) {
           const q = $(ED[kind].search).value.trim().toLowerCase();
-          const onlyExc = $(ED[kind].onlyExc).checked;
+          const onlyExc = ED[kind].onlyExc && $(ED[kind].onlyExc).checked;
           $(kind + "Edit")
             .querySelectorAll("tbody tr")
             .forEach((tr) => {
@@ -3686,7 +3982,11 @@
                 !r._new &&
                 ((onlyExc && !x.length) ||
                   (!!q &&
-                    !`${r.name} ${r.aliases} ${x.map((e) => e.value).join(" ")}`
+                    ![
+                      ...ED[kind].fields.map(([f]) => r[f]),
+                      ...x.map((e) => e.value),
+                    ]
+                      .join(" ")
                       .toLowerCase()
                       .includes(q)));
             });
@@ -3727,6 +4027,18 @@
                 return fail(
                   `"Part of" name "${partOf}" is the same as a ward code; use a different name.`,
                 );
+            } else if (kind === "surg") {
+              // The same mnemonic may be listed under more than one name
+              item = {
+                name: clean(r.name),
+                specialty: clean(r.specialty),
+                mnemonic: norm(r.mnemonic),
+              };
+              if (!item.name) return fail("the surgeon's name is missing.");
+              if (!item.mnemonic) return fail("the mnemonic is missing.");
+              if (/\s/.test(item.mnemonic))
+                return fail(`mnemonic "${item.mnemonic}" contains a space.`);
+              key = `${item.name.toLowerCase()}|${item.mnemonic}`;
             } else {
               const name = clean(r.name);
               if (!name) return fail(`the ${ED[kind].label} name is missing.`);
@@ -3762,15 +4074,18 @@
             }
             if (seen.has(key))
               return fail(
-                `"${kind === "dir" ? key : item.name}" is already on row ${seen.get(key) + 1}.`,
+                `"${kind === "dir" ? key : kind === "surg" ? `${item.name} (${item.mnemonic})` : item.name}" is already on row ${seen.get(key) + 1}.`,
               );
             seen.set(key, i);
             items.push(item);
           });
-          if (kind !== "dir")
-            items.sort((a, b) =>
-              a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
+          const az = (a, b) =>
+            a.localeCompare(b, "en", { sensitivity: "base" });
+          if (kind === "surg")
+            items.sort(
+              (a, b) => az(a.specialty, b.specialty) || az(a.name, b.name),
             );
+          else if (kind !== "dir") items.sort((a, b) => az(a.name, b.name));
           return { items, errors, bad };
         }
 
@@ -4078,13 +4393,20 @@
               e.preventDefault();
           });
           table.addEventListener("change", (e) => {
-            if (
-              kind === "dir" &&
-              ["directorate", "partOf"].includes(e.target.dataset.f)
-            )
-              dirSuggestions();
+            if ((ED[kind].lists || {})[e.target.dataset.f]) edSuggestions(kind);
           });
           table.addEventListener("click", (e) => {
+            const h = e.target.closest("th[data-sort]");
+            if (h) {
+              const cur = edSort[kind];
+              edSort[kind] = {
+                f: h.dataset.sort,
+                desc: !!cur && cur.f === h.dataset.sort && !cur.desc,
+              };
+              edApplySort(kind);
+              edRender(kind);
+              return;
+            }
             const b = e.target.closest("button[data-act]");
             if (!b) return;
             const i = Number(b.closest("tr").dataset.i);
@@ -4178,11 +4500,12 @@
             edMsg(kind, "Changes discarded.");
           }),
         );
-        for (const kind of ["crit", "cond"]) {
+        for (const kind of ["crit", "cond", "surg"]) {
           $(ED[kind].search).addEventListener("input", () => listFilter(kind));
-          $(ED[kind].onlyExc).addEventListener("change", () =>
-            listFilter(kind),
-          );
+          if (ED[kind].onlyExc)
+            $(ED[kind].onlyExc).addEventListener("change", () =>
+              listFilter(kind),
+            );
         }
         addEventListener("beforeunload", (e) => {
           if (Object.values(dirty).some(Boolean)) e.preventDefault();
@@ -4434,6 +4757,8 @@
           if (t.dataset.staff) state.staff[t.dataset.staff] = t.value;
           else if (t.dataset.ward)
             editOf(t.dataset.ward)[t.dataset.key] = t.value;
+          if (t.dataset.key === "medBords")
+            t.style.width = boarderWidth(t.value);
           if (t.parentNode.classList.contains("grow"))
             t.parentNode.dataset.val = t.value;
         });

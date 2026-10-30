@@ -39,11 +39,14 @@ move them:
   critical_meds.js           The critical medicines (and exceptions) to flag.
   high_risk_conditions.js    High-risk conditions to look for in past
                              medical history.
+  surgeon_mnemonics.js       Surgeons and their ward list mnemonics, used to
+                             find medical boarders on Surgery wards.
   ward_codes.docx            Word list of ward codes. Rewritten automatically
                              when the ward directory is saved - don't edit it.
 
-The ward directory, critical medicines and high-risk conditions lists load by
-themselves when the page opens. You never need to select them.
+The ward directory, critical medicines, high-risk conditions and surgeon
+mnemonics lists load by themselves when the page opens. You never need to
+select them.
 
 Use Microsoft Edge to open the tool.
 
@@ -206,9 +209,15 @@ Then read any "Check:" warnings. Common ones:
 
   1. Choose your directorate from the "Directorate" drop-down.
 
-  2. Fill in the white boxes by hand where needed:
-       - Boarders for each ward (Surgery only, unless switched on under
-         "Columns...").
+  2. Check the Boarders column, then fill in the other white boxes by hand
+     where needed:
+       - Boarders (Surgery only, unless switched on under "Columns...").
+         On wards in the Surgery directorate this fills in by itself with the
+         bed numbers of medical boarders: patients whose Consultant mnemonic
+         on the ward list isn't on the Surgeon mnemonics list. Hover over the
+         box to see each boarder's consultant. The Total row shows the number
+         of boarders. You can still change the box by hand. On other wards,
+         type the number of boarders.
        - Optionally tick "Include staffing & pharmacist allocation". This adds
          the Co-ordinator / Meds Rec boxes and the AM / PM pharmacist and
          Comment columns. Each pharmacist's name is coloured automatically.
@@ -294,6 +303,11 @@ Flags for Hx patients (shown in the Comments column):
     history line. A name ending in "?" was matched allowing for a spelling
     mistake, so check it.
 
+  Medical boarder (blue), on Surgery wards
+    The patient's consultant mnemonic (shown in brackets) isn't on the
+    Surgeon mnemonics list. If a surgeon is wrongly shown as a boarder, add
+    their mnemonic on the Surgeon mnemonics page.
+
   Unreviewed items that can't be matched to a patient on the ward list (for
   example, the patient has moved or been discharged) are listed in red under
   that ward.
@@ -338,6 +352,11 @@ Use the buttons in the blue bar at the top:
     Each condition's name, aliases and exceptions (e.g. Epilepsy with
     "History line contains: family history").
 
+  Surgeon mnemonics
+    Each surgeon's name, specialty and the mnemonic printed in the ward
+    list's Consultant column (e.g. JATJ). Must match the ward list exactly
+    (capitals don't matter). Used to find medical boarders on Surgery wards.
+
   To save changes, click the "Save ... .js" button on that page. The first
   time, choose the Workload Planner folder and allow Edge to edit files.
   Changes apply for everyone the next time they open the planner. Keep a
@@ -369,6 +388,11 @@ Use the buttons in the blue bar at the top:
   No CRITICAL MEDS shown
     Check the status box says the critical medicines list is loaded. Only Hx
     patients with unreviewed items (or matching history) are checked.
+
+  A surgeon's patients are listed as Boarders
+    Their mnemonic is missing from (or different on) the Surgeon mnemonics
+    page. Check the mnemonic in the bed's hover text or in Patient details,
+    and add or correct it.
 
   A ward is missing from the table
     Check it's on the Ward directory page with the right directorate. Wards
